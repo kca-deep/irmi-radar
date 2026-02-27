@@ -1,0 +1,72 @@
+{
+  "lastUpdated": "2026-01-19T14:00:00+09:00",
+  "overallScore": 67,
+  "categories": {
+    "prices": {
+      "label": "물가",
+      "score": 72,
+      "trend": "rising",
+      "keyIssues": ["소비자물가 4개월 연속 상승", "식료품 가격 급등"]
+    },
+    "employment": {
+      "label": "고용",
+      "score": 58,
+      "trend": "stable",
+      "keyIssues": ["청년 실업률 보합", "제조업 고용 감소"]
+    },
+    "selfEmployed": {
+      "label": "자영업",
+      "score": 81,
+      "trend": "rising",
+      "keyIssues": ["배달앱 수수료 인상", "소상공인 폐업 증가"]
+    },
+    "finance": {
+      "label": "금융",
+      "score": 63,
+      "trend": "rising",
+      "keyIssues": ["가계부채 증가", "신용카드 연체율 상승"]
+    },
+    "realEstate": {
+      "label": "부동산",
+      "score": 55,
+      "trend": "falling",
+      "keyIssues": ["전세 사기 우려", "월세 전환 가속"]
+    }
+  },
+  "signalStats": {
+    "critical": 2,
+    "warning": 5,
+    "caution": 8,
+    "surging": 2
+  },
+  "recentSignals": [
+    {
+      "id": "sig-001",
+      "title": "배달앱 수수료 인상 관련 소상공인 부담 급증",
+      "severity": "critical",
+      "category": "selfEmployed",
+      "date": "2026-01-19"
+    },
+    {
+      "id": "sig-002",
+      "title": "설 명절 농축산물 가격 20% 급등",
+      "severity": "critical",
+      "category": "prices",
+      "date": "2026-01-15"
+    },
+    {
+      "id": "sig-003",
+      "title": "신용카드 연체율 상승세 지속",
+      "severity": "warning",
+      "category": "finance",
+      "date": "2026-01-14"
+    },
+    {
+      "id": "sig-004",
+      "title": "수도권 전세 사기 피해 신고 증가 추세",
+      "severity": "caution",
+      "category": "realEstate",
+      "date": "2026-01-12"
+    }
+  ]
+}

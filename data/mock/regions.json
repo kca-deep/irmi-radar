@@ -1,0 +1,117 @@
+{
+  "lastUpdated": "2026-01-19T14:00:00+09:00",
+  "regions": [
+    {
+      "id": "nationwide",
+      "name": "전국",
+      "score": 67,
+      "trend": "rising",
+      "categories": {
+        "prices": 72,
+        "employment": 58,
+        "selfEmployed": 81,
+        "finance": 63,
+        "realEstate": 55
+      },
+      "topIssue": "자영업 부문 위험도 상승"
+    },
+    {
+      "id": "seoul",
+      "name": "서울",
+      "score": 64,
+      "trend": "stable",
+      "categories": {
+        "prices": 68,
+        "employment": 55,
+        "selfEmployed": 78,
+        "finance": 65,
+        "realEstate": 62
+      },
+      "topIssue": "전세 시장 불안 지속"
+    },
+    {
+      "id": "gyeonggi",
+      "name": "경기",
+      "score": 71,
+      "trend": "rising",
+      "categories": {
+        "prices": 74,
+        "employment": 65,
+        "selfEmployed": 83,
+        "finance": 62,
+        "realEstate": 58
+      },
+      "topIssue": "제조업 구조조정 및 자영업 폐업 증가"
+    },
+    {
+      "id": "incheon",
+      "name": "인천",
+      "score": 62,
+      "trend": "stable",
+      "categories": {
+        "prices": 70,
+        "employment": 57,
+        "selfEmployed": 75,
+        "finance": 58,
+        "realEstate": 52
+      },
+      "topIssue": "물가 상승 체감도 증가"
+    },
+    {
+      "id": "busan",
+      "name": "부산",
+      "score": 69,
+      "trend": "rising",
+      "categories": {
+        "prices": 71,
+        "employment": 63,
+        "selfEmployed": 80,
+        "finance": 66,
+        "realEstate": 54
+      },
+      "topIssue": "자영업 폐업률 전국 최고 수준"
+    },
+    {
+      "id": "daegu",
+      "name": "대구",
+      "score": 59,
+      "trend": "stable",
+      "categories": {
+        "prices": 65,
+        "employment": 56,
+        "selfEmployed": 72,
+        "finance": 55,
+        "realEstate": 48
+      },
+      "topIssue": "섬유 산업 경기 둔화"
+    },
+    {
+      "id": "gwangju",
+      "name": "광주",
+      "score": 56,
+      "trend": "falling",
+      "categories": {
+        "prices": 63,
+        "employment": 52,
+        "selfEmployed": 68,
+        "finance": 53,
+        "realEstate": 45
+      },
+      "topIssue": "지역 소비 경기 회복 조짐"
+    },
+    {
+      "id": "daejeon",
+      "name": "대전",
+      "score": 58,
+      "trend": "stable",
+      "categories": {
+        "prices": 64,
+        "employment": 54,
+        "selfEmployed": 70,
+        "finance": 56,
+        "realEstate": 50
+      },
+      "topIssue": "공공기관 이전 효과 둔화"
+    }
+  ]
+}

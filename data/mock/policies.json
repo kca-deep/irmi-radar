@@ -1,0 +1,80 @@
+[
+  {
+    "id": "policy-001",
+    "title": "소상공인 경영안정자금",
+    "description": "경영 어려움을 겪는 소상공인에게 저금리 운영자금을 지원하는 정책",
+    "provider": "서울시 / 서울신용보증재단",
+    "contact": "1577-6119",
+    "url": "https://www.seoulshinbo.co.kr",
+    "targetCategories": ["selfEmployed"],
+    "targetRegions": ["서울"],
+    "relatedSignals": ["sig-001", "sig-007"],
+    "eligibility": "매출 감소 또는 경영 악화 소상공인",
+    "benefit": "최대 5천만원, 연 2.5% 이하 저금리 대출"
+  },
+  {
+    "id": "policy-002",
+    "title": "배달 수수료 지원 사업",
+    "description": "배달앱 수수료 부담을 줄이기 위한 정부 보조금 지원",
+    "provider": "중소벤처기업부",
+    "contact": "1357",
+    "url": "https://www.mss.go.kr",
+    "targetCategories": ["selfEmployed"],
+    "targetRegions": ["전국"],
+    "relatedSignals": ["sig-001"],
+    "eligibility": "연매출 2억 이하 배달 의존 소상공인",
+    "benefit": "월 최대 10만원 수수료 보조"
+  },
+  {
+    "id": "policy-003",
+    "title": "서민금융 채무조정 제도",
+    "description": "과중 채무로 어려움을 겪는 서민을 위한 채무 조정 및 금융 상담",
+    "provider": "서민금융진흥원",
+    "contact": "1397",
+    "url": "https://www.kinfa.or.kr",
+    "targetCategories": ["finance"],
+    "targetRegions": ["전국"],
+    "relatedSignals": ["sig-003"],
+    "eligibility": "연소득 4,500만원 이하 또는 채무 과중자",
+    "benefit": "이자율 인하, 상환기간 연장, 원금 감면 등"
+  },
+  {
+    "id": "policy-004",
+    "title": "긴급 주거 지원 프로그램",
+    "description": "전세보증금 미반환 등 주거 위기 상황에 대한 긴급 지원",
+    "provider": "한국토지주택공사(LH)",
+    "contact": "1600-1004",
+    "url": "https://www.lh.or.kr",
+    "targetCategories": ["realEstate"],
+    "targetRegions": ["전국"],
+    "relatedSignals": ["sig-004"],
+    "eligibility": "전세사기 피해자 또는 보증금 미반환 피해자",
+    "benefit": "긴급 주거 제공, 보증금 반환 법률 지원"
+  },
+  {
+    "id": "policy-005",
+    "title": "취약계층 에너지 바우처",
+    "description": "공공요금 인상에 따른 저소득 가구 에너지비 지원",
+    "provider": "한국에너지공단",
+    "contact": "1600-3190",
+    "url": "https://www.energy.or.kr",
+    "targetCategories": ["prices"],
+    "targetRegions": ["전국"],
+    "relatedSignals": ["sig-006"],
+    "eligibility": "기초생활수급자, 차상위계층 등 에너지 취약계층",
+    "benefit": "가구원 수 기준 연간 최대 22만원 에너지 바우처"
+  },
+  {
+    "id": "policy-006",
+    "title": "고용유지지원금",
+    "description": "경영 악화로 고용 조정이 불가피한 사업주가 휴업/휴직 실시 시 인건비 지원",
+    "provider": "고용노동부",
+    "contact": "1350",
+    "url": "https://www.moel.go.kr",
+    "targetCategories": ["employment"],
+    "targetRegions": ["전국"],
+    "relatedSignals": ["sig-005"],
+    "eligibility": "매출 또는 생산량 15% 이상 감소 사업주",
+    "benefit": "휴업수당의 2/3 지원 (1인 1일 최대 66,000원)"
+  }
+]

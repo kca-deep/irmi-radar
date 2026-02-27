@@ -1,0 +1,177 @@
+[
+  {
+    "id": "sig-001",
+    "title": "배달앱 수수료 인상 관련 소상공인 부담 급증",
+    "description": "최근 1주일간 배달앱 수수료 인상 관련 기사가 급증하며, 소상공인들의 경영난 호소 증가",
+    "severity": "critical",
+    "category": "selfEmployed",
+    "categoryLabel": "자영업",
+    "region": "전국",
+    "relatedArticleCount": 47,
+    "detectedAt": "2026-01-19",
+    "evidence": [
+      "배달의민족, 쿠팡이츠 수수료 평균 2.5%p 인상 발표",
+      "소상공인연합회 긴급 성명 발표",
+      "폐업 상담 전주 대비 35% 증가"
+    ],
+    "analysis": {
+      "cause": "플랫폼 기업의 수익성 확보 전략과 소상공인 비용 부담 간 충돌",
+      "impact": "자영업자 수익성 악화, 배달 음식 가격 인상 가능성, 소비자 부담 전가",
+      "actionPoints": [
+        "소상공인 수수료 지원 정책 검토",
+        "배달 대안 플랫폼 정보 제공",
+        "직접 배달 전환 지원 프로그램 안내"
+      ]
+    }
+  },
+  {
+    "id": "sig-002",
+    "title": "설 명절 농축산물 가격 20% 급등",
+    "description": "설 명절을 앞두고 농축산물 주요 품목의 대형마트 대비 20% 이상 상승하며 가계 부담 증가",
+    "severity": "critical",
+    "category": "prices",
+    "categoryLabel": "물가",
+    "region": "경기",
+    "relatedArticleCount": 63,
+    "detectedAt": "2026-01-15",
+    "evidence": [
+      "한우 1등급 100g 기준 전년 동기 대비 22% 상승",
+      "배추/무 등 김장 채소류 30% 이상 급등",
+      "대형마트 3사 할인 행사 확대에도 체감 물가 상승"
+    ],
+    "analysis": {
+      "cause": "기후 이상에 따른 작황 부진, 사료비 상승, 명절 수요 집중",
+      "impact": "서민 가계 식비 부담 증가, 외식업 원가 상승 압박",
+      "actionPoints": [
+        "농산물 직거래 장터 확대 운영",
+        "취약계층 명절 물가 지원금 검토",
+        "비축 물량 방출 시점 조율"
+      ]
+    }
+  },
+  {
+    "id": "sig-003",
+    "title": "신용카드 연체율 상승세 지속",
+    "description": "20~30대 신용카드 연체율이 3개월 연속 상승하며 금융 건전성 우려 확대",
+    "severity": "warning",
+    "category": "finance",
+    "categoryLabel": "금융",
+    "region": "수도권",
+    "relatedArticleCount": 28,
+    "detectedAt": "2026-01-14",
+    "evidence": [
+      "20대 카드 연체율 전분기 대비 0.3%p 상승",
+      "소액 다중채무자 비율 역대 최고",
+      "금융당국 소비자 경보 발령 검토 중"
+    ],
+    "analysis": {
+      "cause": "고금리 장기화에 따른 이자 부담 증가, 청년층 소비 패턴 변화",
+      "impact": "개인 신용등급 하락, 추가 대출 제한, 소비 위축 가능성",
+      "actionPoints": [
+        "청년 금융교육 프로그램 강화",
+        "서민금융 상담 창구 확대 운영",
+        "채무 조정 제도 홍보 강화"
+      ]
+    }
+  },
+  {
+    "id": "sig-004",
+    "title": "수도권 전세 사기 피해 상담 급증",
+    "description": "전세보증보험 미가입 물건 관련 피해 상담이 전월 대비 45% 증가",
+    "severity": "warning",
+    "category": "realEstate",
+    "categoryLabel": "부동산",
+    "region": "서울",
+    "relatedArticleCount": 35,
+    "detectedAt": "2026-01-12",
+    "evidence": [
+      "서울시 전세피해지원센터 상담 건수 전월 대비 45% 증가",
+      "빌라 밀집 지역 중심 깡통전세 우려 확산",
+      "전세보증보험 가입 거부 사례 다수 보도"
+    ],
+    "analysis": {
+      "cause": "역전세난 장기화, 임대인 자금 경색, 보증보험 심사 강화",
+      "impact": "세입자 보증금 미반환 위험, 주거 불안정 확대",
+      "actionPoints": [
+        "전세피해 예방 가이드 배포",
+        "긴급 주거 지원 프로그램 안내",
+        "전세보증보험 가입 지원 확대"
+      ]
+    }
+  },
+  {
+    "id": "sig-005",
+    "title": "제조업 구조조정 신호 감지",
+    "description": "주요 제조업체 희망퇴직 공고가 전년 동기 대비 2배 증가하며 고용 불안 확대",
+    "severity": "warning",
+    "category": "employment",
+    "categoryLabel": "고용",
+    "region": "경기",
+    "relatedArticleCount": 22,
+    "detectedAt": "2026-01-10",
+    "evidence": [
+      "자동차 부품사 3곳 희망퇴직 실시",
+      "경기도 제조업 고용보험 피보험자 수 3개월 연속 감소",
+      "산업단지 공실률 상승 추세"
+    ],
+    "analysis": {
+      "cause": "내수 부진, 수출 경쟁력 약화, 자동화 전환 가속",
+      "impact": "지역 경제 위축, 협력업체 연쇄 도산 위험, 실업급여 수급 증가",
+      "actionPoints": [
+        "직업 전환 훈련 프로그램 확대",
+        "고용유지지원금 신청 안내",
+        "지역 일자리 매칭 서비스 강화"
+      ]
+    }
+  },
+  {
+    "id": "sig-006",
+    "title": "공공요금 인상 릴레이 예고",
+    "description": "전기, 가스, 수도 요금 동시 인상 논의가 진행 중이며 가계 고정비 부담 확대 우려",
+    "severity": "warning",
+    "category": "prices",
+    "categoryLabel": "물가",
+    "region": "전국",
+    "relatedArticleCount": 41,
+    "detectedAt": "2026-01-08",
+    "evidence": [
+      "한국전력 적자 해소 위해 전기요금 추가 인상 검토",
+      "도시가스 요금 4월 인상 확정",
+      "지자체별 수도요금 인상안 속속 발표"
+    ],
+    "analysis": {
+      "cause": "에너지 원가 상승, 공기업 재무건전성 악화, 물가 연동 구조",
+      "impact": "가계 고정비 증가, 자영업자 운영비 상승, 복합 물가 압력",
+      "actionPoints": [
+        "에너지 바우처 지원 대상 확대 검토",
+        "취약계층 요금 감면 제도 홍보",
+        "에너지 절약 캠페인 강화"
+      ]
+    }
+  },
+  {
+    "id": "sig-007",
+    "title": "프랜차이즈 가맹점 폐업률 상승",
+    "description": "주요 프랜차이즈 가맹점의 개점 대비 폐업 비율이 전년 대비 15%p 상승",
+    "severity": "caution",
+    "category": "selfEmployed",
+    "categoryLabel": "자영업",
+    "region": "전국",
+    "relatedArticleCount": 18,
+    "detectedAt": "2026-01-06",
+    "evidence": [
+      "공정위 정보공개서 기준 주요 10개 브랜드 폐업률 평균 12.3%",
+      "가맹본부-가맹점 간 분쟁 조정 신청 증가",
+      "창업비용 대비 수익성 악화 호소 증가"
+    ],
+    "analysis": {
+      "cause": "과밀 출점, 본부 정책 변경, 인건비/원자재비 동반 상승",
+      "impact": "예비 창업자 투자 손실, 가맹 생태계 신뢰 하락",
+      "actionPoints": [
+        "가맹 사업 정보공개서 열람 안내",
+        "창업 전 수익성 분석 상담 지원",
+        "폐업 지원 프로그램 연결"
+      ]
+    }
+  }
+]

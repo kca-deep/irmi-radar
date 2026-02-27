@@ -1,0 +1,88 @@
+{
+  "nodes": [
+    { "id": "prices", "label": "물가", "score": 72 },
+    { "id": "employment", "label": "고용", "score": 58 },
+    { "id": "selfEmployed", "label": "자영업", "score": 81 },
+    { "id": "finance", "label": "금융", "score": 63 },
+    { "id": "realEstate", "label": "부동산", "score": 55 }
+  ],
+  "edges": [
+    {
+      "from": "prices",
+      "to": "selfEmployed",
+      "label": "원자재비 상승",
+      "strength": "strong"
+    },
+    {
+      "from": "prices",
+      "to": "finance",
+      "label": "가계 지출 증가로 대출 의존",
+      "strength": "moderate"
+    },
+    {
+      "from": "selfEmployed",
+      "to": "employment",
+      "label": "폐업 증가로 일자리 감소",
+      "strength": "strong"
+    },
+    {
+      "from": "selfEmployed",
+      "to": "finance",
+      "label": "사업자 대출 부실화",
+      "strength": "strong"
+    },
+    {
+      "from": "finance",
+      "to": "realEstate",
+      "label": "대출 규제로 매수 위축",
+      "strength": "moderate"
+    },
+    {
+      "from": "finance",
+      "to": "selfEmployed",
+      "label": "자금 조달 어려움",
+      "strength": "moderate"
+    },
+    {
+      "from": "realEstate",
+      "to": "finance",
+      "label": "전세보증금 미반환 부실",
+      "strength": "moderate"
+    },
+    {
+      "from": "employment",
+      "to": "finance",
+      "label": "소득 감소로 연체 증가",
+      "strength": "strong"
+    },
+    {
+      "from": "employment",
+      "to": "prices",
+      "label": "소비 위축으로 디플레이션 압력",
+      "strength": "weak"
+    }
+  ],
+  "chains": [
+    {
+      "id": "chain-001",
+      "name": "물가-자영업 연쇄",
+      "description": "물가 상승이 자영업을 거쳐 고용과 금융까지 파급",
+      "path": ["prices", "selfEmployed", "employment", "finance"],
+      "currentlyActive": true
+    },
+    {
+      "id": "chain-002",
+      "name": "금융-부동산 연쇄",
+      "description": "금융 불안이 부동산 시장으로 전이",
+      "path": ["finance", "realEstate", "finance"],
+      "currentlyActive": false
+    },
+    {
+      "id": "chain-003",
+      "name": "자영업-금융 연쇄",
+      "description": "자영업 폐업 증가가 금융 부실로 확산",
+      "path": ["selfEmployed", "finance", "selfEmployed"],
+      "currentlyActive": true
+    }
+  ]
+}
