@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/layout/app-header";
+import { PeriodProvider } from "@/contexts/period-context";
 
 export default function TabsLayout({
   children,
@@ -6,11 +7,13 @@ export default function TabsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen bg-background">
-      <AppHeader />
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        {children}
-      </main>
-    </div>
+    <PeriodProvider>
+      <div className="relative min-h-screen bg-background">
+        <AppHeader />
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          {children}
+        </main>
+      </div>
+    </PeriodProvider>
   );
 }

@@ -25,11 +25,11 @@ export function DashboardPage({ dashboard, briefing }: DashboardPageProps) {
           <AiBriefingPanel briefing={briefing} />
         </div>
 
-        {/* Summary (gauge + stats) - spans 2 cols on lg */}
+        {/* Summary (gauge + trend chart) - spans 2 cols on lg */}
         <div className="lg:col-span-2">
           <DashboardSummary
             overallScore={dashboard.overallScore}
-            stats={dashboard.signalStats}
+            scoreHistory={dashboard.scoreHistory}
           />
         </div>
 
@@ -38,7 +38,10 @@ export function DashboardPage({ dashboard, briefing }: DashboardPageProps) {
 
         {/* Recent signals - spans 2 cols on sm */}
         <div className="sm:col-span-2">
-          <RecentSignals signals={dashboard.recentSignals} />
+          <RecentSignals
+            signals={dashboard.recentSignals}
+            stats={dashboard.signalStats}
+          />
         </div>
 
         {/* Forecast */}

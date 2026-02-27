@@ -21,6 +21,20 @@ const SCORE_TEXT_CLASS: Record<string, string> = {
   safe: "text-safe",
 };
 
+const BORDER_HOVER_CLASS: Record<string, string> = {
+  danger: "hover:border-danger/50",
+  warning: "hover:border-warning/50",
+  caution: "hover:border-caution/50",
+  safe: "hover:border-safe/50",
+};
+
+const BG_HOVER_CLASS: Record<string, string> = {
+  danger: "hover:bg-danger/5",
+  warning: "hover:bg-warning/5",
+  caution: "hover:bg-caution/5",
+  safe: "hover:bg-safe/5",
+};
+
 export function ForecastPanel({ forecast }: ForecastPanelProps) {
   return (
     <div className="rounded-xl border border-border/50 bg-card p-5">
@@ -47,8 +61,8 @@ export function ForecastPanel({ forecast }: ForecastPanelProps) {
         <TypingMarkdownText text={forecast.outlook} speed={15} />
       </p>
 
-      {/* Scenario comparison */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      {/* Scenario comparison with hover effects */}
+      <div className="group/scenarios mt-4 grid gap-3 sm:grid-cols-2">
         {forecast.scenarios.map((scenario) => {
           const severity = getSeverityByScore(scenario.overallScore);
           const colorToken = SEVERITY_COLOR_MAP[severity];
@@ -56,7 +70,13 @@ export function ForecastPanel({ forecast }: ForecastPanelProps) {
           return (
             <div
               key={scenario.type}
-              className="rounded-lg bg-muted/50 p-3"
+              className={cn(
+                "rounded-lg border border-transparent bg-muted/50 p-3",
+                "cursor-default transition-all duration-200 ease-out",
+                "group-hover/scenarios:opacity-60 hover:!opacity-100",
+                BORDER_HOVER_CLASS[colorToken],
+                BG_HOVER_CLASS[colorToken]
+              )}
             >
               <div className="flex items-baseline justify-between">
                 <span className="text-[10px] font-medium text-muted-foreground">
@@ -64,7 +84,8 @@ export function ForecastPanel({ forecast }: ForecastPanelProps) {
                 </span>
                 <span
                   className={cn(
-                    "text-lg font-bold tabular-nums",
+                    "text-lg font-bold tabular-nums transition-transform duration-200",
+                    "hover:scale-110",
                     SCORE_TEXT_CLASS[colorToken]
                   )}
                 >

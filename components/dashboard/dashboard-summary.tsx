@@ -1,16 +1,16 @@
 import { RiskGauge } from "@/components/dashboard/risk-gauge";
-import { SignalStats } from "@/components/dashboard/signal-stats";
+import { ScoreTrendChart } from "@/components/dashboard/score-trend-chart";
 
-import type { SignalStats as SignalStatsType } from "@/lib/types";
+import type { ScoreHistoryEntry } from "@/lib/types";
 
 interface DashboardSummaryProps {
   overallScore: number;
-  stats: SignalStatsType;
+  scoreHistory: ScoreHistoryEntry[];
 }
 
 export function DashboardSummary({
   overallScore,
-  stats,
+  scoreHistory,
 }: DashboardSummaryProps) {
   return (
     <div className="rounded-xl border border-border/50 bg-card p-5">
@@ -27,12 +27,12 @@ export function DashboardSummary({
         <div className="hidden h-40 w-px bg-border/50 sm:block" />
         <div className="h-px w-full bg-border/50 sm:hidden" />
 
-        {/* Signal stats */}
+        {/* Score trend chart */}
         <div className="w-full flex-1">
-          <div className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-            신호 현황
+          <div className="mb-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            점수 추이
           </div>
-          <SignalStats stats={stats} />
+          <ScoreTrendChart history={scoreHistory} />
         </div>
       </div>
     </div>

@@ -14,7 +14,7 @@ export function CategoryRiskList({ categories }: CategoryRiskListProps) {
         카테고리별 위험도
       </div>
       <div className="flex flex-col gap-3">
-        {CATEGORIES.map((cat) => {
+        {CATEGORIES.map((cat, index) => {
           const risk = categories[cat.key];
           return (
             <CategoryRiskBar
@@ -23,6 +23,8 @@ export function CategoryRiskList({ categories }: CategoryRiskListProps) {
               label={cat.label}
               score={risk.score}
               trend={risk.trend}
+              keyIssues={risk.keyIssues}
+              index={index}
             />
           );
         })}

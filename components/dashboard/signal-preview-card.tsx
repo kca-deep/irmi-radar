@@ -25,6 +25,13 @@ const BADGE_CLASS: Record<string, string> = {
   safe: "bg-safe text-safe-foreground",
 };
 
+const GLOW_CLASS: Record<string, string> = {
+  critical: "hover:shadow-[0_4px_16px_oklch(0.704_0.191_22.216/0.15)]",
+  warning: "hover:shadow-[0_4px_16px_oklch(0.795_0.184_60.0/0.15)]",
+  caution: "hover:shadow-[0_4px_16px_oklch(0.852_0.17_88.0/0.12)]",
+  safe: "hover:shadow-[0_4px_16px_oklch(0.696_0.17_152.0/0.15)]",
+};
+
 export function SignalPreviewCard({ signal }: SignalPreviewCardProps) {
   const severityLabel = SEVERITY_LABEL_MAP[signal.severity];
   const categoryLabel = CATEGORY_LABEL_MAP[signal.category];
@@ -32,8 +39,11 @@ export function SignalPreviewCard({ signal }: SignalPreviewCardProps) {
   return (
     <div
       className={cn(
-        "rounded-lg border border-border/50 px-4 py-3 transition-colors",
-        BG_CLASS[signal.severity]
+        "cursor-pointer rounded-lg border border-border/50 px-4 py-3",
+        "transition-all duration-200 ease-out",
+        "hover:-translate-y-0.5",
+        BG_CLASS[signal.severity],
+        GLOW_CLASS[signal.severity]
       )}
     >
       <div className="flex items-start gap-2">

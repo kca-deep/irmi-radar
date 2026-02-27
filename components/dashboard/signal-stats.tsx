@@ -7,6 +7,7 @@ import {
   EyeIcon,
   ArrowUpRight01Icon,
 } from "@hugeicons/core-free-icons";
+import { useCountUp } from "@/hooks/useCountUp";
 
 import type { SignalStats as SignalStatsType } from "@/lib/types";
 
@@ -45,29 +46,42 @@ const STAT_ITEMS = [
   },
 ];
 
+function StatCard({
+  item,
+  value,
+}: {
+  item: (typeof STAT_ITEMS)[number];
+  value: number;
+}) {
+  const animatedValue = useCountUp(value, 800);
+
+  return (
+    <div
+      className={`flex flex-col items-center gap-1 rounded-lg px-3 py-3 ${item.bgClass}`}
+    >
+      <div className="flex items-center gap-1.5">
+        <HugeiconsIcon
+          icon={item.icon}
+          size={14}
+          strokeWidth={2}
+          className={item.colorClass}
+        />
+        <span className="text-[10px] font-medium text-muted-foreground">
+          {item.label}
+        </span>
+      </div>
+      <span className={`text-xl font-bold tabular-nums ${item.colorClass}`}>
+        {animatedValue}
+      </span>
+    </div>
+  );
+}
+
 export function SignalStats({ stats }: SignalStatsProps) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {STAT_ITEMS.map((item) => (
-        <div
-          key={item.key}
-          className={`flex flex-col items-center gap-1 rounded-lg px-3 py-3 ${item.bgClass}`}
-        >
-          <div className="flex items-center gap-1.5">
-            <HugeiconsIcon
-              icon={item.icon}
-              size={14}
-              strokeWidth={2}
-              className={item.colorClass}
-            />
-            <span className="text-[10px] font-medium text-muted-foreground">
-              {item.label}
-            </span>
-          </div>
-          <span className={`text-xl font-bold tabular-nums ${item.colorClass}`}>
-            {stats[item.key]}
-          </span>
-        </div>
+        <StatCard key={item.key} item={item} value={stats[item.key]} />
       ))}
     </div>
   );

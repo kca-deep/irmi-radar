@@ -37,6 +37,15 @@ export interface SignalPreview {
   date: string;
 }
 
+// -- 점수 이력 --
+export interface ScoreHistoryEntry {
+  date: string;
+  score: number;
+}
+
+// -- 기간 키 --
+export type PeriodKey = "1w" | "1m" | "3m";
+
 // -- 대시보드 데이터 --
 export interface DashboardData {
   lastUpdated: string;
@@ -44,6 +53,7 @@ export interface DashboardData {
   categories: Record<CategoryKey, CategoryRisk>;
   signalStats: SignalStats;
   recentSignals: SignalPreview[];
+  scoreHistory: ScoreHistoryEntry[];
 }
 
 // -- 신호 상세 분석 --

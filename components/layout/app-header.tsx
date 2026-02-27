@@ -22,7 +22,9 @@ import {
   MapsLocation01Icon,
 } from "@hugeicons/core-free-icons";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { usePeriod } from "@/contexts/period-context";
 import { cn } from "@/lib/utils";
+import type { PeriodKey } from "@/lib/types";
 import type { IconSvgElement } from "@hugeicons/react";
 
 const periodItems = PERIOD_OPTIONS.map((o) => ({
@@ -45,6 +47,7 @@ const TABS: TabItem[] = [
 
 export function AppHeader() {
   const pathname = usePathname();
+  const { period, setPeriod } = usePeriod();
 
   return (
     <header
@@ -105,7 +108,7 @@ export function AppHeader() {
 
         {/* Right: Controls */}
         <div className="flex shrink-0 items-center gap-2">
-          <Select items={periodItems} defaultValue="1w">
+          <Select items={periodItems} value={period} onValueChange={(v) => setPeriod(v as PeriodKey)}>
             <SelectTrigger size="sm" className="w-[110px]">
               <SelectValue placeholder="기간 선택" />
             </SelectTrigger>
