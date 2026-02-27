@@ -13,21 +13,27 @@ export function DashboardSummary({
   stats,
 }: DashboardSummaryProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {/* Risk gauge */}
-      <div className="flex flex-col items-center justify-center rounded-xl border border-border/50 bg-card p-6">
-        <div className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-          종합 점수
+    <div className="rounded-xl border border-border/50 bg-card p-5">
+      <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
+        {/* Gauge - hero size */}
+        <div className="flex shrink-0 flex-col items-center">
+          <div className="mb-2 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            종합 점수
+          </div>
+          <RiskGauge score={overallScore} />
         </div>
-        <RiskGauge score={overallScore} />
-      </div>
 
-      {/* Signal stats */}
-      <div className="rounded-xl border border-border/50 bg-card p-5">
-        <div className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-          신호 현황
+        {/* Divider */}
+        <div className="hidden h-40 w-px bg-border/50 sm:block" />
+        <div className="h-px w-full bg-border/50 sm:hidden" />
+
+        {/* Signal stats */}
+        <div className="w-full flex-1">
+          <div className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+            신호 현황
+          </div>
+          <SignalStats stats={stats} />
         </div>
-        <SignalStats stats={stats} />
       </div>
     </div>
   );
