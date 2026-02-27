@@ -4,15 +4,17 @@ import { CategoryRiskList } from "@/components/dashboard/category-risk-list";
 import { RecentSignals } from "@/components/dashboard/recent-signals";
 import { AiBriefingPanel } from "@/components/dashboard/ai-briefing-panel";
 import { ForecastPanel } from "@/components/dashboard/forecast-panel";
+import { CrisisChainMap } from "@/components/dashboard/crisis-chain-map";
 
-import type { DashboardData, BriefingData } from "@/lib/types";
+import type { DashboardData, BriefingData, CrisisChainData } from "@/lib/types";
 
 interface DashboardPageProps {
   dashboard: DashboardData;
   briefing: BriefingData;
+  crisisChain: CrisisChainData;
 }
 
-export function DashboardPage({ dashboard, briefing }: DashboardPageProps) {
+export function DashboardPage({ dashboard, briefing, crisisChain }: DashboardPageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -46,6 +48,11 @@ export function DashboardPage({ dashboard, briefing }: DashboardPageProps) {
 
         {/* Forecast */}
         <ForecastPanel forecast={briefing.forecast} />
+
+        {/* Crisis Chain Map - spans 2 cols on lg */}
+        <div className="sm:col-span-2">
+          <CrisisChainMap data={crisisChain} />
+        </div>
       </div>
     </div>
   );

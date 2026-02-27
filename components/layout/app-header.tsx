@@ -19,7 +19,6 @@ import {
   DashboardSquare01Icon,
   Alert02Icon,
   News01Icon,
-  MapsLocation01Icon,
 } from "@hugeicons/core-free-icons";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { usePeriod } from "@/contexts/period-context";
@@ -42,7 +41,6 @@ const TABS: TabItem[] = [
   { href: "/", label: "대시보드", icon: DashboardSquare01Icon },
   { href: "/signals", label: "위기 신호", icon: Alert02Icon },
   { href: "/news", label: "뉴스 분석", icon: News01Icon },
-  { href: "/regions", label: "지역별 현황", icon: MapsLocation01Icon },
 ];
 
 export function AppHeader() {

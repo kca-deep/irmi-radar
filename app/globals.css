@@ -162,6 +162,35 @@
   }
 }
 
+/* Chain map animations */
+@keyframes chain-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes chain-flow {
+  from {
+    stroke-dashoffset: 20;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-chain-pulse {
+  animation: chain-pulse 2s ease-in-out infinite;
+}
+
+.animate-chain-flow {
+  animation: chain-flow 1s linear infinite;
+}
+
 @media print {
   [data-slot="app-header"] {
     display: none !important;

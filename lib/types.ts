@@ -100,6 +100,16 @@ export interface RegionRisk {
   topIssue: string;
 }
 
+// -- 지역 점수 (지도용) --
+export interface RegionScore {
+  id: string;
+  name: string;
+  score: number;
+  severity: Severity;
+  signalCount: number;
+  topSignal?: string;
+}
+
 // -- 지역별 현황 데이터 --
 export interface RegionsData {
   lastUpdated: string;

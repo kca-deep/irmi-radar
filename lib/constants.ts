@@ -96,7 +96,7 @@ export function getSeverityByScore(score: number): Severity {
   return "safe";
 }
 
-// -- 지역 정의 --
+// -- 지역 정의 (17개 시도) --
 export const REGIONS: { id: string; name: string }[] = [
   { id: "nationwide", name: "전국" },
   { id: "seoul", name: "서울" },
@@ -106,6 +106,16 @@ export const REGIONS: { id: string; name: string }[] = [
   { id: "daegu", name: "대구" },
   { id: "gwangju", name: "광주" },
   { id: "daejeon", name: "대전" },
+  { id: "ulsan", name: "울산" },
+  { id: "sejong", name: "세종" },
+  { id: "gangwon", name: "강원" },
+  { id: "chungbuk", name: "충북" },
+  { id: "chungnam", name: "충남" },
+  { id: "jeonbuk", name: "전북" },
+  { id: "jeonnam", name: "전남" },
+  { id: "gyeongbuk", name: "경북" },
+  { id: "gyeongnam", name: "경남" },
+  { id: "jeju", name: "제주" },
 ];
 
 // -- 기간 필터 --
