@@ -1,10 +1,9 @@
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
 import { CategoryRiskList } from "@/components/dashboard/category-risk-list";
-import { RecentSignals } from "@/components/dashboard/recent-signals";
 import { AiBriefingPanel } from "@/components/dashboard/ai-briefing-panel";
 import { ForecastPanel } from "@/components/dashboard/forecast-panel";
-import { CrisisChainMap } from "@/components/dashboard/crisis-chain-map";
+import { UnifiedCrisisPanel } from "@/components/dashboard/unified-crisis-panel";
 
 import type { DashboardData, BriefingData, CrisisChainData } from "@/lib/types";
 
@@ -38,20 +37,18 @@ export function DashboardPage({ dashboard, briefing, crisisChain }: DashboardPag
         {/* Category risk list - 1 col */}
         <CategoryRiskList categories={dashboard.categories} />
 
-        {/* Recent signals - spans 2 cols on sm */}
-        <div className="sm:col-span-2">
-          <RecentSignals
+        {/* Unified Crisis Panel (Chain Map + Signals) - full width */}
+        <div className="sm:col-span-2 lg:col-span-3">
+          <UnifiedCrisisPanel
+            crisisChain={crisisChain}
             signals={dashboard.recentSignals}
-            stats={dashboard.signalStats}
+            signalStats={dashboard.signalStats}
           />
         </div>
 
-        {/* Forecast */}
-        <ForecastPanel forecast={briefing.forecast} />
-
-        {/* Crisis Chain Map - spans 2 cols on lg */}
-        <div className="sm:col-span-2">
-          <CrisisChainMap data={crisisChain} />
+        {/* Forecast - full width */}
+        <div className="sm:col-span-2 lg:col-span-3">
+          <ForecastPanel forecast={briefing.forecast} />
         </div>
       </div>
     </div>

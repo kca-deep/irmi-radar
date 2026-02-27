@@ -7,7 +7,7 @@ import { ChainVisualization } from "./chain-visualization";
 import { ChainDetail } from "./chain-detail";
 import { ChainLegend } from "./chain-legend";
 
-import type { CrisisChainData } from "@/lib/types";
+import type { CrisisChainData, CategoryKey } from "@/lib/types";
 
 interface CrisisChainMapProps {
   data: CrisisChainData;
@@ -15,11 +15,22 @@ interface CrisisChainMapProps {
 
 export function CrisisChainMap({ data }: CrisisChainMapProps) {
   const [selectedChainId, setSelectedChainId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<CategoryKey | null>(null);
 
   const activeChainCount = data.chains.filter((c) => c.currentlyActive).length;
   const selectedChain = selectedChainId
     ? data.chains.find((c) => c.id === selectedChainId) ?? null
     : null;
+
+  const handleNodeSelect = (nodeId: CategoryKey) => {
+    setSelectedNodeId(nodeId);
+    setSelectedChainId(null);
+  };
+
+  const handleChainSelect = (chainId: string | null) => {
+    setSelectedChainId(chainId);
+    setSelectedNodeId(null);
+  };
 
   return (
     <Card className="py-4">
@@ -31,7 +42,9 @@ export function CrisisChainMap({ data }: CrisisChainMapProps) {
           edges={data.edges}
           chains={data.chains}
           selectedChainId={selectedChainId}
-          onChainSelect={setSelectedChainId}
+          selectedNodeId={selectedNodeId}
+          onChainSelect={handleChainSelect}
+          onNodeSelect={handleNodeSelect}
         />
 
         <ChainDetail selectedChain={selectedChain} nodes={data.nodes} />

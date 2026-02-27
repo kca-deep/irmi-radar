@@ -10,7 +10,9 @@ interface ChainVisualizationProps {
   edges: CrisisEdge[];
   chains: CrisisChain[];
   selectedChainId: string | null;
+  selectedNodeId: CategoryKey | null;
   onChainSelect: (chainId: string | null) => void;
+  onNodeSelect: (nodeId: CategoryKey) => void;
 }
 
 // Pentagon node positions (center: 150, 120, radius: 80)
@@ -47,7 +49,9 @@ export function ChainVisualization({
   edges,
   chains,
   selectedChainId,
+  selectedNodeId,
   onChainSelect,
+  onNodeSelect,
 }: ChainVisualizationProps) {
   const selectedChain = selectedChainId
     ? chains.find((c) => c.id === selectedChainId)
@@ -183,22 +187,41 @@ export function ChainVisualization({
         {nodes.map((node) => {
           const pos = NODE_POSITIONS[node.id];
           const isActive = activeNodeSet.has(node.id);
+          const isSelected = selectedNodeId === node.id;
 
           return (
             <g
               key={node.id}
-              className={cn(isActive && "animate-chain-pulse")}
+              className={cn(
+                "cursor-pointer transition-transform",
+                isActive && !isSelected && "animate-chain-pulse"
+              )}
               style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
+              onClick={() => onNodeSelect(node.id)}
             >
+              {/* Selection ring */}
+              {isSelected && (
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={NODE_RADIUS + 4}
+                  fill="none"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  strokeDasharray="4 2"
+                  className="animate-spin"
+                  style={{ animationDuration: "8s" }}
+                />
+              )}
               {/* Node circle */}
               <circle
                 cx={pos.x}
                 cy={pos.y}
                 r={NODE_RADIUS}
                 fill={getSeverityFill(node.score)}
-                opacity={isActive ? 1 : 0.7}
-                stroke={isActive ? "var(--foreground)" : "none"}
-                strokeWidth={isActive ? 2 : 0}
+                opacity={isSelected ? 1 : isActive ? 1 : 0.7}
+                stroke={isSelected ? "var(--foreground)" : isActive ? "var(--foreground)" : "none"}
+                strokeWidth={isSelected ? 3 : isActive ? 2 : 0}
               />
               {/* Score text */}
               <text
@@ -209,6 +232,7 @@ export function ChainVisualization({
                 fill="white"
                 fontSize="11"
                 fontWeight="600"
+                style={{ pointerEvents: "none" }}
               >
                 {node.score}
               </text>
@@ -217,9 +241,10 @@ export function ChainVisualization({
                 x={pos.x}
                 y={pos.y + NODE_RADIUS + 12}
                 textAnchor="middle"
-                fill="var(--foreground)"
+                fill={isSelected ? "var(--primary)" : "var(--foreground)"}
                 fontSize="9"
-                fontWeight="500"
+                fontWeight={isSelected ? "600" : "500"}
+                style={{ pointerEvents: "none" }}
               >
                 {node.label}
               </text>
