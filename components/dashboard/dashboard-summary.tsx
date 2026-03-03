@@ -13,7 +13,7 @@ export function DashboardSummary({
   scoreHistory,
 }: DashboardSummaryProps) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
+    <div className="rounded-xl border border-score-accent/20 bg-score-surface p-5">
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
         {/* Gauge - hero size */}
         <div className="flex shrink-0 flex-col items-center">

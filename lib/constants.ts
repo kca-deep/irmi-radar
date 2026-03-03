@@ -1,4 +1,9 @@
-import type { CategoryKey, Severity } from "@/lib/types";
+import type {
+  CategoryKey,
+  Severity,
+  AnalysisPeriodPreset,
+  AnalysisStep,
+} from "@/lib/types";
 
 // -- 카테고리 정의 --
 export const CATEGORIES: {
@@ -124,3 +129,44 @@ export const PERIOD_OPTIONS: { value: string; label: string }[] = [
   { value: "1m", label: "최근 1개월" },
   { value: "3m", label: "최근 3개월" },
 ];
+
+// -- 분석 기간 프리셋 --
+export const ANALYSIS_PERIOD_PRESETS: {
+  key: AnalysisPeriodPreset;
+  label: string;
+  days: number | null;
+}[] = [
+  { key: "1w", label: "1주", days: 7 },
+  { key: "1m", label: "1개월", days: 30 },
+  { key: "3m", label: "3개월", days: 90 },
+  { key: "6m", label: "6개월", days: 180 },
+  { key: "1y", label: "1년", days: 365 },
+  { key: "all", label: "전체", days: null },
+  { key: "custom", label: "직접 설정", days: null },
+];
+
+// -- 분석 단계 정의 (7단계) --
+export const ANALYSIS_STEPS: Omit<AnalysisStep, "status">[] = [
+  { id: "collect", label: "데이터 수집" },
+  { id: "prices", label: "물가 분석", category: "prices" as CategoryKey },
+  {
+    id: "employment",
+    label: "고용 분석",
+    category: "employment" as CategoryKey,
+  },
+  {
+    id: "selfEmployed",
+    label: "자영업 분석",
+    category: "selfEmployed" as CategoryKey,
+  },
+  { id: "finance", label: "금융 분석", category: "finance" as CategoryKey },
+  {
+    id: "realEstate",
+    label: "부동산 분석",
+    category: "realEstate" as CategoryKey,
+  },
+  { id: "aggregate", label: "종합 리스크 산출" },
+];
+
+// -- 분석 예상 소요 시간 (기사 1건당 초) --
+export const ANALYSIS_SECONDS_PER_ARTICLE = 0.3;

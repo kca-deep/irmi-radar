@@ -2,18 +2,18 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSummary } from "@/components/dashboard/dashboard-summary";
 import { CategoryRiskList } from "@/components/dashboard/category-risk-list";
 import { AiBriefingPanel } from "@/components/dashboard/ai-briefing-panel";
-import { ForecastPanel } from "@/components/dashboard/forecast-panel";
 import { UnifiedCrisisPanel } from "@/components/dashboard/unified-crisis-panel";
 
-import type { DashboardData, BriefingData, CrisisChainData } from "@/lib/types";
+import type { DashboardData, BriefingData, CrisisChainData, NewsArticle } from "@/lib/types";
 
 interface DashboardPageProps {
   dashboard: DashboardData;
   briefing: BriefingData;
   crisisChain: CrisisChainData;
+  articles: NewsArticle[];
 }
 
-export function DashboardPage({ dashboard, briefing, crisisChain }: DashboardPageProps) {
+export function DashboardPage({ dashboard, briefing, crisisChain, articles }: DashboardPageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -23,7 +23,7 @@ export function DashboardPage({ dashboard, briefing, crisisChain }: DashboardPag
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* AI Briefing - full width */}
         <div className="sm:col-span-2 lg:col-span-3">
-          <AiBriefingPanel briefing={briefing} />
+          <AiBriefingPanel briefing={briefing} articles={articles} />
         </div>
 
         {/* Summary (gauge + trend chart) - spans 2 cols on lg */}
@@ -46,10 +46,6 @@ export function DashboardPage({ dashboard, briefing, crisisChain }: DashboardPag
           />
         </div>
 
-        {/* Forecast - full width */}
-        <div className="sm:col-span-2 lg:col-span-3">
-          <ForecastPanel forecast={briefing.forecast} />
-        </div>
       </div>
     </div>
   );

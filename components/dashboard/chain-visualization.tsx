@@ -199,19 +199,26 @@ export function ChainVisualization({
               style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
               onClick={() => onNodeSelect(node.id)}
             >
-              {/* Selection ring */}
+              {/* Selection ping rings (radar pulse) */}
               {isSelected && (
-                <circle
-                  cx={pos.x}
-                  cy={pos.y}
-                  r={NODE_RADIUS + 4}
-                  fill="none"
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                  strokeDasharray="4 2"
-                  className="animate-spin"
-                  style={{ animationDuration: "8s" }}
-                />
+                <>
+                  {[0, 0.7, 1.4].map((delay) => (
+                    <circle
+                      key={delay}
+                      cx={pos.x}
+                      cy={pos.y}
+                      r={NODE_RADIUS + 2}
+                      fill="none"
+                      stroke="var(--primary)"
+                      strokeWidth={1.5}
+                      className="animate-selection-ping"
+                      style={{
+                        transformOrigin: `${pos.x}px ${pos.y}px`,
+                        animationDelay: `${delay}s`,
+                      }}
+                    />
+                  ))}
+                </>
               )}
               {/* Node circle */}
               <circle

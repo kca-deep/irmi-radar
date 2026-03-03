@@ -94,7 +94,7 @@ export function SignalCard({ signal, onViewDetail }: SignalCardProps) {
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <HugeiconsIcon icon={News01Icon} size={12} strokeWidth={2} />
-            {signal.relatedArticleCount}건
+            {signal.relatedArticleIds.length}건
           </span>
           <span className="flex items-center gap-1">
             <HugeiconsIcon icon={Calendar03Icon} size={12} strokeWidth={2} />

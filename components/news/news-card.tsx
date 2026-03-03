@@ -10,6 +10,7 @@ import type { NewsArticle, CategoryKey } from "@/lib/types";
 
 interface NewsCardProps {
   article: NewsArticle;
+  onClick?: (article: NewsArticle) => void;
 }
 
 // 카테고리별 배지 색상
@@ -21,7 +22,7 @@ const CATEGORY_BADGE_CLASS: Record<CategoryKey, string> = {
   realEstate: "bg-chart-4/10 text-chart-4 border-chart-4/30",
 };
 
-export function NewsCard({ article }: NewsCardProps) {
+export function NewsCard({ article, onClick }: NewsCardProps) {
   const categoryIcon = CATEGORY_ICON_MAP[article.category];
 
   // 날짜 포맷
@@ -35,8 +36,9 @@ export function NewsCard({ article }: NewsCardProps) {
 
   return (
     <article
+      onClick={() => onClick?.(article)}
       className={cn(
-        "rounded-lg border border-border/50 bg-card p-4",
+        "rounded-lg border border-border/50 bg-card p-4 cursor-pointer",
         "transition-all duration-200 ease-out",
         "hover:-translate-y-0.5 hover:shadow-md hover:border-border"
       )}

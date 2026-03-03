@@ -1,17 +1,18 @@
 "use client";
 
+import { useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AiBrain01Icon } from "@hugeicons/core-free-icons";
+import { AiBrain01Icon, BulbIcon } from "@hugeicons/core-free-icons";
 import { TypingMarkdownText } from "@/components/dashboard/typing-markdown-text";
-import { CATEGORY_ICON_MAP } from "@/lib/icon-maps";
-import { CATEGORY_LABEL_MAP } from "@/lib/constants";
+import { AnalyzedNewsCarousel } from "@/components/news/analyzed-news-carousel";
 import { parseMarkdown } from "@/lib/parse-markdown";
 import { cn } from "@/lib/utils";
 
-import type { BriefingData } from "@/lib/types";
+import type { BriefingData, NewsArticle } from "@/lib/types";
 
 interface AiBriefingPanelProps {
   briefing: BriefingData;
+  articles: NewsArticle[];
 }
 
 function formatTime(iso: string): string {
@@ -37,63 +38,66 @@ function RichText({ text }: { text: string }) {
   );
 }
 
-export function AiBriefingPanel({ briefing }: AiBriefingPanelProps) {
+export function AiBriefingPanel({ briefing, articles }: AiBriefingPanelProps) {
+  const analyzedArticles = useMemo(() => {
+    return articles
+      .filter((a) => a.analysis)
+      .sort((a, b) => (b.analysis?.riskScore ?? 0) - (a.analysis?.riskScore ?? 0));
+  }, [articles]);
+
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
-      {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon
-            icon={AiBrain01Icon}
-            size={16}
-            strokeWidth={2}
-            className="text-primary"
-          />
-          <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-            오늘의 민생 브리핑
+    <div className="space-y-4">
+      {/* 민생 브리핑 서브카드 */}
+      <div className="rounded-xl border border-briefing-accent/20 bg-briefing-surface p-5">
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <HugeiconsIcon
+              icon={AiBrain01Icon}
+              size={16}
+              strokeWidth={2}
+              className="text-briefing-accent"
+            />
+            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+              오늘의 민생 브리핑
+            </span>
+          </div>
+          <span className="text-[10px] text-muted-foreground">
+            {formatTime(briefing.generatedAt)} 생성
           </span>
         </div>
-        <span className="text-[10px] text-muted-foreground">
-          {formatTime(briefing.generatedAt)} 생성
-        </span>
-      </div>
 
-      {/* Summary with typing effect + markdown bold */}
-      <p className="text-xs leading-relaxed">
-        <TypingMarkdownText text={briefing.summary} speed={15} />
-      </p>
+        {/* Summary with typing effect + markdown bold */}
+        <p className="text-xs leading-relaxed">
+          <TypingMarkdownText text={briefing.summary} speed={15} />
+        </p>
 
-      {/* Highlights */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        {briefing.highlights.map((highlight) => (
-          <div
-            key={highlight.category}
-            className="flex items-start gap-2 rounded-lg bg-muted/50 p-3"
-          >
+        {/* AI 분석 뉴스 캐러셀 */}
+        {analyzedArticles.length > 0 && (
+          <div className="mt-4">
+            <AnalyzedNewsCarousel articles={analyzedArticles} />
+          </div>
+        )}
+
+        {/* Recommendation */}
+        <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <div className="mb-2 flex items-center gap-1.5">
             <HugeiconsIcon
-              icon={CATEGORY_ICON_MAP[highlight.category]}
+              icon={BulbIcon}
               size={14}
               strokeWidth={2}
-              className="mt-0.5 shrink-0 text-muted-foreground"
+              className="text-warning"
             />
-            <div>
-              <span className="text-[10px] font-medium text-muted-foreground">
-                {CATEGORY_LABEL_MAP[highlight.category]}
-              </span>
-              <p className="mt-0.5 text-xs leading-relaxed text-foreground">
-                {highlight.message}
-              </p>
-            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-warning">
+              핵심 제언
+            </span>
           </div>
-        ))}
+          <p className="text-xs leading-relaxed text-foreground">
+            <RichText text={briefing.recommendation} />
+          </p>
+        </div>
       </div>
 
-      {/* Recommendation */}
-      <div className="mt-4 border-t border-border/50 pt-3">
-        <p className="text-xs italic leading-relaxed text-muted-foreground">
-          <RichText text={briefing.recommendation} />
-        </p>
-      </div>
     </div>
   );
 }

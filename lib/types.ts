@@ -33,6 +33,7 @@ export interface SignalPreview {
   id: string;
   title: string;
   severity: Severity;
+  score: number;
   category: CategoryKey;
   date: string;
 }
@@ -69,13 +70,26 @@ export interface Signal {
   title: string;
   description: string;
   severity: Severity;
+  score: number;
   category: CategoryKey;
   categoryLabel: string;
   region: string;
-  relatedArticleCount: number;
+  relatedArticleIds: string[];
   detectedAt: string;
   evidence: string[];
   analysis: SignalAnalysis;
+}
+
+// -- 뉴스 기사 AI 분석 메타데이터 --
+export interface NewsArticleAnalysis {
+  riskScore: number;
+  severity: Severity;
+  signalId?: string;
+  signalTitle?: string;
+  keyFactors: string[];
+  relatedCategories: CategoryKey[];
+  impactRegion?: string;
+  summary: string;
 }
 
 // -- 뉴스 기사 --
@@ -88,6 +102,10 @@ export interface NewsArticle {
   keywords: string[];
   publishedAt: string;
   section: string;
+  content?: string;
+  source?: string;
+  region?: string;
+  analysis?: NewsArticleAnalysis;
 }
 
 // -- 지역 리스크 --
@@ -239,6 +257,49 @@ export interface RegionComparison {
     difference: number;
   }[];
 }
+
+// -- 분석 기간 프리셋 --
+export type AnalysisPeriodPreset =
+  | "1w"
+  | "1m"
+  | "3m"
+  | "6m"
+  | "1y"
+  | "all"
+  | "custom";
+
+// -- 분석 단계 상태 --
+export type AnalysisStepStatus = "pending" | "running" | "completed" | "error";
+
+// -- 분석 단계 --
+export interface AnalysisStep {
+  id: string;
+  label: string;
+  status: AnalysisStepStatus;
+  category?: CategoryKey;
+}
+
+// -- 분석 진행 상황 --
+export interface AnalysisProgress {
+  steps: AnalysisStep[];
+  currentStepIndex: number;
+  processedCount: number;
+  totalCount: number;
+  percent: number;
+  elapsedSeconds: number;
+  estimatedRemainingSeconds: number;
+}
+
+// -- 분석 결과 요약 --
+export interface AnalysisResult {
+  overallScore: number;
+  severity: Severity;
+  signalCount: number;
+  elapsedSeconds: number;
+}
+
+// -- 분석 상태 --
+export type AnalysisState = "idle" | "running" | "completed" | "error";
 
 // -- 리포트 메타 --
 export interface ReportMeta {

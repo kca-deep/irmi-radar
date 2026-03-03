@@ -9,7 +9,7 @@ interface CategoryRiskListProps {
 
 export function CategoryRiskList({ categories }: CategoryRiskListProps) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
+    <div className="rounded-xl border border-score-accent/20 bg-score-surface p-5">
       <div className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
         카테고리별 위험도
       </div>

@@ -141,7 +141,7 @@ export function RegionMap({
                       geography={geo}
                       fill={getFillColor(englishName)}
                       fillOpacity={isHovered ? 0.9 : 0.7}
-                      stroke={isSelected ? "var(--primary)" : "var(--border)"}
+                      stroke={isSelected ? "var(--primary)" : "var(--map-border)"}
                       strokeWidth={isSelected ? 2 : 0.5}
                       style={{
                         default: {

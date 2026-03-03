@@ -150,6 +150,16 @@ export function ChatPanel({ isOpen, onClose, chatData }: ChatPanelProps) {
     handleSend(question);
   }, [handleSend]);
 
+  // 대화 초기화
+  const handleReset = useCallback(() => {
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+    }
+    setMessages([]);
+    setIsLoading(false);
+    setTypingMessageId(null);
+  }, []);
+
   // 메시지가 없을 때만 추천 질문 표시
   const showSuggestions = messages.length === 0;
 
@@ -157,7 +167,7 @@ export function ChatPanel({ isOpen, onClose, chatData }: ChatPanelProps) {
     <div
       className={cn(
         "fixed bottom-20 right-4 z-50 flex flex-col",
-        "w-[360px] h-[500px] max-h-[70vh]",
+        "w-[440px] h-[600px] max-h-[80vh]",
         "rounded-xl border border-border/50 bg-card shadow-xl",
         "transition-all duration-300 ease-out",
         isOpen
@@ -166,7 +176,11 @@ export function ChatPanel({ isOpen, onClose, chatData }: ChatPanelProps) {
       )}
     >
       {/* 헤더 */}
-      <ChatHeader onClose={onClose} />
+      <ChatHeader
+        onClose={onClose}
+        onReset={handleReset}
+        hasMessages={messages.length > 0}
+      />
 
       {/* 메시지 영역 또는 추천 질문 */}
       {showSuggestions ? (

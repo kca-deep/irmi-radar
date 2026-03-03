@@ -1,14 +1,16 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AiBrain01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { AiBrain01Icon, Cancel01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
 interface ChatHeaderProps {
   onClose: () => void;
+  onReset: () => void;
+  hasMessages: boolean;
 }
 
-export function ChatHeader({ onClose }: ChatHeaderProps) {
+export function ChatHeader({ onClose, onReset, hasMessages }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between p-4 border-b border-border/50">
       <div className="flex items-center gap-2">
@@ -29,15 +31,28 @@ export function ChatHeader({ onClose }: ChatHeaderProps) {
           </p>
         </div>
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onClose}
-        className="size-8"
-      >
-        <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
-        <span className="sr-only">닫기</span>
-      </Button>
+      <div className="flex items-center gap-1">
+        {hasMessages && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onReset}
+            className="size-8 text-muted-foreground hover:text-foreground"
+          >
+            <HugeiconsIcon icon={Delete02Icon} size={16} strokeWidth={2} />
+            <span className="sr-only">대화 초기화</span>
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="size-8"
+        >
+          <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2} />
+          <span className="sr-only">닫기</span>
+        </Button>
+      </div>
     </div>
   );
 }

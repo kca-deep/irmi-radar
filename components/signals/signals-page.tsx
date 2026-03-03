@@ -8,24 +8,18 @@ import { SignalList } from "@/components/signals/signal-list";
 import { SignalDetailDialog } from "@/components/signals/signal-detail-dialog";
 import { RegionMap } from "@/components/signals/region-map";
 import { Badge } from "@/components/ui/badge";
-import { SEVERITY_LABEL_MAP, REGIONS, getSeverityByScore } from "@/lib/constants";
+import { SEVERITY_LABEL_MAP } from "@/lib/constants";
 
-import type { Signal, Policy, CategoryKey, Severity, RegionScore } from "@/lib/types";
-
-// severity를 점수로 변환
-const SEVERITY_SCORE: Record<Severity, number> = {
-  critical: 100,
-  warning: 70,
-  caution: 40,
-  safe: 10,
-};
+import type { Signal, Policy, CategoryKey, Severity, RegionScore, NewsArticle } from "@/lib/types";
 
 interface SignalsPageProps {
   signals: Signal[];
   policies: Policy[];
+  regionScores: RegionScore[];
+  articles: NewsArticle[];
 }
 
-export function SignalsPage({ signals, policies }: SignalsPageProps) {
+export function SignalsPage({ signals, policies, regionScores, articles }: SignalsPageProps) {
   // 필터 상태
   const [category, setCategory] = useState<CategoryKey | "all">("all");
   const [region, setRegion] = useState<string>("all");
@@ -63,44 +57,6 @@ export function SignalsPage({ signals, policies }: SignalsPageProps) {
     return counts;
   }, [signals]);
 
-  // 지역별 점수 계산
-  const regionScores: RegionScore[] = useMemo(() => {
-    // 전국 제외한 지역들만 처리
-    const regionList = REGIONS.filter((r) => r.id !== "nationwide");
-
-    return regionList.map((regionInfo) => {
-      // 해당 지역의 신호들 필터링
-      const regionSignals = signals.filter(
-        (s) => s.region === regionInfo.name
-      );
-
-      // 점수 계산 (신호가 없으면 기본 20점)
-      let score = 20;
-      if (regionSignals.length > 0) {
-        const totalScore = regionSignals.reduce(
-          (sum, s) => sum + SEVERITY_SCORE[s.severity],
-          0
-        );
-        score = Math.round(totalScore / regionSignals.length);
-      }
-
-      // 가장 심각한 신호 찾기
-      const sortedSignals = [...regionSignals].sort(
-        (a, b) => SEVERITY_SCORE[b.severity] - SEVERITY_SCORE[a.severity]
-      );
-      const topSignal = sortedSignals[0]?.title;
-
-      return {
-        id: regionInfo.id,
-        name: regionInfo.name,
-        score,
-        severity: getSeverityByScore(score),
-        signalCount: regionSignals.length,
-        topSignal,
-      };
-    });
-  }, [signals]);
-
   // 상세 보기 핸들러
   const handleViewDetail = (signal: Signal) => {
     setSelectedSignal(signal);
@@ -112,16 +68,16 @@ export function SignalsPage({ signals, policies }: SignalsPageProps) {
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-foreground">
+          <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground">
             <HugeiconsIcon
               icon={Alert01Icon}
-              size={24}
+              size={20}
               strokeWidth={2}
               className="text-danger"
             />
             위기 신호
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-xs text-muted-foreground">
             감지된 민생 위기 신호를 확인하고 대응 방안을 알아보세요.
           </p>
         </div>
@@ -177,6 +133,7 @@ export function SignalsPage({ signals, policies }: SignalsPageProps) {
       <SignalDetailDialog
         signal={selectedSignal}
         policies={policies}
+        articles={articles}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />

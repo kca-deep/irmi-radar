@@ -8,9 +8,10 @@ import type { NewsArticle } from "@/lib/types";
 
 interface NewsListProps {
   articles: NewsArticle[];
+  onArticleClick?: (article: NewsArticle) => void;
 }
 
-export function NewsList({ articles }: NewsListProps) {
+export function NewsList({ articles, onArticleClick }: NewsListProps) {
   if (articles.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -35,7 +36,7 @@ export function NewsList({ articles }: NewsListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {articles.map((article) => (
-        <NewsCard key={article.id} article={article} />
+        <NewsCard key={article.id} article={article} onClick={onArticleClick} />
       ))}
     </div>
   );

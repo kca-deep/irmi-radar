@@ -112,6 +112,146 @@
         "realEstate": 50
       },
       "topIssue": "공공기관 이전 효과 둔화"
+    },
+    {
+      "id": "ulsan",
+      "name": "울산",
+      "score": 61,
+      "trend": "rising",
+      "categories": {
+        "prices": 66,
+        "employment": 62,
+        "selfEmployed": 69,
+        "finance": 57,
+        "realEstate": 51
+      },
+      "topIssue": "자동차 산업 구조조정 우려"
+    },
+    {
+      "id": "sejong",
+      "name": "세종",
+      "score": 38,
+      "trend": "stable",
+      "categories": {
+        "prices": 55,
+        "employment": 35,
+        "selfEmployed": 42,
+        "finance": 38,
+        "realEstate": 32
+      },
+      "topIssue": "신도시 상권 안정화 진행 중"
+    },
+    {
+      "id": "gangwon",
+      "name": "강원",
+      "score": 53,
+      "trend": "falling",
+      "categories": {
+        "prices": 60,
+        "employment": 50,
+        "selfEmployed": 65,
+        "finance": 48,
+        "realEstate": 44
+      },
+      "topIssue": "관광 산업 계절적 변동"
+    },
+    {
+      "id": "chungbuk",
+      "name": "충북",
+      "score": 55,
+      "trend": "stable",
+      "categories": {
+        "prices": 62,
+        "employment": 51,
+        "selfEmployed": 66,
+        "finance": 52,
+        "realEstate": 46
+      },
+      "topIssue": "반도체 업종 경기 둔화 영향"
+    },
+    {
+      "id": "chungnam",
+      "name": "충남",
+      "score": 60,
+      "trend": "rising",
+      "categories": {
+        "prices": 67,
+        "employment": 58,
+        "selfEmployed": 71,
+        "finance": 54,
+        "realEstate": 49
+      },
+      "topIssue": "석유화학 업종 수익성 악화"
+    },
+    {
+      "id": "jeonbuk",
+      "name": "전북",
+      "score": 63,
+      "trend": "rising",
+      "categories": {
+        "prices": 69,
+        "employment": 60,
+        "selfEmployed": 76,
+        "finance": 57,
+        "realEstate": 47
+      },
+      "topIssue": "농축산물 가격 급등 영향"
+    },
+    {
+      "id": "jeonnam",
+      "name": "전남",
+      "score": 57,
+      "trend": "stable",
+      "categories": {
+        "prices": 65,
+        "employment": 53,
+        "selfEmployed": 67,
+        "finance": 51,
+        "realEstate": 43
+      },
+      "topIssue": "어업 수익 감소 및 고령화"
+    },
+    {
+      "id": "gyeongbuk",
+      "name": "경북",
+      "score": 62,
+      "trend": "rising",
+      "categories": {
+        "prices": 68,
+        "employment": 59,
+        "selfEmployed": 74,
+        "finance": 58,
+        "realEstate": 50
+      },
+      "topIssue": "제조업 수출 감소 영향"
+    },
+    {
+      "id": "gyeongnam",
+      "name": "경남",
+      "score": 65,
+      "trend": "rising",
+      "categories": {
+        "prices": 70,
+        "employment": 61,
+        "selfEmployed": 77,
+        "finance": 60,
+        "realEstate": 53
+      },
+      "topIssue": "조선업 하청 구조조정 확대"
+    },
+    {
+      "id": "jeju",
+      "name": "제주",
+      "score": 52,
+      "trend": "falling",
+      "categories": {
+        "prices": 61,
+        "employment": 48,
+        "selfEmployed": 64,
+        "finance": 47,
+        "realEstate": 42
+      },
+      "topIssue": "관광객 감소에 따른 소상공인 매출 하락"
     }
   ]
 }

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Share01Icon } from "@hugeicons/core-free-icons";
-import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { ChainVisualization } from "./chain-visualization";
 import { ChainDetail } from "./chain-detail";
 import { ChainLegend } from "./chain-legend";
@@ -82,8 +82,7 @@ export function UnifiedCrisisPanel({
   }, [signals, selectedNodeId, selectedChainId, selectedChain]);
 
   return (
-    <Card className="py-4">
-      <CardContent className="px-4">
+    <div className="rounded-xl border border-crisis-accent/20 bg-crisis-surface p-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -91,7 +90,7 @@ export function UnifiedCrisisPanel({
               icon={Share01Icon}
               size={18}
               strokeWidth={2}
-              className="text-primary"
+              className="text-crisis-accent"
             />
             <h3 className="text-sm font-semibold text-foreground">
               위기 연쇄 현황
@@ -138,7 +137,6 @@ export function UnifiedCrisisPanel({
 
         {/* Legend */}
         <ChainLegend />
-      </CardContent>
-    </Card>
+    </div>
   );
 }

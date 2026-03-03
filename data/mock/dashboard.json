@@ -136,6 +136,7 @@
       "id": "sig-001",
       "title": "배달앱 수수료 인상 관련 소상공인 부담 급증",
       "severity": "critical",
+      "score": 84,
       "category": "selfEmployed",
       "date": "2026-01-19"
     },
@@ -143,6 +144,7 @@
       "id": "sig-002",
       "title": "설 명절 농축산물 가격 20% 급등",
       "severity": "critical",
+      "score": 82,
       "category": "prices",
       "date": "2026-01-15"
     },
@@ -150,13 +152,15 @@
       "id": "sig-003",
       "title": "신용카드 연체율 상승세 지속",
       "severity": "warning",
+      "score": 73,
       "category": "finance",
       "date": "2026-01-14"
     },
     {
       "id": "sig-004",
-      "title": "수도권 전세 사기 피해 신고 증가 추세",
-      "severity": "caution",
+      "title": "수도권 전세 사기 피해 상담 급증",
+      "severity": "warning",
+      "score": 66,
       "category": "realEstate",
       "date": "2026-01-12"
     }
