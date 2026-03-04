@@ -170,3 +170,21 @@ export const ANALYSIS_STEPS: Omit<AnalysisStep, "status">[] = [
 
 // -- 분석 예상 소요 시간 (기사 1건당 초) --
 export const ANALYSIS_SECONDS_PER_ARTICLE = 0.3;
+
+// -- 카테고리별 보조금24 API 검색 키워드 --
+export const GOV_SERVICE_KEYWORDS: Record<CategoryKey, string[]> = {
+  prices: ["물가", "생활비", "에너지", "바우처", "긴급복지"],
+  employment: ["고용", "취업", "일자리", "실업", "청년"],
+  selfEmployed: ["소상공인", "자영업", "창업", "폐업", "상가"],
+  finance: ["금융", "대출", "서민금융", "장려금", "채무"],
+  realEstate: ["주거", "전세", "임대", "주택", "월세"],
+};
+
+// -- 카테고리별 국회 API 검색 키워드 --
+export const CATEGORY_SEARCH_KEYWORDS: Record<CategoryKey, string[]> = {
+  prices: ["물가", "소비자", "식료품", "공공요금", "생활비", "인플레이션"],
+  employment: ["고용", "실업", "구조조정", "채용", "청년", "일자리", "노동"],
+  selfEmployed: ["자영업", "소상공인", "폐업", "배달", "임대료", "창업", "상가"],
+  finance: ["금리", "가계부채", "연체", "서민금융", "대출", "금융", "이자"],
+  realEstate: ["부동산", "집값", "전세", "월세", "주거", "임대차", "아파트"],
+};

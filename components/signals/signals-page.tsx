@@ -132,7 +132,6 @@ export function SignalsPage({ signals, policies, regionScores, articles }: Signa
       {/* 상세 다이얼로그 */}
       <SignalDetailDialog
         signal={selectedSignal}
-        policies={policies}
         articles={articles}
         open={dialogOpen}
         onOpenChange={setDialogOpen}

@@ -301,6 +301,65 @@ export interface AnalysisResult {
 // -- 분석 상태 --
 export type AnalysisState = "idle" | "running" | "completed" | "error";
 
+// -- 보조금24 공공서비스 (행안부 API) --
+export interface GovService {
+  serviceId: string;
+  serviceName: string;
+  servicePurpose: string;
+  supportType: string;
+  targetAudience: string;
+  selectionCriteria: string;
+  supportContent: string;
+  applyMethod: string;
+  applyDeadline: string;
+  detailUrl: string;
+  orgName: string;
+  deptName: string;
+  contact: string;
+  serviceField: string;
+  orgType: string;
+  receptionOrg: string;
+  viewCount: number;
+  registeredAt: string;
+  modifiedAt: string;
+}
+
+// -- 국회 오픈API: 청원 계류현황 --
+export interface AssemblyPetition {
+  billNo: string;
+  billId: string;
+  name: string;
+  proposer: string;
+  approver: string;
+  proposeDt: string;
+  committee: string;
+  linkUrl: string;
+}
+
+// -- 국회 오픈API: 진행중 입법예고 --
+export interface AssemblyLegislation {
+  billId: string;
+  billNo: string;
+  name: string;
+  proposer: string;
+  proposerKind: string;
+  committee: string;
+  deadlineDt: string;
+  linkUrl: string;
+}
+
+// -- 국회 오픈API: 의안 접수목록 --
+export interface AssemblyBill {
+  billId: string;
+  billNo: string;
+  name: string;
+  kind: string;
+  proposerKind: string;
+  proposeDt: string;
+  result: string;
+  linkUrl: string;
+}
+
 // -- 리포트 메타 --
 export interface ReportMeta {
   generatedAt: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Progress } from "@/components/ui/progress";
 import { getSeverityByScore } from "@/lib/constants";
@@ -42,7 +42,6 @@ export function CategoryRiskBar({
   index = 0,
 }: CategoryRiskBarProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
 
   const severity = getSeverityByScore(score);
   const colorToken = SEVERITY_COLOR_MAP[severity];
@@ -59,18 +58,14 @@ export function CategoryRiskBar({
   }, [score, index]);
 
   return (
-    <div
-      className="group cursor-default"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div>
       <div className="flex items-center gap-3">
         {/* Category icon */}
         <HugeiconsIcon
           icon={categoryIcon}
           size={16}
           strokeWidth={2}
-          className="shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+          className="shrink-0 text-muted-foreground"
         />
 
         {/* Label */}
@@ -112,20 +107,11 @@ export function CategoryRiskBar({
         />
       </div>
 
-      {/* Expandable key issues on hover */}
+      {/* Key issues - always visible */}
       {keyIssues && keyIssues.length > 0 && (
-        <div
-          className={cn(
-            "grid transition-all duration-300 ease-out",
-            isHovered ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-          )}
-        >
-          <div className="overflow-hidden">
-            <p className="pl-[28px] pt-1.5 text-[11px] leading-relaxed text-muted-foreground">
-              {keyIssues.join(" / ")}
-            </p>
-          </div>
-        </div>
+        <p className="pl-[28px] pt-1 text-[11px] leading-relaxed text-muted-foreground">
+          {keyIssues.join(" / ")}
+        </p>
       )}
     </div>
   );

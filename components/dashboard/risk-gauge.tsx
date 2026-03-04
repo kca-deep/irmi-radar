@@ -92,7 +92,7 @@ export function RiskGauge({ score }: RiskGaugeProps) {
           y="62"
           textAnchor="middle"
           dominantBaseline="central"
-          className="fill-foreground"
+          className={FILL_CLASS[colorToken]}
           style={{ fontSize: "36px", fontWeight: 800, letterSpacing: "-1px" }}
         >
           {score}
