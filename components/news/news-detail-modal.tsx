@@ -16,25 +16,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CATEGORY_ICON_MAP, SEVERITY_COLOR_MAP } from "@/lib/icon-maps";
+import { CATEGORY_ICON_MAP, SEVERITY_COLOR_MAP, CATEGORY_BADGE_MAP } from "@/lib/icon-maps";
 import { SEVERITY_LABEL_MAP, CATEGORY_LABEL_MAP } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-import type { NewsArticle, CategoryKey } from "@/lib/types";
+import type { NewsArticle } from "@/lib/types";
 
 interface NewsDetailModalProps {
   article: NewsArticle | null;
   open: boolean;
   onClose: () => void;
 }
-
-const CATEGORY_BADGE_CLASS: Record<CategoryKey, string> = {
-  prices: "bg-chart-1/10 text-chart-1 border-chart-1/30",
-  employment: "bg-chart-2/10 text-chart-2 border-chart-2/30",
-  selfEmployed: "bg-warning/10 text-warning border-warning/30",
-  finance: "bg-chart-3/10 text-chart-3 border-chart-3/30",
-  realEstate: "bg-chart-4/10 text-chart-4 border-chart-4/30",
-};
 
 export function NewsDetailModal({
   article,
@@ -67,7 +59,7 @@ export function NewsDetailModal({
               variant="outline"
               className={cn(
                 "gap-1 text-[10px] font-medium",
-                CATEGORY_BADGE_CLASS[article.category]
+                CATEGORY_BADGE_MAP[article.category]
               )}
             >
               <HugeiconsIcon icon={categoryIcon} size={10} strokeWidth={2} />
@@ -230,7 +222,7 @@ export function NewsDetailModal({
                             variant="outline"
                             className={cn(
                               "text-[9px] gap-0.5",
-                              CATEGORY_BADGE_CLASS[catKey]
+                              CATEGORY_BADGE_MAP[catKey]
                             )}
                           >
                             <HugeiconsIcon

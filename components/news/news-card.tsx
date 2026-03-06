@@ -3,24 +3,15 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import { CATEGORY_ICON_MAP } from "@/lib/icon-maps";
+import { CATEGORY_ICON_MAP, CATEGORY_BADGE_MAP } from "@/lib/icon-maps";
 import { cn } from "@/lib/utils";
 
-import type { NewsArticle, CategoryKey } from "@/lib/types";
+import type { NewsArticle } from "@/lib/types";
 
 interface NewsCardProps {
   article: NewsArticle;
   onClick?: (article: NewsArticle) => void;
 }
-
-// 카테고리별 배지 색상
-const CATEGORY_BADGE_CLASS: Record<CategoryKey, string> = {
-  prices: "bg-chart-1/10 text-chart-1 border-chart-1/30",
-  employment: "bg-chart-2/10 text-chart-2 border-chart-2/30",
-  selfEmployed: "bg-warning/10 text-warning border-warning/30",
-  finance: "bg-chart-3/10 text-chart-3 border-chart-3/30",
-  realEstate: "bg-chart-4/10 text-chart-4 border-chart-4/30",
-};
 
 export function NewsCard({ article, onClick }: NewsCardProps) {
   const categoryIcon = CATEGORY_ICON_MAP[article.category];
@@ -38,9 +29,9 @@ export function NewsCard({ article, onClick }: NewsCardProps) {
     <article
       onClick={() => onClick?.(article)}
       className={cn(
-        "rounded-lg border border-border/50 bg-card p-4 cursor-pointer",
+        "rounded-lg border border-border bg-card shadow-sm p-4 cursor-pointer",
         "transition-all duration-200 ease-out",
-        "hover:-translate-y-0.5 hover:shadow-md hover:border-border"
+        "hover:-translate-y-0.5 hover:shadow-md"
       )}
     >
       {/* 상단: 카테고리 배지 + 발행일 */}
@@ -49,7 +40,7 @@ export function NewsCard({ article, onClick }: NewsCardProps) {
           variant="outline"
           className={cn(
             "gap-1 text-[10px] font-medium",
-            CATEGORY_BADGE_CLASS[article.category]
+            CATEGORY_BADGE_MAP[article.category]
           )}
         >
           <HugeiconsIcon icon={categoryIcon} size={10} strokeWidth={2} />

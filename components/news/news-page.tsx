@@ -327,14 +327,10 @@ export function NewsPage({ articles }: NewsPageProps) {
       <NewsFilterBar
         searchQuery={searchQuery}
         category={category}
+        totalCount={filteredArticles.length}
         onSearchChange={setSearchQuery}
         onCategoryChange={setCategory}
       />
-
-      {/* 결과 정보 */}
-      <div className="text-sm text-muted-foreground">
-        {filteredArticles.length}건의 뉴스가 검색되었습니다.
-      </div>
 
       {/* 뉴스 목록 */}
       <NewsList articles={filteredArticles} onArticleClick={handleArticleClick} />

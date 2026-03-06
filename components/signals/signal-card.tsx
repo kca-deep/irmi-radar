@@ -5,7 +5,7 @@ import { Calendar03Icon, News01Icon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SEVERITY_LABEL_MAP, CATEGORY_LABEL_MAP } from "@/lib/constants";
-import { CATEGORY_ICON_MAP } from "@/lib/icon-maps";
+import { CATEGORY_ICON_MAP, CATEGORY_BADGE_MAP } from "@/lib/icon-maps";
 import { cn } from "@/lib/utils";
 
 import type { Signal } from "@/lib/types";
@@ -16,25 +16,11 @@ interface SignalCardProps {
 }
 
 // Tailwind purge 대응: 정적 클래스 매핑
-const BG_CLASS: Record<string, string> = {
-  critical: "bg-danger/5 hover:bg-danger/10",
-  warning: "bg-warning/5 hover:bg-warning/10",
-  caution: "bg-caution/5 hover:bg-caution/10",
-  safe: "bg-safe/5 hover:bg-safe/10",
-};
-
 const BADGE_CLASS: Record<string, string> = {
   critical: "bg-danger text-danger-foreground",
   warning: "bg-warning text-warning-foreground",
   caution: "bg-caution text-caution-foreground",
   safe: "bg-safe text-safe-foreground",
-};
-
-const GLOW_CLASS: Record<string, string> = {
-  critical: "hover:shadow-[0_4px_16px_oklch(0.704_0.191_22.216/0.15)]",
-  warning: "hover:shadow-[0_4px_16px_oklch(0.795_0.184_60.0/0.15)]",
-  caution: "hover:shadow-[0_4px_16px_oklch(0.852_0.17_88.0/0.12)]",
-  safe: "hover:shadow-[0_4px_16px_oklch(0.696_0.17_152.0/0.15)]",
 };
 
 export function SignalCard({ signal, onViewDetail }: SignalCardProps) {
@@ -54,11 +40,9 @@ export function SignalCard({ signal, onViewDetail }: SignalCardProps) {
   return (
     <div
       className={cn(
-        "cursor-pointer rounded-lg border border-border/50 p-4",
+        "cursor-pointer rounded-lg border border-border bg-card shadow-sm p-4",
         "transition-all duration-200 ease-out",
-        "hover:-translate-y-0.5",
-        BG_CLASS[signal.severity],
-        GLOW_CLASS[signal.severity]
+        "hover:-translate-y-0.5 hover:shadow-md"
       )}
       onClick={() => onViewDetail(signal)}
     >
@@ -70,7 +54,10 @@ export function SignalCard({ signal, onViewDetail }: SignalCardProps) {
         >
           {severityLabel}
         </Badge>
-        <Badge variant="outline" className="gap-1 text-[10px]">
+        <Badge
+          variant="outline"
+          className={cn("gap-1 text-[10px]", CATEGORY_BADGE_MAP[signal.category])}
+        >
           <HugeiconsIcon icon={categoryIcon} size={10} strokeWidth={2} />
           {categoryLabel}
         </Badge>

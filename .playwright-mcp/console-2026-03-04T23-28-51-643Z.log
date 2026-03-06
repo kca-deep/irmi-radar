@@ -1,0 +1,46 @@
+[     856ms] [WARNING] Ignoring inability to install OPFS sqlite3_vfs: Cannot install OPFS: Missing SharedArrayBuffer and/or Atomics. The server must emit the COOP/COEP response headers to enable those. See https://sqlite.org/wasm/doc/trunk/persistence.md#coop-coep @ https://www.notion.so/_assets/wasm-sqlite-worker-ea705f1802b3c651.js:0
+[    1808ms] [WARNING] Amplitude Logger [Warn]: Event not tracked, no destination plugins on the instance @ https://www.notion.so/_assets/transport-support-79187dfcba564918.js:0
+[    1868ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://www.notion.so/api/v3/recordPageExit:0
+[    2262ms] [ERROR] HttpRequestError: Received HTTP 401
+    at https://www.notion.so/_assets/ClientFramework-dfa9552051fdad3e.js:1:35879
+    at async f (https://www.notion.so/_assets/ClientFramework-dfa9552051fdad3e.js:1:35468)
+    at async a (https://www.notion.so/_assets/app-cc384fe5a44af96c.js:1:201494)
+    at async S (https://www.notion.so/_assets/41403-8d49878fdf22b194.js:5:1547937) @ https://www.notion.so/_assets/handleHttpFailure-08aeb39fdaab075e.js:0
+[    2865ms] [WARNING] [GSI_LOGGER]: Your client application uses one of the Google One Tap prompt UI status methods that may stop functioning when FedCM becomes mandatory. Refer to the migration guide to update your code accordingly and opt-in to FedCM to test your changes. Learn more: https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#display_moment and https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#skipped_moment @ https://www.notion.so/_assets/51706-5b63f2c0f63a454b.js:0
+[    2868ms] [ERROR] Not signed in with the identity provider. @ https://www.notion.so/2dfa437d40e781dfa34ffbf03f3cebb8:0
+[    5591ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ https://www.notion.so/_assets/41403-8d49878fdf22b194.js:4
+[    5591ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ https://www.notion.so/_assets/41403-8d49878fdf22b194.js:4
+[    7612ms] [ERROR] [GSI_LOGGER]: FedCM get() rejects with NetworkError: Error retrieving a token. @ https://www.notion.so/_assets/51706-5b63f2c0f63a454b.js:0
+[   33500ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ https://www.notion.so/_assets/41403-8d49878fdf22b194.js:4
+[   33500ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.closed call. @ https://www.notion.so/_assets/41403-8d49878fdf22b194.js:4
+[   33743ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.close call. @ https://www.notion.so/_assets/41403-8d49878fdf22b194.js:4
+[   33744ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.close call. @ https://www.notion.so/_assets/41403-8d49878fdf22b194.js:4
+[   35704ms] Error: Failed to load a required record: user_root, f2c2b810-ca98-470e-b6c4-8987a1ff9afb, undefined.
+    at Object.loadRecordModel [as loadFn] (https://www.notion.so/_assets/64988-98db54fe79cf5dd0.js:1:51087)
+    at async https://www.notion.so/_assets/64988-98db54fe79cf5dd0.js:28:17974
+    at async Promise.all (index 0)
+    at async n (https://www.notion.so/_assets/64988-98db54fe79cf5dd0.js:28:17912)
+    at async i (https://www.notion.so/_assets/64988-98db54fe79cf5dd0.js:28:17521)
+    at async Object.u (https://www.notion.so/_assets/64988-98db54fe79cf5dd0.js:28:18653)
+    at async Object.d (https://www.notion.so/_assets/64988-98db54fe79cf5dd0.js:1:50673)
+    at async f.N.measure.environment (https://www.notion.so/_assets/41403-8d49878fdf22b194.js:1:680038)
+    at async n.measureErrors (https://www.notion.so/_assets/41403-8d49878fdf22b194.js:5:804075)
+    at async S.environment (https://www.notion.so/_assets/41403-8d49878fdf22b194.js:1:679811)
+[   36759ms] [ERROR] Attestation check for Attribution Reporting on https://www.google-analytics.com failed. @ https://www.notion.so/2dfa437d40e781dfa34ffbf03f3cebb8:0
+[   36799ms] [ERROR] Attestation check for Attribution Reporting on https://www.facebook.com failed. @ https://www.notion.so/2dfa437d40e781dfa34ffbf03f3cebb8:0
+[   37826ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://www.notion.so/api/v3/getAIConnectorAuthorizationUrl:0
+[   37826ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://www.notion.so/api/v3/getAIConnectorAuthorizationUrl:0
+[   38009ms] [ERROR] HttpRequestError: Received HTTP 500
+    at https://www.notion.so/_assets/ClientFramework-dfa9552051fdad3e.js:1:35879
+    at async f (https://www.notion.so/_assets/ClientFramework-dfa9552051fdad3e.js:1:35468)
+    at async a (https://www.notion.so/_assets/app-cc384fe5a44af96c.js:1:201494)
+    at async S (https://www.notion.so/_assets/41403-8d49878fdf22b194.js:5:1547937)
+    at async https://www.notion.so/_assets/99077-9cf6baa9225a845d.js:1:95012
+    at async https://www.notion.so/_assets/app-cc384fe5a44af96c.js:1:36776 @ https://www.notion.so/_assets/51706-5b63f2c0f63a454b.js:0
+[   38009ms] [ERROR] HttpRequestError: Received HTTP 500
+    at https://www.notion.so/_assets/ClientFramework-dfa9552051fdad3e.js:1:35879
+    at async f (https://www.notion.so/_assets/ClientFramework-dfa9552051fdad3e.js:1:35468)
+    at async a (https://www.notion.so/_assets/app-cc384fe5a44af96c.js:1:201494)
+    at async S (https://www.notion.so/_assets/41403-8d49878fdf22b194.js:5:1547937)
+    at async https://www.notion.so/_assets/99077-9cf6baa9225a845d.js:1:95012
+    at async https://www.notion.so/_assets/app-cc384fe5a44af96c.js:1:36776 @ https://www.notion.so/_assets/51706-5b63f2c0f63a454b.js:0

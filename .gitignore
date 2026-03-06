@@ -50,3 +50,11 @@ next-env.d.ts
 # IDE
 .vscode/
 .idea/
+
+# News data (raw + processed)
+/data/2025/
+/data/processed/
+/data/production/
+*.db
+*.db-shm
+*.db-wal

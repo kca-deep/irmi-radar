@@ -64,8 +64,8 @@ export function AppHeader() {
             />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold tracking-tight text-foreground">
-              이르미
+            <span className="text-base font-bold tracking-tight text-foreground">
+              이르미<span className="text-xs font-medium text-muted-foreground">(IRMI-Radar)</span>
             </span>
             <span className="hidden text-[10px] leading-none text-muted-foreground sm:block">
               민생위기 조기경보 레이더

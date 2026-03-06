@@ -1,0 +1,2707 @@
+[  154971ms] ReferenceError: Card is not defined
+    at UnifiedCrisisPanel (http://localhost:3000/_next/static/chunks/_b70a9822._.js?id=%255Bproject%255D%252Fcomponents%252Fdashboard%252Funified-crisis-panel.tsx+%255Bapp-client%255D+%2528ecmascript%2529:85:215)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:14826:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:4651:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:6112:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:6708:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9562:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9456:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9440:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9105:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:10238:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:10154:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9237:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_a0e4c7b4._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_a0e4c7b4._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_a0e4c7b4._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_a0e4c7b4._.js:886:13
+[  160101ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160101ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160164ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160164ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160218ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160218ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160284ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160285ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160350ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160351ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160417ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160417ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160483ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160484ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160550ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160550ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160603ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160604ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160652ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160652ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160707ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160708ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160784ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160784ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160840ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160840ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160900ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160900ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160967ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  160967ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161033ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161033ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161100ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161100ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161163ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161164ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161218ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161218ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161270ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161270ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161333ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161334ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161386ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161386ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161449ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161449ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161517ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161517ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161580ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161580ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161647ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161647ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161712ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161712ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161766ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161767ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161817ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161818ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161881ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161882ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161947ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  161948ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162001ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162001ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162052ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162053ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162115ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162116ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162183ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162183ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162247ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162248ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162333ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162333ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162403ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162403ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162463ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162464ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162532ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162533ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162594ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162594ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162665ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162665ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162750ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162750ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162801ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162801ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162864ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162864ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162931ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162931ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162983ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  162983ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163051ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163051ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163114ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163114ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163185ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163186ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163247ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163247ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163305ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163305ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163367ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163367ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163433ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163434ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163485ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163485ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163551ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163551ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163615ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163616ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163681ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163682ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163731ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163731ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163784ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163784ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163848ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163848ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163901ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163901ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163965ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  163965ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164034ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164034ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164095ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164096ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164163ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164164ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164229ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164230ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164301ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164302ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164366ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164367ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164418ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164419ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164467ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164467ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164529ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164530ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164596ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164596ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164649ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164650ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164702ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164702ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164763ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164764ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164830ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164831ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164894ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164894ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164936ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:5
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |     ^
+  142 |   );
+  143 | }
+  144 |
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  164936ms] [ERROR] ./components/dashboard/unified-crisis-panel.tsx:141:6
+Parsing ecmascript source code failed
+  139 |         <ChainLegend />
+  140 |       </CardContent>
+> 141 |     </Card>
+      |      ^^^^^^
+  142 |   );
+  143 | }
+  144 |
+
+Unterminated regexp literal
+
+Import trace:
+  Server Component:
+    ./components/dashboard/unified-crisis-panel.tsx
+    ./components/dashboard/dashboard-page.tsx
+    ./app/(tabs)/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  165017ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297

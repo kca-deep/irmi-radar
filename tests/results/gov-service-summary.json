@@ -1,0 +1,35 @@
+{
+  "testedAt": "2026-03-04T01:32:39.732Z",
+  "results": [
+    {
+      "name": "serviceList",
+      "status": "OK",
+      "totalCount": 10918,
+      "currentCount": 5
+    },
+    {
+      "name": "serviceList-search",
+      "status": "OK",
+      "totalCount": 10918,
+      "currentCount": 5
+    },
+    {
+      "name": "serviceDetail",
+      "status": "OK",
+      "totalCount": 10918,
+      "currentCount": 3
+    },
+    {
+      "name": "supportConditions",
+      "status": "OK",
+      "totalCount": 10918,
+      "currentCount": 3
+    },
+    {
+      "name": "supportConditions-byId",
+      "status": "OK",
+      "serviceId": "000000465790",
+      "matchCount": 1
+    }
+  ]
+}

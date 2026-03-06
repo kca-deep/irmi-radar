@@ -1,5 +1,6 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_LABEL_MAP, CATEGORY_LABEL_MAP } from "@/lib/constants";
 import { SEVERITY_COLOR_MAP } from "@/lib/icon-maps";
@@ -9,7 +10,8 @@ import type { NewsArticle } from "@/lib/types";
 
 interface AnalyzedNewsSlideProps {
   article: NewsArticle;
-  onClick?: (article: NewsArticle) => void;
+  selected?: boolean;
+  onClick?: (article: NewsArticle, e: MouseEvent<HTMLDivElement>) => void;
 }
 
 const BADGE_CLASS: Record<string, string> = {
@@ -26,6 +28,13 @@ const BORDER_CLASS: Record<string, string> = {
   safe: "border-safe/30",
 };
 
+const SELECTED_BORDER_CLASS: Record<string, string> = {
+  danger: "border-danger",
+  warning: "border-warning",
+  caution: "border-caution",
+  safe: "border-safe",
+};
+
 const TEXT_CLASS: Record<string, string> = {
   danger: "text-danger",
   warning: "text-warning",
@@ -35,6 +44,7 @@ const TEXT_CLASS: Record<string, string> = {
 
 export function AnalyzedNewsSlide({
   article,
+  selected,
   onClick,
 }: AnalyzedNewsSlideProps) {
   const analysis = article.analysis;
@@ -44,11 +54,11 @@ export function AnalyzedNewsSlide({
 
   return (
     <div
-      onClick={() => onClick?.(article)}
+      onClick={(e) => onClick?.(article, e)}
       className={cn(
         "w-[260px] shrink-0 rounded-lg border px-3 py-2.5 cursor-pointer",
         "bg-card/50 hover:bg-card transition-colors",
-        BORDER_CLASS[colorToken]
+        selected ? SELECTED_BORDER_CLASS[colorToken] : BORDER_CLASS[colorToken]
       )}
     >
       {/* Header: badges + score */}

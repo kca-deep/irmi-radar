@@ -1,0 +1,77 @@
+{
+  "api": "의안 접수목록",
+  "code": "BILLRCP",
+  "status": 200,
+  "resultCode": "INFO-000",
+  "resultMessage": "정상 처리되었습니다.",
+  "totalCount": 118275,
+  "fetchedCount": 5,
+  "fields": [
+    "ERACO",
+    "BILL_ID",
+    "BILL_NO",
+    "BILL_KIND",
+    "BILL_NM",
+    "PPSR_KIND",
+    "PPSL_DT",
+    "PROC_RSLT",
+    "LINK_URL"
+  ],
+  "rows": [
+    {
+      "ERACO": "제21대",
+      "BILL_ID": "PRC_Z2N1L0C7I0Z5V0D9X5G3O5H4B6Z9M9",
+      "BILL_NO": "2111401",
+      "BILL_KIND": "법률안",
+      "BILL_NM": "군사법원법 일부개정법률안",
+      "PPSR_KIND": "의원",
+      "PPSL_DT": "2021-07-08",
+      "PROC_RSLT": "대안반영폐기",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_Z2N1L0C7I0Z5V0D9X5G3O5H4B6Z9M9"
+    },
+    {
+      "ERACO": "제21대",
+      "BILL_ID": "PRC_Z2N1M1G1M1X7H1L5R4H7U5H7O9H2Y7",
+      "BILL_NO": "2114025",
+      "BILL_KIND": "법률안",
+      "BILL_NM": "문화재보호법 일부개정법률안",
+      "PPSR_KIND": "의원",
+      "PPSL_DT": "2021-12-21",
+      "PROC_RSLT": "임기만료폐기",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_Z2N1M1G1M1X7H1L5R4H7U5H7O9H2Y7"
+    },
+    {
+      "ERACO": "제21대",
+      "BILL_ID": "PRC_Z2N1O1Q1Z0D1Y1B6U3W6U4V3S3N1Y1",
+      "BILL_NO": "2113414",
+      "BILL_KIND": "법률안",
+      "BILL_NM": "국세기본법 일부개정법률안",
+      "PPSR_KIND": "의원",
+      "PPSL_DT": "2021-11-18",
+      "PROC_RSLT": "임기만료폐기",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_Z2N1O1Q1Z0D1Y1B6U3W6U4V3S3N1Y1"
+    },
+    {
+      "ERACO": "제21대",
+      "BILL_ID": "PRC_Z2N1P0L2T0V4L1P3B5N5T3Q5E3T8F2",
+      "BILL_NO": "2108004",
+      "BILL_KIND": "법률안",
+      "BILL_NM": "도로교통법 일부개정법률안",
+      "PPSR_KIND": "의원",
+      "PPSL_DT": "2021-02-08",
+      "PROC_RSLT": "임기만료폐기",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_Z2N1P0L2T0V4L1P3B5N5T3Q5E3T8F2"
+    },
+    {
+      "ERACO": "제21대",
+      "BILL_ID": "PRC_Z2N1R0D2E0R8F1P4Y2V9L5F5J7G4F2",
+      "BILL_NO": "2108664",
+      "BILL_KIND": "법률안",
+      "BILL_NM": "도로법 일부개정법률안",
+      "PPSR_KIND": "의원",
+      "PPSL_DT": "2021-03-09",
+      "PROC_RSLT": "수정가결",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_Z2N1R0D2E0R8F1P4Y2V9L5F5J7G4F2"
+    }
+  ]
+}

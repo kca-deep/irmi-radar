@@ -56,21 +56,18 @@ export function AssemblyTrendsPanel() {
   }, []);
 
   return (
-    <div className="rounded-xl border border-border bg-assembly-surface p-5 space-y-4">
-      {/* 헤더 */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-assembly-accent/15">
+    <div className="rounded-xl border border-border/50 bg-card p-5 space-y-4">
+      {/* 헤더 - 위기연쇄현황 패턴 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <HugeiconsIcon
             icon={Legal01Icon}
-            size={16}
+            size={18}
             strokeWidth={2}
             className="text-assembly-accent"
           />
+          <h3 className="text-sm font-semibold text-foreground">국회 동향</h3>
         </div>
-        <h3 className="font-semibold text-sm text-foreground">국회 동향</h3>
-        <span className="text-[10px] text-muted-foreground ml-auto">
-          open.assembly.go.kr
-        </span>
       </div>
 
       {/* 로딩 */}

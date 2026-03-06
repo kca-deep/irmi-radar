@@ -1,0 +1,47 @@
+{
+  "api": "NABO 경제전망",
+  "code": "npmbwjybaffxwvbbk",
+  "status": 200,
+  "resultCode": "INFO-000",
+  "resultMessage": "정상 처리되었습니다.",
+  "totalCount": 50,
+  "fetchedCount": 5,
+  "fields": [
+    "REG_DATE",
+    "DEPARTMENT_NAME",
+    "SUBJECT",
+    "LINK_URL"
+  ],
+  "rows": [
+    {
+      "REG_DATE": "2025-09-30 09:09:00",
+      "DEPARTMENT_NAME": "거시경제분석과",
+      "SUBJECT": "2026년 NABO 경제전망 2025~2029",
+      "LINK_URL": "https://www.nabo.go.kr/Sub/01Report/01_02_Board.jsp?funcSUB=view&bid=19&arg_cid1=0&arg_cid2=0&arg_class_id=0&currentPage=0&pageSize=10&currentPageSUB=0&pageSizeSUB=10&key_typeSUB=&keySUB=&search_start_dateSUB=&search_end_dateSUB=&department=0&department_sub=0&etc_cate1=&etc_cate2=C6&sortBy=reg_date&ascOrDesc=desc&search_key1=&etc_1=0&tag_key=&arg_id=8923&item_id=8923&name2=3"
+    },
+    {
+      "REG_DATE": "2025-03-31 10:30:07",
+      "DEPARTMENT_NAME": "거시경제분석과",
+      "SUBJECT": "2025년 NABO 경제전망",
+      "LINK_URL": "https://www.nabo.go.kr/Sub/01Report/01_02_Board.jsp?funcSUB=view&bid=19&arg_cid1=0&arg_cid2=0&arg_class_id=0&currentPage=0&pageSize=10&currentPageSUB=0&pageSizeSUB=10&key_typeSUB=&keySUB=&search_start_dateSUB=&search_end_dateSUB=&department=0&department_sub=0&etc_cate1=&etc_cate2=C6&sortBy=reg_date&ascOrDesc=desc&search_key1=&etc_1=0&tag_key=&arg_id=8688&item_id=8688&name2=3"
+    },
+    {
+      "REG_DATE": "2024-10-11 00:10:00",
+      "DEPARTMENT_NAME": "거시경제분석과",
+      "SUBJECT": "2025년 NABO 경제전망 2024~2028",
+      "LINK_URL": "https://www.nabo.go.kr/Sub/01Report/01_02_Board.jsp?funcSUB=view&bid=19&arg_cid1=0&arg_cid2=0&arg_class_id=0&currentPage=0&pageSize=10&currentPageSUB=0&pageSizeSUB=10&key_typeSUB=&keySUB=&search_start_dateSUB=&search_end_dateSUB=&department=0&department_sub=0&etc_cate1=&etc_cate2=C6&sortBy=reg_date&ascOrDesc=desc&search_key1=&etc_1=0&tag_key=&arg_id=8483&item_id=8483&name2=3"
+    },
+    {
+      "REG_DATE": "2024-03-29 08:08:04",
+      "DEPARTMENT_NAME": "거시경제분석과",
+      "SUBJECT": "2024 경제전망",
+      "LINK_URL": "https://www.nabo.go.kr/Sub/01Report/01_02_Board.jsp?funcSUB=view&bid=19&arg_cid1=0&arg_cid2=0&arg_class_id=0&currentPage=0&pageSize=10&currentPageSUB=0&pageSizeSUB=10&key_typeSUB=&keySUB=&search_start_dateSUB=&search_end_dateSUB=&department=0&department_sub=0&etc_cate1=&etc_cate2=C6&sortBy=reg_date&ascOrDesc=desc&search_key1=&etc_1=0&tag_key=&arg_id=8308&item_id=8308&name2=3"
+    },
+    {
+      "REG_DATE": "2023-10-05 13:35:59",
+      "DEPARTMENT_NAME": "인구전략분석과",
+      "SUBJECT": "2024년 및 중기 경제전망",
+      "LINK_URL": "https://www.nabo.go.kr/Sub/01Report/01_02_Board.jsp?funcSUB=view&bid=19&arg_cid1=0&arg_cid2=0&arg_class_id=0&currentPage=0&pageSize=10&currentPageSUB=0&pageSizeSUB=10&key_typeSUB=&keySUB=&search_start_dateSUB=&search_end_dateSUB=&department=0&department_sub=0&etc_cate1=&etc_cate2=C6&sortBy=reg_date&ascOrDesc=desc&search_key1=&etc_1=0&tag_key=&arg_id=8100&item_id=8100&name2=3"
+    }
+  ]
+}

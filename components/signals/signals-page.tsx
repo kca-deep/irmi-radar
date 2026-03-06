@@ -6,6 +6,7 @@ import { Alert01Icon } from "@hugeicons/core-free-icons";
 import { SignalsFilterBar } from "@/components/signals/signals-filter-bar";
 import { SignalList } from "@/components/signals/signal-list";
 import { SignalDetailDialog } from "@/components/signals/signal-detail-dialog";
+import { PolicyCarousel } from "@/components/signals/policy-carousel";
 import { RegionMap } from "@/components/signals/region-map";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_LABEL_MAP } from "@/lib/constants";
@@ -96,6 +97,9 @@ export function SignalsPage({ signals, policies, regionScores, articles }: Signa
         </div>
       </div>
 
+      {/* 민생 지원정책 캐러셀 */}
+      <PolicyCarousel />
+
       {/* 메인 컨텐츠: 지도 + 목록 */}
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         {/* 왼쪽: 지역 지도 */}
@@ -109,19 +113,19 @@ export function SignalsPage({ signals, policies, regionScores, articles }: Signa
 
         {/* 오른쪽: 필터 + 목록 */}
         <div className="order-1 lg:order-2 space-y-4">
-          {/* 필터 바 */}
-          <SignalsFilterBar
-            category={category}
-            region={region}
-            severity={severity}
-            onCategoryChange={setCategory}
-            onRegionChange={setRegion}
-            onSeverityChange={setSeverity}
-          />
-
-          {/* 필터 결과 정보 */}
-          <div className="text-sm text-muted-foreground">
-            {filteredSignals.length}건의 신호가 검색되었습니다.
+          {/* 필터 바 + 결과 카운트 */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <SignalsFilterBar
+              category={category}
+              region={region}
+              severity={severity}
+              onCategoryChange={setCategory}
+              onRegionChange={setRegion}
+              onSeverityChange={setSeverity}
+            />
+            <span className="text-xs text-muted-foreground">
+              {filteredSignals.length}건
+            </span>
           </div>
 
           {/* 신호 목록 */}

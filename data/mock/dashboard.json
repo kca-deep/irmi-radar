@@ -131,6 +131,15 @@
     { "date": "01.18", "score": 66 },
     { "date": "01.19", "score": 67 }
   ],
+  "categoryScoreHistory": [
+    { "date": "01.13", "prices": 65, "employment": 55, "selfEmployed": 74, "finance": 58, "realEstate": 57 },
+    { "date": "01.14", "prices": 67, "employment": 56, "selfEmployed": 75, "finance": 59, "realEstate": 56 },
+    { "date": "01.15", "prices": 69, "employment": 57, "selfEmployed": 77, "finance": 60, "realEstate": 56 },
+    { "date": "01.16", "prices": 70, "employment": 57, "selfEmployed": 78, "finance": 61, "realEstate": 55 },
+    { "date": "01.17", "prices": 70, "employment": 58, "selfEmployed": 79, "finance": 62, "realEstate": 55 },
+    { "date": "01.18", "prices": 71, "employment": 58, "selfEmployed": 80, "finance": 62, "realEstate": 55 },
+    { "date": "01.19", "prices": 72, "employment": 58, "selfEmployed": 81, "finance": 63, "realEstate": 55 }
+  ],
   "recentSignals": [
     {
       "id": "sig-001",

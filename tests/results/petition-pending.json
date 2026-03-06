@@ -1,0 +1,89 @@
+{
+  "api": "청원 계류현황",
+  "code": "nvqbafvaajdiqhehi",
+  "status": 200,
+  "resultCode": "INFO-000",
+  "resultMessage": "정상 처리되었습니다.",
+  "totalCount": 271,
+  "fetchedCount": 5,
+  "fields": [
+    "BILL_NO",
+    "BILL_ID",
+    "AGE",
+    "BILL_NAME",
+    "PROPOSER",
+    "APPROVER",
+    "PROPOSE_DT",
+    "CURR_COMMITTEE_ID",
+    "CURR_COMMITTEE",
+    "COMMITTEE_DT",
+    "LINK_URL"
+  ],
+  "rows": [
+    {
+      "BILL_NO": "2200280",
+      "BILL_ID": "PRC_A2G6X0H3L0O3T0P9F0Y2B1S9X0Q8E8",
+      "AGE": "22",
+      "BILL_NAME": "전기차 충전기 보조금 정책 재검토 요청에 관한 청원",
+      "PROPOSER": "윤성로외 50,262인",
+      "APPROVER": "국민동의청원",
+      "PROPOSE_DT": "2026-03-01",
+      "CURR_COMMITTEE_ID": "9700585",
+      "CURR_COMMITTEE": "기후에너지환경노동위원회",
+      "COMMITTEE_DT": "2026-03-03",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_A2G6X0H3L0O3T0P9F0Y2B1S9X0Q8E8"
+    },
+    {
+      "BILL_NO": "2200279",
+      "BILL_ID": "PRC_U2I6S0M2J2T6W1Y5R3F9D5Q9G0N5A7",
+      "AGE": "22",
+      "BILL_NAME": "이재명 대통령 사례에서 나타난 위법한 공소권 행사 및 검찰권 남용의 제도적 시정을 위한 사법제도 개선 촉구에 관한 청원",
+      "PROPOSER": "김병주외 50,891인",
+      "APPROVER": "국민동의청원",
+      "PROPOSE_DT": "2026-02-26",
+      "CURR_COMMITTEE_ID": "9700006",
+      "CURR_COMMITTEE": "법제사법위원회",
+      "COMMITTEE_DT": "2026-02-27",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_U2I6S0M2J2T6W1Y5R3F9D5Q9G0N5A7"
+    },
+    {
+      "BILL_NO": "2200278",
+      "BILL_ID": "PRC_W2H6P0C2U2Y5K1P0K1R0O4P1L4L3G0",
+      "AGE": "22",
+      "BILL_NAME": "종교단체 해산법 반대에 관한 청원",
+      "PROPOSER": "김진우외 50,504인",
+      "APPROVER": "국민동의청원",
+      "PROPOSE_DT": "2026-02-25",
+      "CURR_COMMITTEE_ID": "9700006",
+      "CURR_COMMITTEE": "법제사법위원회",
+      "COMMITTEE_DT": "2026-02-25",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_W2H6P0C2U2Y5K1P0K1R0O4P1L4L3G0"
+    },
+    {
+      "BILL_NO": "2200277",
+      "BILL_ID": "PRC_N2F6O0S2P2Y3K1X5S1X6Y2B3L5I5M2",
+      "AGE": "22",
+      "BILL_NAME": "돌봄기본법 제정에 관한 청원",
+      "PROPOSER": "진영종",
+      "APPROVER": "남인순의원",
+      "PROPOSE_DT": "2026-02-23",
+      "CURR_COMMITTEE_ID": "9700341",
+      "CURR_COMMITTEE": "보건복지위원회",
+      "COMMITTEE_DT": "2026-02-24",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_N2F6O0S2P2Y3K1X5S1X6Y2B3L5I5M2"
+    },
+    {
+      "BILL_NO": "2200276",
+      "BILL_ID": "PRC_F2I6T0F2A2T3H0I8K5J3D1E2K8L1Y7",
+      "AGE": "22",
+      "BILL_NAME": "수도권 서북부 광역교통 불균형 해소를 위한 서울 지하철 5호선 연장 사업의 국회 차원 점검 및 추진 촉구에 관한 청원",
+      "PROPOSER": "김종진외 51,204인",
+      "APPROVER": "국민동의청원",
+      "PROPOSE_DT": "2026-02-22",
+      "CURR_COMMITTEE_ID": "9700407",
+      "CURR_COMMITTEE": "국토교통위원회",
+      "COMMITTEE_DT": "2026-02-23",
+      "LINK_URL": "https://likms.assembly.go.kr/bill/billDetail.do?billId=PRC_F2I6T0F2A2T3H0I8K5J3D1E2K8L1Y7"
+    }
+  ]
+}

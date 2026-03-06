@@ -1,0 +1,31 @@
+{
+  "testedAt": "2026-03-04T00:46:00.287Z",
+  "apiCount": 5,
+  "apis": [
+    {
+      "name": "NABO 경제전망",
+      "code": "npmbwjybaffxwvbbk",
+      "resultFile": "nabo-economic-forecast.json"
+    },
+    {
+      "name": "진행중 입법예고",
+      "code": "nknalejkafmvgzmpt",
+      "resultFile": "legislation-notice-active.json"
+    },
+    {
+      "name": "의안 접수목록",
+      "code": "BILLRCP",
+      "resultFile": "bill-received.json"
+    },
+    {
+      "name": "NARS 현안분석",
+      "code": "nvkfeqbsacvlzjmea",
+      "resultFile": "nars-issue-analysis.json"
+    },
+    {
+      "name": "청원 계류현황",
+      "code": "nvqbafvaajdiqhehi",
+      "resultFile": "petition-pending.json"
+    }
+  ]
+}

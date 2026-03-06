@@ -44,6 +44,16 @@ export interface ScoreHistoryEntry {
   score: number;
 }
 
+// -- 카테고리별 점수 이력 (스파크라인용) --
+export interface CategoryScoreHistoryEntry {
+  date: string;
+  prices: number;
+  employment: number;
+  selfEmployed: number;
+  finance: number;
+  realEstate: number;
+}
+
 // -- 기간 키 --
 export type PeriodKey = "1w" | "1m" | "3m";
 
@@ -55,6 +65,7 @@ export interface DashboardData {
   signalStats: SignalStats;
   recentSignals: SignalPreview[];
   scoreHistory: ScoreHistoryEntry[];
+  categoryScoreHistory: CategoryScoreHistoryEntry[];
 }
 
 // -- 신호 상세 분석 --

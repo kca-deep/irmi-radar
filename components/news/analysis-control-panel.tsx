@@ -139,7 +139,7 @@ export function AnalysisControlPanel({
   const isRunning = analysisState === "running";
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-4 space-y-3">
+    <div className="rounded-xl border border-border bg-card shadow-sm p-4 space-y-3">
       {/* 헤더 */}
       <div className="flex items-center gap-2">
         <HugeiconsIcon

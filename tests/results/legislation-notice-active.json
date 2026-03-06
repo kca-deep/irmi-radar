@@ -1,0 +1,83 @@
+{
+  "api": "진행중 입법예고",
+  "code": "nknalejkafmvgzmpt",
+  "status": 200,
+  "resultCode": "INFO-000",
+  "resultMessage": "정상 처리되었습니다.",
+  "totalCount": 244,
+  "fetchedCount": 5,
+  "fields": [
+    "BILL_ID",
+    "BILL_NO",
+    "BILL_NAME",
+    "AGE",
+    "PROPOSER_KIND_CD",
+    "CURR_COMMITTEE",
+    "NOTI_ED_DT",
+    "LINK_URL",
+    "PROPOSER",
+    "CURR_COMMITTEE_ID"
+  ],
+  "rows": [
+    {
+      "BILL_ID": "PRC_Z2Z6X0Y2W1S1T1R0R4P0R2P1P4X9W5",
+      "BILL_NO": "2216834",
+      "BILL_NAME": "한국형 복합문화공간 조성 및 지원에 관한 특별법안",
+      "AGE": "22",
+      "PROPOSER_KIND_CD": "의원",
+      "CURR_COMMITTEE": "문화체육관광위원회",
+      "NOTI_ED_DT": "2026-03-17",
+      "LINK_URL": "https://pal.assembly.go.kr/napal/lgsltpa/lgsltpaOngoing/view.do?lgsltPaId=PRC_Z2Z6X0Y2W1S1T1R0R4P0R2P1P4X9W5",
+      "PROPOSER": "김교흥의원 등 11인",
+      "CURR_COMMITTEE_ID": "9700513"
+    },
+    {
+      "BILL_ID": "PRC_I2H4C0D8B2C0A1B1Z3H7H3G3H1F5D2",
+      "BILL_NO": "2217017",
+      "BILL_NAME": "보훈문화 진흥에 관한 법률안",
+      "AGE": "22",
+      "PROPOSER_KIND_CD": "의원",
+      "CURR_COMMITTEE": "정무위원회",
+      "NOTI_ED_DT": "2026-03-17",
+      "LINK_URL": "https://pal.assembly.go.kr/napal/lgsltpa/lgsltpaOngoing/view.do?lgsltPaId=PRC_I2H4C0D8B2C0A1B1Z3H7H3G3H1F5D2",
+      "PROPOSER": "민병덕의원 등 15인",
+      "CURR_COMMITTEE_ID": "9700008"
+    },
+    {
+      "BILL_ID": "PRC_K2S6S0Q2R2P3O0O8K1K1J4K4I8I6H9",
+      "BILL_NO": "2217046",
+      "BILL_NAME": "회계기본법안",
+      "AGE": "22",
+      "PROPOSER_KIND_CD": "의원",
+      "CURR_COMMITTEE": "정무위원회",
+      "NOTI_ED_DT": "2026-03-17",
+      "LINK_URL": "https://pal.assembly.go.kr/napal/lgsltpa/lgsltpaOngoing/view.do?lgsltPaId=PRC_K2S6S0Q2R2P3O0O8K1K1J4K4I8I6H9",
+      "PROPOSER": "최은석의원 등 11인",
+      "CURR_COMMITTEE_ID": "9700008"
+    },
+    {
+      "BILL_ID": "PRC_M2N6L0L2K2S4S1R6S4Q9Q3P2P7X5W0",
+      "BILL_NO": "2217050",
+      "BILL_NAME": "신산업ㆍ신기술 규제특례 등에 관한 법률안",
+      "AGE": "22",
+      "PROPOSER_KIND_CD": "의원",
+      "CURR_COMMITTEE": "정무위원회",
+      "NOTI_ED_DT": "2026-03-17",
+      "LINK_URL": "https://pal.assembly.go.kr/napal/lgsltpa/lgsltpaOngoing/view.do?lgsltPaId=PRC_M2N6L0L2K2S4S1R6S4Q9Q3P2P7X5W0",
+      "PROPOSER": "박상혁의원 등 12인",
+      "CURR_COMMITTEE_ID": "9700008"
+    },
+    {
+      "BILL_ID": "PRC_O2C5J0H9H1H0P1O0M1N9M3G4G6M5N6",
+      "BILL_NO": "2216993",
+      "BILL_NAME": "인천광역시 서구 명칭 변경에 관한 법률안",
+      "AGE": "22",
+      "PROPOSER_KIND_CD": "의원",
+      "CURR_COMMITTEE": "행정안전위원회",
+      "NOTI_ED_DT": "2026-03-15",
+      "LINK_URL": "https://pal.assembly.go.kr/napal/lgsltpa/lgsltpaOngoing/view.do?lgsltPaId=PRC_O2C5J0H9H1H0P1O0M1N9M3G4G6M5N6",
+      "PROPOSER": "김교흥의원 등 14인",
+      "CURR_COMMITTEE_ID": "9700480"
+    }
+  ]
+}

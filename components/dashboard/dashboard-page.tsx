@@ -2,8 +2,6 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { CategoryRiskList } from "@/components/dashboard/category-risk-list";
 import { AiBriefingPanel } from "@/components/dashboard/ai-briefing-panel";
 import { UnifiedCrisisPanel } from "@/components/dashboard/unified-crisis-panel";
-import { AssemblyTrendsPanel } from "@/components/dashboard/assembly-trends-panel";
-import { GovPolicyPanel } from "@/components/dashboard/gov-policy-panel";
 
 import type { DashboardData, BriefingData, CrisisChainData, NewsArticle } from "@/lib/types";
 
@@ -43,17 +41,6 @@ export function DashboardPage({ dashboard, briefing, crisisChain, articles }: Da
         <div className="[&>div]:h-full">
           <CategoryRiskList categories={dashboard.categories} />
         </div>
-
-        {/* Gov Policy Panel - full width */}
-        <div className="sm:col-span-2 lg:col-span-3">
-          <GovPolicyPanel />
-        </div>
-
-        {/* Assembly Trends Panel - full width */}
-        <div className="sm:col-span-2 lg:col-span-3">
-          <AssemblyTrendsPanel />
-        </div>
-
       </div>
     </div>
   );

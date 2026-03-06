@@ -101,16 +101,16 @@ export function RegionMap({
   };
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-3">
+    <div className="rounded-xl border border-border bg-card shadow-sm p-3">
       {/* 헤더 */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-4">
         <HugeiconsIcon
           icon={Location01Icon}
-          size={16}
+          size={18}
           strokeWidth={2}
           className="text-primary"
         />
-        <h3 className="font-semibold text-xs">지역별 위기 현황</h3>
+        <h3 className="text-sm font-semibold text-foreground">지역별 위기 현황</h3>
       </div>
 
       {/* 지도 컨테이너 */}

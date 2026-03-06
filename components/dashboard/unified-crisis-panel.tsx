@@ -82,7 +82,7 @@ export function UnifiedCrisisPanel({
   }, [signals, selectedNodeId, selectedChainId, selectedChain]);
 
   return (
-    <div className="rounded-xl border border-crisis-accent/20 bg-crisis-surface p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border bg-card shadow-sm p-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">

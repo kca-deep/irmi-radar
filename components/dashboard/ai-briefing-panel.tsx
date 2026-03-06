@@ -51,24 +51,24 @@ export function AiBriefingPanel({ briefing, articles, overallScore }: AiBriefing
   return (
     <div className="space-y-4">
       {/* 민생 브리핑 서브카드 */}
-      <div className="rounded-xl border border-briefing-accent/20 bg-briefing-surface p-5">
+      <div className="rounded-xl border border-border bg-card shadow-sm p-5">
         <div className="grid grid-cols-1 lg:grid-cols-[8fr_2fr] gap-5">
           {/* 좌측 80%: 브리핑 콘텐츠 */}
           <div className="min-w-0">
-            {/* Header */}
+            {/* Header - 위기연쇄현황 패턴 */}
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HugeiconsIcon
                   icon={AiBrain01Icon}
-                  size={16}
+                  size={18}
                   strokeWidth={2}
                   className="text-briefing-accent"
                 />
-                <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                <h3 className="text-sm font-semibold text-foreground">
                   오늘의 민생 브리핑
-                </span>
+                </h3>
               </div>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-briefing-accent/10 text-briefing-accent font-medium">
                 {formatTime(briefing.generatedAt)} 생성
               </span>
             </div>
@@ -86,8 +86,8 @@ export function AiBriefingPanel({ briefing, articles, overallScore }: AiBriefing
             )}
 
             {/* Recommendation */}
-            <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4">
-              <div className="mb-2 flex items-center gap-1.5">
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-4 py-2.5">
+              <div className="flex shrink-0 items-center gap-1.5">
                 <HugeiconsIcon
                   icon={BulbIcon}
                   size={14}
@@ -98,7 +98,7 @@ export function AiBriefingPanel({ briefing, articles, overallScore }: AiBriefing
                   핵심 제언
                 </span>
               </div>
-              <p className="text-xs leading-relaxed text-foreground">
+              <p className="min-w-0 text-xs leading-relaxed text-foreground line-clamp-1">
                 <RichText text={briefing.recommendation} />
               </p>
             </div>
