@@ -168,8 +168,20 @@ export const ANALYSIS_STEPS: Omit<AnalysisStep, "status">[] = [
   { id: "aggregate", label: "종합 리스크 산출" },
 ];
 
+// -- 외부 API 분석 단계 --
+export const EXTERNAL_ANALYSIS_STEPS = {
+  assembly: { id: "assembly", label: "국회 입법 동향" } as Omit<AnalysisStep, "status">,
+  govServices: { id: "govServices", label: "보조금24 정책" } as Omit<AnalysisStep, "status">,
+};
+
 // -- 분석 예상 소요 시간 (기사 1건당 초) --
 export const ANALYSIS_SECONDS_PER_ARTICLE = 0.3;
+
+// -- 뉴스 목록 페이지 사이즈 --
+export const NEWS_PAGE_SIZE = parseInt(process.env.NEWS_PAGE_SIZE || "50", 10);
+
+// -- 무한스크롤 자동 로드 최대 횟수 (이후 "더보기" 버튼) --
+export const NEWS_AUTO_LOAD_MAX = 3;
 
 // -- 카테고리별 보조금24 API 검색 키워드 --
 export const GOV_SERVICE_KEYWORDS: Record<CategoryKey, string[]> = {

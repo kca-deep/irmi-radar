@@ -20,8 +20,18 @@ import path from "path";
 // ── 직접 import 대신 인라인 참조 (tsx 실행 시 @/ alias 미지원 대비) ──
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
-const DATA_DIR = path.join(PROJECT_ROOT, "data", "2025");
 const DB_PATH = path.join(PROJECT_ROOT, "data", "irmi.db");
+
+// --data-dir 인자 또는 기본 경로
+function resolveDataDir(): string {
+  const args = process.argv.slice(2);
+  const idx = args.indexOf("--data-dir");
+  if (idx !== -1 && args[idx + 1]) {
+    return path.resolve(args[idx + 1]);
+  }
+  return path.join(PROJECT_ROOT, "data", "2025");
+}
+const DATA_DIR = resolveDataDir();
 
 // ── 카테고리 매핑 (lib/db/category-map.ts와 동일) ──
 
@@ -226,7 +236,6 @@ interface RawArticle {
 interface ProcessedArticle {
   id: string;
   title: string;
-  subtitle: string;
   summary: string;
   content: string;
   category: CategoryKey;
@@ -241,9 +250,6 @@ interface ProcessedArticle {
   url: string;
   writer: string;
   relevanceScore: number;
-  imageUrl: string | null;
-  likeCount: number;
-  replyCount: number;
 }
 
 function processArticle(raw: RawArticle): ProcessedArticle | null {
@@ -301,7 +307,6 @@ function processArticle(raw: RawArticle): ProcessedArticle | null {
   return {
     id: String(raw.article.article_id),
     title,
-    subtitle: raw.article.sub_title || "",
     summary,
     content,
     category: irmiCategory,
@@ -316,9 +321,6 @@ function processArticle(raw: RawArticle): ProcessedArticle | null {
     url: raw.article_url || "",
     writer: raw.article.writers || "",
     relevanceScore: calcRelevanceScore(title, summary, keywordList),
-    imageUrl: raw.images?.[0]?.image_url || null,
-    likeCount: raw.share?.like_count ?? 0,
-    replyCount: raw.share?.reply_count ?? 0,
   };
 }
 
@@ -355,12 +357,19 @@ function main() {
   console.log(`DB path: ${DB_PATH}`);
 
   // 기존 DB 삭제 후 새로 생성
+  let dbDeleted = false;
   if (fs.existsSync(DB_PATH)) {
-    fs.unlinkSync(DB_PATH);
-    // WAL 파일도 삭제
-    if (fs.existsSync(DB_PATH + "-wal")) fs.unlinkSync(DB_PATH + "-wal");
-    if (fs.existsSync(DB_PATH + "-shm")) fs.unlinkSync(DB_PATH + "-shm");
-    console.log("Removed existing DB");
+    try {
+      fs.unlinkSync(DB_PATH);
+      if (fs.existsSync(DB_PATH + "-wal")) fs.unlinkSync(DB_PATH + "-wal");
+      if (fs.existsSync(DB_PATH + "-shm")) fs.unlinkSync(DB_PATH + "-shm");
+      console.log("Removed existing DB");
+      dbDeleted = true;
+    } catch {
+      console.warn("Cannot delete existing DB (locked). Will drop and recreate tables.");
+    }
+  } else {
+    dbDeleted = true;
   }
 
   const db = new Database(DB_PATH);
@@ -368,12 +377,22 @@ function main() {
   db.pragma("synchronous = NORMAL");
   db.pragma("foreign_keys = ON");
 
+  // DB가 잠겨서 삭제 못한 경우: 기존 테이블 드롭
+  if (!dbDeleted) {
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all() as { name: string }[];
+    for (const { name } of tables) {
+      db.exec(`DROP TABLE IF EXISTS "${name}"`);
+    }
+    // FTS, 트리거도 정리
+    try { db.exec("DROP TABLE IF EXISTS articles_fts"); } catch {}
+    console.log("Dropped all existing tables");
+  }
+
   // 스키마 생성
   db.exec(`
-    CREATE TABLE articles (
+    CREATE TABLE IF NOT EXISTS articles (
       id                     TEXT PRIMARY KEY,
       title                  TEXT NOT NULL,
-      subtitle               TEXT,
       summary                TEXT,
       content                TEXT,
       category               TEXT NOT NULL,
@@ -387,13 +406,10 @@ function main() {
       region                 TEXT,
       url                    TEXT,
       writer                 TEXT,
-      relevance_score        REAL DEFAULT 0,
-      image_url              TEXT,
-      like_count             INTEGER DEFAULT 0,
-      reply_count            INTEGER DEFAULT 0
+      relevance_score        REAL DEFAULT 0
     );
 
-    CREATE TABLE analysis (
+    CREATE TABLE IF NOT EXISTS analysis (
       article_id    TEXT PRIMARY KEY REFERENCES articles(id),
       risk_score    REAL,
       severity      TEXT,
@@ -403,7 +419,7 @@ function main() {
       analyzed_at   TEXT
     );
 
-    CREATE TABLE signals (
+    CREATE TABLE IF NOT EXISTS signals (
       id             TEXT PRIMARY KEY,
       title          TEXT NOT NULL,
       description    TEXT,
@@ -419,45 +435,136 @@ function main() {
       action_points  TEXT
     );
 
-    CREATE TABLE signal_articles (
+    CREATE TABLE IF NOT EXISTS signal_articles (
       signal_id  TEXT NOT NULL REFERENCES signals(id),
       article_id TEXT NOT NULL REFERENCES articles(id),
       PRIMARY KEY (signal_id, article_id)
     );
 
-    CREATE TABLE dashboard_cache (
+    CREATE TABLE IF NOT EXISTS gov_services (
+      service_id         TEXT PRIMARY KEY,
+      service_name       TEXT NOT NULL,
+      service_purpose    TEXT,
+      support_type       TEXT,
+      target_audience    TEXT,
+      selection_criteria TEXT,
+      support_content    TEXT,
+      apply_method       TEXT,
+      apply_deadline     TEXT,
+      detail_url         TEXT,
+      org_name           TEXT,
+      dept_name          TEXT,
+      contact            TEXT,
+      service_field      TEXT,
+      org_type           TEXT,
+      reception_org      TEXT,
+      view_count         INTEGER DEFAULT 0,
+      registered_at      TEXT,
+      modified_at        TEXT,
+      synced_at          TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS assembly_petitions (
+      bill_id    TEXT PRIMARY KEY,
+      bill_no    TEXT,
+      name       TEXT NOT NULL,
+      proposer   TEXT,
+      approver   TEXT,
+      propose_dt TEXT,
+      committee  TEXT,
+      link_url   TEXT,
+      synced_at  TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS assembly_legislations (
+      bill_id       TEXT PRIMARY KEY,
+      bill_no       TEXT,
+      name          TEXT NOT NULL,
+      proposer      TEXT,
+      proposer_kind TEXT,
+      committee     TEXT,
+      deadline_dt   TEXT,
+      link_url      TEXT,
+      synced_at     TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS assembly_bills (
+      bill_id       TEXT PRIMARY KEY,
+      bill_no       TEXT,
+      name          TEXT NOT NULL,
+      kind          TEXT,
+      proposer_kind TEXT,
+      propose_dt    TEXT,
+      result        TEXT,
+      link_url      TEXT,
+      synced_at     TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS policies (
+      id                TEXT PRIMARY KEY,
+      title             TEXT NOT NULL,
+      description       TEXT,
+      provider          TEXT,
+      contact           TEXT,
+      url               TEXT,
+      target_categories TEXT,
+      target_regions    TEXT,
+      related_signals   TEXT,
+      eligibility       TEXT,
+      benefit           TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS regions (
+      id                      TEXT PRIMARY KEY,
+      name                    TEXT NOT NULL,
+      score                   REAL DEFAULT 0,
+      trend                   TEXT,
+      category_prices         REAL DEFAULT 0,
+      category_employment     REAL DEFAULT 0,
+      category_self_employed  REAL DEFAULT 0,
+      category_finance        REAL DEFAULT 0,
+      category_real_estate    REAL DEFAULT 0,
+      top_issue               TEXT,
+      updated_at              TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS dashboard_cache (
       key        TEXT PRIMARY KEY,
       value      TEXT,
       updated_at TEXT
     );
 
-    CREATE INDEX idx_articles_category    ON articles(category);
-    CREATE INDEX idx_articles_published   ON articles(published_at);
-    CREATE INDEX idx_articles_region      ON articles(region);
-    CREATE INDEX idx_articles_relevance   ON articles(relevance_score DESC);
-    CREATE INDEX idx_analysis_severity    ON analysis(severity);
-    CREATE INDEX idx_analysis_risk_score  ON analysis(risk_score DESC);
-    CREATE INDEX idx_signals_severity     ON signals(severity);
-    CREATE INDEX idx_signals_category     ON signals(category);
-    CREATE INDEX idx_signals_detected     ON signals(detected_at);
+    CREATE INDEX IF NOT EXISTS idx_articles_category    ON articles(category);
+    CREATE INDEX IF NOT EXISTS idx_articles_published   ON articles(published_at);
+    CREATE INDEX IF NOT EXISTS idx_articles_region      ON articles(region);
+    CREATE INDEX IF NOT EXISTS idx_articles_relevance   ON articles(relevance_score DESC);
+    CREATE INDEX IF NOT EXISTS idx_analysis_severity    ON analysis(severity);
+    CREATE INDEX IF NOT EXISTS idx_analysis_risk_score  ON analysis(risk_score DESC);
+    CREATE INDEX IF NOT EXISTS idx_signals_severity     ON signals(severity);
+    CREATE INDEX IF NOT EXISTS idx_signals_category     ON signals(category);
+    CREATE INDEX IF NOT EXISTS idx_signals_detected     ON signals(detected_at);
+    CREATE INDEX IF NOT EXISTS idx_policies_categories  ON policies(target_categories);
+    CREATE INDEX IF NOT EXISTS idx_regions_score        ON regions(score DESC);
+    CREATE INDEX IF NOT EXISTS idx_gov_services_field   ON gov_services(service_field);
+    CREATE INDEX IF NOT EXISTS idx_assembly_bills_dt    ON assembly_bills(propose_dt);
 
-    CREATE VIRTUAL TABLE articles_fts USING fts5(
+    CREATE VIRTUAL TABLE IF NOT EXISTS articles_fts USING fts5(
       title, summary, keywords,
       content='articles', content_rowid='rowid',
       tokenize='unicode61'
     );
 
-    CREATE TRIGGER articles_fts_insert AFTER INSERT ON articles BEGIN
+    CREATE TRIGGER IF NOT EXISTS articles_fts_insert AFTER INSERT ON articles BEGIN
       INSERT INTO articles_fts(rowid, title, summary, keywords)
       VALUES (new.rowid, new.title, new.summary, new.keywords);
     END;
 
-    CREATE TRIGGER articles_fts_delete BEFORE DELETE ON articles BEGIN
+    CREATE TRIGGER IF NOT EXISTS articles_fts_delete BEFORE DELETE ON articles BEGIN
       INSERT INTO articles_fts(articles_fts, rowid, title, summary, keywords)
       VALUES ('delete', old.rowid, old.title, old.summary, old.keywords);
     END;
 
-    CREATE TRIGGER articles_fts_update AFTER UPDATE ON articles BEGIN
+    CREATE TRIGGER IF NOT EXISTS articles_fts_update AFTER UPDATE ON articles BEGIN
       INSERT INTO articles_fts(articles_fts, rowid, title, summary, keywords)
       VALUES ('delete', old.rowid, old.title, old.summary, old.keywords);
       INSERT INTO articles_fts(rowid, title, summary, keywords)
@@ -468,15 +575,13 @@ function main() {
   // INSERT prepared statement
   const insertStmt = db.prepare(`
     INSERT OR IGNORE INTO articles
-    (id, title, subtitle, summary, content, category, category_label,
+    (id, title, summary, content, category, category_label,
      original_category_code, original_category_name, middle_category_code,
-     middle_category_name, keywords, published_at, region, url, writer, relevance_score,
-     image_url, like_count, reply_count)
+     middle_category_name, keywords, published_at, region, url, writer, relevance_score)
     VALUES
-    (@id, @title, @subtitle, @summary, @content, @category, @categoryLabel,
+    (@id, @title, @summary, @content, @category, @categoryLabel,
      @originalCategoryCode, @originalCategoryName, @middleCategoryCode,
-     @middleCategoryName, @keywords, @publishedAt, @region, @url, @writer, @relevanceScore,
-     @imageUrl, @likeCount, @replyCount)
+     @middleCategoryName, @keywords, @publishedAt, @region, @url, @writer, @relevanceScore)
   `);
 
   // 트랜잭션 배치 INSERT

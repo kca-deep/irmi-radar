@@ -312,6 +312,12 @@ export interface AnalysisResult {
 // -- 분석 상태 --
 export type AnalysisState = "idle" | "running" | "completed" | "error";
 
+// -- 외부 데이터 연계 옵션 --
+export interface ExternalDataOptions {
+  includeAssembly: boolean;
+  includeGovServices: boolean;
+}
+
 // -- 보조금24 공공서비스 (행안부 API) --
 export interface GovService {
   serviceId: string;

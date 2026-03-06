@@ -51,7 +51,7 @@ export function NewsDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col p-0 gap-0">
+      <DialogContent className="sm:max-w-5xl max-h-[92vh] flex flex-col p-0 gap-0">
         {/* 헤더 */}
         <DialogHeader className="p-4 pb-3">
           <div className="flex items-center gap-2 mb-2">
@@ -95,7 +95,7 @@ export function NewsDetailModal({
         <Separator />
 
         {/* 2단 레이아웃: 좌측 본문 | 우측 AI 분석 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 flex-1 min-h-0">
+        <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] flex-1 min-h-0">
           {/* 좌측: 기사 원문 */}
           <ScrollArea className="min-h-0 sm:border-r border-border/30">
             <div className="p-4 space-y-4">

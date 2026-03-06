@@ -1,5 +1,5 @@
 import { successResponse, errorResponse, getSearchParams } from "@/lib/api/response";
-import { loadBriefing } from "@/lib/api/mock-data";
+import { loadBriefing } from "@/lib/api/data-source";
 
 /**
  * GET /api/briefing

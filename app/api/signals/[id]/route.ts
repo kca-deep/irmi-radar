@@ -1,5 +1,5 @@
 import { successResponse, errorResponse } from "@/lib/api/response";
-import { loadSignalById } from "@/lib/api/mock-data";
+import { loadSignalById } from "@/lib/api/data-source";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

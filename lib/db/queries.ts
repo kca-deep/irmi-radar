@@ -244,6 +244,113 @@ export function setDashboardCache(key: string, value: string): void {
 }
 
 // ────────────────────────────────────
+// 지원 정책
+// ────────────────────────────────────
+
+interface PolicyListParams {
+  category?: CategoryKey;
+  region?: string;
+  signalId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+/** 정책 목록 (필터 + 페이지네이션) */
+export function getPolicies(params: PolicyListParams = {}) {
+  const db = getDb(true);
+  const conditions: string[] = [];
+  const bindings: (string | number)[] = [];
+
+  if (params.category) {
+    conditions.push("target_categories LIKE ?");
+    bindings.push(`%"${params.category}"%`);
+  }
+  if (params.region) {
+    conditions.push("(target_regions LIKE ? OR target_regions LIKE '%\"전국\"%')");
+    bindings.push(`%"${params.region}"%`);
+  }
+  if (params.signalId) {
+    conditions.push("related_signals LIKE ?");
+    bindings.push(`%"${params.signalId}"%`);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const limit = params.limit ?? 20;
+  const offset = params.offset ?? 0;
+
+  const sql = `SELECT * FROM policies ${where} LIMIT ? OFFSET ?`;
+  return db.prepare(sql).all(...bindings, limit, offset);
+}
+
+// ────────────────────────────────────
+// 지역별 현황
+// ────────────────────────────────────
+
+/** 전체 지역 목록 (점수순) */
+export function getRegions() {
+  const db = getDb(true);
+  return db.prepare("SELECT * FROM regions ORDER BY score DESC").all();
+}
+
+/** 지역 단건 조회 */
+export function getRegionById(id: string) {
+  const db = getDb(true);
+  return db.prepare("SELECT * FROM regions WHERE id = ?").get(id);
+}
+
+// ────────────────────────────────────
+// 보조금24 공공서비스
+// ────────────────────────────────────
+
+/** 공공서비스 목록 (키워드 검색) */
+export function getGovServices(params: { keyword?: string; limit?: number } = {}) {
+  const db = getDb(true);
+  const limit = params.limit ?? 20;
+
+  if (params.keyword) {
+    return db
+      .prepare(
+        `SELECT * FROM gov_services
+         WHERE service_name LIKE ? OR service_purpose LIKE ? OR service_field LIKE ?
+         ORDER BY view_count DESC LIMIT ?`
+      )
+      .all(`%${params.keyword}%`, `%${params.keyword}%`, `%${params.keyword}%`, limit);
+  }
+
+  return db.prepare("SELECT * FROM gov_services ORDER BY view_count DESC LIMIT ?").all(limit);
+}
+
+// ────────────────────────────────────
+// 국회 API
+// ────────────────────────────────────
+
+/** 청원 계류현황 */
+export function getAssemblyPetitions(limit = 20) {
+  const db = getDb(true);
+  return db.prepare("SELECT * FROM assembly_petitions ORDER BY propose_dt DESC LIMIT ?").all(limit);
+}
+
+/** 진행중 입법예고 */
+export function getAssemblyLegislations(limit = 20) {
+  const db = getDb(true);
+  return db.prepare("SELECT * FROM assembly_legislations ORDER BY deadline_dt DESC LIMIT ?").all(limit);
+}
+
+/** 의안 접수목록 (키워드 검색) */
+export function getAssemblyBills(params: { keyword?: string; limit?: number } = {}) {
+  const db = getDb(true);
+  const limit = params.limit ?? 20;
+
+  if (params.keyword) {
+    return db
+      .prepare("SELECT * FROM assembly_bills WHERE name LIKE ? ORDER BY propose_dt DESC LIMIT ?")
+      .all(`%${params.keyword}%`, limit);
+  }
+
+  return db.prepare("SELECT * FROM assembly_bills ORDER BY propose_dt DESC LIMIT ?").all(limit);
+}
+
+// ────────────────────────────────────
 // 전체 통계
 // ────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { successResponse, errorResponse } from "@/lib/api/response";
-import { loadNews } from "@/lib/api/mock-data";
+import { loadNews } from "@/lib/api/data-source";
 import { analyzeNews, type AnalysisResult } from "@/lib/api/anthropic";
 
 interface AnalyzeRequest {

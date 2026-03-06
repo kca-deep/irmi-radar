@@ -1,18 +1,14 @@
 import { DashboardPage } from "@/components/dashboard/dashboard-page";
+import { loadDashboard, loadBriefing, loadCrisisChain, loadNews } from "@/lib/api/data-source";
 
-import type { DashboardData, BriefingData, CrisisChainData, NewsArticle } from "@/lib/types";
-
-import dashboardJson from "@/data/mock/dashboard.json";
-import briefingJson from "@/data/mock/briefing.json";
-import crisisChainJson from "@/data/mock/crisis-chain.json";
-import newsJson from "@/data/mock/news.json";
-
-const dashboard = dashboardJson as DashboardData;
-const briefing = briefingJson as BriefingData;
-const crisisChain = crisisChainJson as CrisisChainData;
-const articles = newsJson as NewsArticle[];
+export const dynamic = "force-dynamic";
 
 export default function Page() {
+  const dashboard = loadDashboard();
+  const briefing = loadBriefing();
+  const crisisChain = loadCrisisChain();
+  const articles = loadNews();
+
   return (
     <DashboardPage
       dashboard={dashboard}

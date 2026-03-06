@@ -1,6 +1,6 @@
 import { successResponse, errorResponse, getSearchParams } from "@/lib/api/response";
 import { fetchPoliciesByCategory, fetchPopularGovServices, govServiceToPolicy } from "@/lib/api/gov-service";
-import { loadPolicies } from "@/lib/api/mock-data";
+import { loadPolicies } from "@/lib/api/data-source";
 
 import type { CategoryKey } from "@/lib/types";
 

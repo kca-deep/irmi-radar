@@ -1,5 +1,5 @@
 import { successResponse, errorResponse, getSearchParams } from "@/lib/api/response";
-import { loadSignals } from "@/lib/api/mock-data";
+import { loadSignals } from "@/lib/api/data-source";
 
 import type { CategoryKey, Severity } from "@/lib/types";
 

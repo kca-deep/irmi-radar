@@ -236,13 +236,12 @@ data/2025/
 
 #### articles (52,162건)
 
-정제된 뉴스 기사 본문 및 메타데이터.
+IRMI 5대 카테고리 해당 기사만 포함. 매경 원본 카테고리 메타 보존, 비프로덕션 필드(부제목, 이미지, 좋아요/댓글수)는 제외.
 
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | `id` | TEXT PK | 기사 고유 ID (article_id) |
 | `title` | TEXT NOT NULL | 기사 제목 |
-| `subtitle` | TEXT | 부제목 |
 | `summary` | TEXT | 기사 요약 |
 | `content` | TEXT | HTML 제거된 본문 전문 |
 | `category` | TEXT NOT NULL | IRMI 카테고리 (prices/employment/selfEmployed/finance/realEstate) |

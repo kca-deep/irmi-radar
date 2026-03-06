@@ -1,5 +1,5 @@
 import { successResponse, errorResponse, getSearchParams } from "@/lib/api/response";
-import { loadDashboard, loadBriefing, loadCrisisChain } from "@/lib/api/mock-data";
+import { loadDashboard, loadBriefing, loadCrisisChain } from "@/lib/api/data-source";
 
 import type { DashboardData, BriefingData, CrisisChainData } from "@/lib/types";
 

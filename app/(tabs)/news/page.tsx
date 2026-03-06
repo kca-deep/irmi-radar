@@ -1,10 +1,12 @@
 import { NewsPage } from "@/components/news/news-page";
-import newsData from "@/data/mock/news.json";
+import { loadNews, loadNewsCount } from "@/lib/api/data-source";
+import { NEWS_PAGE_SIZE } from "@/lib/constants";
 
-import type { NewsArticle } from "@/lib/types";
+export const dynamic = "force-dynamic";
 
 export default function NewsRoute() {
-  const articles = newsData as NewsArticle[];
+  const articles = loadNews({ limit: NEWS_PAGE_SIZE, offset: 0 });
+  const totalCount = loadNewsCount();
 
-  return <NewsPage articles={articles} />;
+  return <NewsPage initialArticles={articles} totalCount={totalCount} pageSize={NEWS_PAGE_SIZE} />;
 }
