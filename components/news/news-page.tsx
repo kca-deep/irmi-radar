@@ -304,14 +304,8 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
 
   // 선택된 카테고리에 맞는 분석 단계 구성
   const buildAnalysisSteps = useCallback((): Omit<AnalysisStep, "status">[] => {
-    // 선택된 카테고리만 필터링 (미선택 시 전체)
-    const baseSteps = ANALYSIS_STEPS.filter((s) => {
-      if (!("category" in s) || !s.category) return true; // collect, aggregate는 항상 포함
-      if (analysisCategories.length === 0) return true; // 전체 카테고리
-      return analysisCategories.includes(s.category as CategoryKey);
-    });
-
-    const result = [...baseSteps];
+    // Round-Robin 통합: collect + analysis + [external] + aggregate
+    const result = [...ANALYSIS_STEPS];
     const aggregateIdx = result.findIndex((s) => s.id === "aggregate");
     const insertAt = aggregateIdx >= 0 ? aggregateIdx : result.length;
     const externalSteps: Omit<AnalysisStep, "status">[] = [];
@@ -323,7 +317,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     }
     result.splice(insertAt, 0, ...externalSteps);
     return result;
-  }, [analysisCategories, externalData]);
+  }, [externalData]);
 
   // Mock 분석 시뮬레이션
   const startMockAnalysis = useCallback(() => {
@@ -365,17 +359,20 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
       )
     );
 
-    // Mock 단계별 데이터 건수
-    const mockDetailCounts: Record<string, number> = {
-      collect: totalAnalysisCount,
-      prices: Math.ceil(totalAnalysisCount * 0.25),
-      employment: Math.ceil(totalAnalysisCount * 0.2),
-      selfEmployed: Math.ceil(totalAnalysisCount * 0.15),
-      finance: Math.ceil(totalAnalysisCount * 0.2),
-      realEstate: Math.ceil(totalAnalysisCount * 0.2),
-      assembly: 23,
-      govServices: 10,
-      aggregate: 0,
+    // Mock 단계별 데이터 건수 (Round-Robin 통합)
+    const mockAnalysisDetail = [
+      `물가 ${Math.ceil(totalAnalysisCount * 0.25)}건`,
+      `고용 ${Math.ceil(totalAnalysisCount * 0.2)}건`,
+      `자영업 ${Math.ceil(totalAnalysisCount * 0.15)}건`,
+      `금융 ${Math.ceil(totalAnalysisCount * 0.2)}건`,
+      `부동산 ${Math.ceil(totalAnalysisCount * 0.2)}건`,
+    ].join(" / ");
+    const mockDetailCounts: Record<string, string> = {
+      collect: `미분석 기사 ${totalAnalysisCount}건 확인`,
+      analysis: mockAnalysisDetail,
+      assembly: "입법예고 10건, 의안 13건, 현안분석 3건",
+      govServices: "보조금24 10건",
+      aggregate: `뉴스분석 ${totalAnalysisCount}건, 위기신호 12건, 종합점수 67점`,
     };
 
     timerRef.current = setInterval(() => {
@@ -390,11 +387,11 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
       let stepProgress = Math.min(stepElapsed / stepDuration, 1);
 
       if (stepProgress >= 1 && currentStep < totalSteps - 1) {
-        const count = mockDetailCounts[steps[currentStep].id] ?? 0;
+        const detail = mockDetailCounts[steps[currentStep].id];
         steps[currentStep] = {
           ...steps[currentStep],
           status: "completed",
-          detail: count > 0 ? `${count}건` : undefined,
+          detail: detail || undefined,
         };
         currentStep += 1;
         steps[currentStep] = { ...steps[currentStep], status: "running" };
@@ -427,7 +424,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
         const doneSteps = steps.map((s) => ({
           ...s,
           status: "completed" as const,
-          detail: s.detail || (mockDetailCounts[s.id] > 0 ? `${mockDetailCounts[s.id]}건` : undefined),
+          detail: s.detail || mockDetailCounts[s.id] || undefined,
         }));
 
         setProgress({
@@ -582,12 +579,13 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
             const processed = (parsed.processed as number) || 0;
             const total = (parsed.total as number) || 0;
             const stepId = parsed.stepId as string;
+            const detail = (parsed.detail as string) || `${processed}/${total}건`;
             setProgress((prev) => {
               if (!prev) return prev;
-              // 현재 진행 중인 단계에 진행 건수 업데이트
+              // 현재 진행 중인 단계에 카테고리별 detail 업데이트
               const newSteps = prev.steps.map((s) =>
                 s.id === stepId
-                  ? { ...s, detail: `${processed}/${total}건` }
+                  ? { ...s, detail }
                   : s
               );
               return {

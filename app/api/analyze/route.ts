@@ -99,12 +99,9 @@ export async function POST(request: Request) {
         }
       }
 
-      // 전체 단계 수 계산 (collect + 카테고리 + 외부데이터 + aggregate)
-      const activeCategories = categories?.length
-        ? categories
-        : (["prices", "employment", "selfEmployed", "finance", "realEstate"] as CategoryKey[]);
+      // 전체 단계 수 계산 (collect + analysis + 외부데이터 + aggregate)
       const externalStepCount = (includeAssembly ? 1 : 0) + (includeGovServices ? 1 : 0);
-      const totalSteps = 1 + activeCategories.length + externalStepCount + 1;
+      const totalSteps = 1 + 1 + externalStepCount + 1; // collect + analysis + external + aggregate
       let completedSteps = 0;
 
       // 토큰 사용량 추적 초기화
@@ -153,7 +150,7 @@ export async function POST(request: Request) {
                 message: error.message,
               });
             },
-            onArticleProgress: (stepId, processed, total, failed) => {
+            onArticleProgress: (stepId, processed, total, failed, detail) => {
               const stepProgress = total > 0 ? processed / total : 0;
               const overallPercent = Math.round(
                 ((completedSteps + stepProgress) / totalSteps) * 100
@@ -166,6 +163,7 @@ export async function POST(request: Request) {
                 processed,
                 total,
                 failed,
+                detail,
                 completedSteps,
                 totalSteps,
                 percent: Math.min(overallPercent, 99),

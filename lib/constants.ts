@@ -145,26 +145,11 @@ export const ANALYSIS_PERIOD_PRESETS: {
   { key: "custom", label: "직접 설정", days: null },
 ];
 
-// -- 분석 단계 정의 (7단계) --
+// -- 분석 단계 정의 (3단계 + 외부 데이터) --
+// Round-Robin 방식으로 5개 카테고리를 동시 분석하므로 "analysis" 1단계로 통합
 export const ANALYSIS_STEPS: Omit<AnalysisStep, "status">[] = [
   { id: "collect", label: "데이터 수집" },
-  { id: "prices", label: "물가 분석", category: "prices" as CategoryKey },
-  {
-    id: "employment",
-    label: "고용 분석",
-    category: "employment" as CategoryKey,
-  },
-  {
-    id: "selfEmployed",
-    label: "자영업 분석",
-    category: "selfEmployed" as CategoryKey,
-  },
-  { id: "finance", label: "금융 분석", category: "finance" as CategoryKey },
-  {
-    id: "realEstate",
-    label: "부동산 분석",
-    category: "realEstate" as CategoryKey,
-  },
+  { id: "analysis", label: "뉴스 분석" },
   { id: "aggregate", label: "종합 리스크 산출" },
 ];
 

@@ -1,25 +1,30 @@
 /**
- * 분석 파이프라인 오케스트레이터
+ * 분석 파이프라인 오케스트레이터 (Round-Robin 병렬 배치)
  *
  * 단계별 실행 흐름:
- * 1. collect      - 미분석 기사 확인
- * 2. prices       - 물가 카테고리 기사 분석
- * 3. employment   - 고용 카테고리 기사 분석
- * 4. selfEmployed - 자영업 카테고리 기사 분석
- * 5. finance      - 금융 카테고리 기사 분석
- * 6. realEstate   - 부동산 카테고리 기사 분석
- * 7. aggregate    - 위기 신호 탐지 + 지역 집계 + 종합 대시보드 (AI)
+ * 1. collect   - 미분석 기사 확인
+ * 2. analysis  - 전 카테고리 Round-Robin 병렬 분석
+ * 3. aggregate - 위기 신호 탐지 + 지역 집계 + 종합 대시보드 (AI)
  *
- * ANALYSIS_STEPS 상수와 1:1 매핑
+ * Round-Robin: 각 카테고리에서 chunkSize건씩 번갈아 가며 배치를 구성하고,
+ * concurrency로 병렬 API 호출. 타임아웃 전에 모든 카테고리를 골고루 분석.
  */
 
-import { analyzeArticles } from "./article-analyzer";
+import {
+  type ArticleInput,
+  getUnanalyzedArticles,
+  analyzeWithRetry,
+  saveAnalysis,
+  runConcurrent,
+  analyzeArticles,
+} from "./article-analyzer";
 import { detectSignals } from "./signal-detector";
 import { buildDashboard, type DashboardBuildResult } from "./dashboard-builder";
 import { aggregateRegions } from "./region-aggregator";
 import { fetchLegislationByKeywords, fetchBillsByKeywords, fetchNarsAnalysesByKeywords } from "@/lib/api/assembly";
 import { fetchGovServicesByCategory } from "@/lib/api/gov-service";
 import { getDb, initializeSchema } from "@/lib/db/index";
+import { CATEGORY_LABEL_MAP } from "@/lib/constants";
 import type { CategoryKey, AssemblyLegislation, AssemblyBill, GovService, NarsAnalysis } from "@/lib/types";
 
 // -- 타입 --
@@ -69,7 +74,8 @@ export interface PipelineCallbacks {
     stepId: string,
     processed: number,
     total: number,
-    failed: number
+    failed: number,
+    detail?: string
   ) => void;
 }
 
@@ -87,13 +93,14 @@ export interface PipelineResult {
   }[];
 }
 
-const CATEGORY_STEPS: { stepId: string; label: string; category: CategoryKey }[] = [
-  { stepId: "prices", label: "물가 분석", category: "prices" },
-  { stepId: "employment", label: "고용 분석", category: "employment" },
-  { stepId: "selfEmployed", label: "자영업 분석", category: "selfEmployed" },
-  { stepId: "finance", label: "금융 분석", category: "finance" },
-  { stepId: "realEstate", label: "부동산 분석", category: "realEstate" },
+const ALL_CATEGORIES: CategoryKey[] = [
+  "prices", "employment", "selfEmployed", "finance", "realEstate",
 ];
+
+/** Round-Robin 분석에 할당할 최대 시간 (ms). aggregate에 60초 확보 */
+const MAX_ANALYSIS_MS = 240_000; // 4분
+/** 라운드당 카테고리별 처리 건수 */
+const CHUNK_SIZE = 10;
 
 // -- 메인 파이프라인 --
 
@@ -194,55 +201,126 @@ export async function runPipeline(
     };
   }
 
-  // -- Step 2~6: 카테고리별 기사 분석 --
-  const activeSteps = categories?.length
-    ? CATEGORY_STEPS.filter((s) => categories.includes(s.category))
-    : CATEGORY_STEPS;
+  // -- Step 2: Round-Robin 병렬 분석 --
+  checkCancelled();
+  callbacks.onStepStart?.("analysis", "뉴스 분석");
 
-  for (const step of activeSteps) {
-    checkCancelled();
-    console.log(`[Pipeline] 카테고리 분석 시작: ${step.label} (${step.category})`);
-    callbacks.onStepStart?.(step.stepId, step.label);
+  const activeCategories: CategoryKey[] = categories?.length
+    ? categories
+    : ALL_CATEGORIES;
 
-    try {
-      const result = await analyzeArticles({
-        category: step.category,
-        limit: limitPerCategory === Infinity ? undefined : limitPerCategory,
-        concurrency,
-        batchSize,
-        dateFrom,
-        dateTo,
-        signal,
-        onProgress: (processed, total, failed) => {
-          callbacks.onArticleProgress?.(step.stepId, processed, total, failed);
-        },
-      });
+  try {
+    // 카테고리별 미분석 기사 큐 로드
+    const queues = new Map<CategoryKey, ArticleInput[]>();
+    let totalTarget = 0;
+    const fetchLimit = limitPerCategory === Infinity ? 999999 : limitPerCategory;
 
-      totalAnalyzed += result.analyzed;
-      totalFailed += result.failed;
-      categoryResults.push({
-        category: step.category,
-        analyzed: result.analyzed,
-        failed: result.failed,
-      });
-
-      console.log(`[Pipeline] 카테고리 분석 완료: ${step.category} - ${result.analyzed}건 분석, ${result.failed}건 실패 (${result.elapsedMs}ms)`);
-
-      callbacks.onStepComplete?.(
-        step.stepId,
-        `${result.analyzed}건` +
-          (result.failed > 0 ? ` (${result.failed}건 실패)` : "")
-      );
-    } catch (err) {
-      if (err instanceof PipelineCancelledError) throw err;
-      console.error(`[Pipeline] 카테고리 분석 에러: ${step.category}`, (err as Error).message);
-      callbacks.onStepError?.(step.stepId, err as Error);
-      categoryResults.push({
-        category: step.category,
-        analyzed: 0,
-        failed: 0,
-      });
+    for (const cat of activeCategories) {
+      const articles = getUnanalyzedArticles(fetchLimit, cat, dateFrom, dateTo);
+      queues.set(cat, articles);
+      totalTarget += articles.length;
+      console.log(`[Pipeline] 큐 로드: ${cat} - ${articles.length}건`);
     }
+
+    // 카테고리별 통계
+    const stats = new Map<CategoryKey, { analyzed: number; failed: number }>();
+    for (const cat of activeCategories) {
+      stats.set(cat, { analyzed: 0, failed: 0 });
+    }
+
+    const analysisStart = Date.now();
+    let rounds = 0;
+
+    // 진행률 보고 헬퍼
+    function reportProgress() {
+      const processed = totalAnalyzed + totalFailed;
+      const parts = activeCategories.map((cat) => {
+        const s = stats.get(cat)!;
+        return `${CATEGORY_LABEL_MAP[cat]} ${s.analyzed}건`;
+      });
+      const detail = parts.join(" / ");
+      callbacks.onArticleProgress?.("analysis", processed, totalTarget, totalFailed, detail);
+    }
+
+    // Round-Robin 루프
+    while (true) {
+      // 시간 체크 (aggregate 시간 확보)
+      const elapsed = Date.now() - analysisStart;
+      if (elapsed >= MAX_ANALYSIS_MS) {
+        console.log(`[Pipeline] Round-Robin 시간 초과 (${Math.round(elapsed / 1000)}초) - aggregate 진입`);
+        break;
+      }
+
+      checkCancelled();
+
+      // 배치 구성: 각 카테고리에서 chunkSize건씩
+      const batch: { article: ArticleInput; category: CategoryKey }[] = [];
+      for (const cat of activeCategories) {
+        const queue = queues.get(cat);
+        if (!queue || queue.length === 0) continue;
+        const chunk = queue.splice(0, CHUNK_SIZE);
+        for (const article of chunk) {
+          batch.push({ article, category: cat });
+        }
+      }
+
+      if (batch.length === 0) {
+        console.log("[Pipeline] 모든 큐 소진 - Round-Robin 종료");
+        break;
+      }
+
+      rounds++;
+
+      // 병렬 처리
+      const results = await runConcurrent(
+        batch,
+        (item) => analyzeWithRetry(item.article),
+        concurrency,
+        signal
+      );
+
+      // 결과 저장 + 통계
+      for (let i = 0; i < batch.length; i++) {
+        const result = results[i];
+        const { article, category } = batch[i];
+        const catStat = stats.get(category)!;
+
+        if (result instanceof Error) {
+          totalFailed++;
+          catStat.failed++;
+        } else {
+          saveAnalysis(article.id, result);
+          totalAnalyzed++;
+          catStat.analyzed++;
+        }
+      }
+
+      reportProgress();
+
+      if (rounds % 5 === 0) {
+        const sec = Math.round((Date.now() - analysisStart) / 1000);
+        console.log(`[Pipeline] Round ${rounds}: 분석 ${totalAnalyzed}건, 실패 ${totalFailed}건 (${sec}초)`);
+      }
+    }
+
+    // 카테고리별 결과 기록
+    for (const cat of activeCategories) {
+      const s = stats.get(cat)!;
+      categoryResults.push({ category: cat, analyzed: s.analyzed, failed: s.failed });
+    }
+
+    // 완료 detail
+    const detailParts = activeCategories.map((cat) => {
+      const s = stats.get(cat)!;
+      return `${CATEGORY_LABEL_MAP[cat]} ${s.analyzed}건`;
+    });
+    const completionDetail = `${rounds}라운드, ${detailParts.join(" / ")}`;
+    console.log(`[Pipeline] Round-Robin 완료: ${completionDetail}`);
+    callbacks.onStepComplete?.("analysis", completionDetail);
+  } catch (err) {
+    if (err instanceof PipelineCancelledError) throw err;
+    console.error("[Pipeline] Round-Robin 분석 에러:", (err as Error).message);
+    callbacks.onStepError?.("analysis", err as Error);
   }
 
   // -- 외부 데이터: 국회 입법 동향 --
@@ -314,7 +392,7 @@ export async function runPipeline(
     try {
       const targetCategories = categories?.length
         ? categories
-        : CATEGORY_STEPS.map((s) => s.category);
+        : ALL_CATEGORIES;
       console.log("[Pipeline] 보조금24 정책 조회 시작...");
 
       const allServices: GovService[] = [];

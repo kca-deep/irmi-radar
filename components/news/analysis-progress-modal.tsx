@@ -140,7 +140,6 @@ function StepIcon({ status, size = "md" }: { status: AnalysisStepStatus; size?: 
 
 // -- Phase 그룹핑 (카드형 진행 현황) --
 
-const CATEGORY_STEP_IDS = ["prices", "employment", "selfEmployed", "finance", "realEstate"];
 const EXTERNAL_STEP_IDS = ["assembly", "govServices"];
 
 interface PhaseGroup {
@@ -206,14 +205,46 @@ function groupStepsIntoPhases(
     });
   }
 
-  const catSteps = steps.filter((s) => CATEGORY_STEP_IDS.includes(s.id));
-  if (catSteps.length > 0) {
+  const analysisStep = steps.find((s) => s.id === "analysis");
+  if (analysisStep) {
+    // detail 포맷: "N라운드, 물가 32건 / 고용 28건 / ..." 또는 진행 중 "물가 10건 / 고용 8건 / ..."
+    const breakdown: { label: string; count: number | null; unit?: string; isTotal?: boolean }[] = [];
+    if (analysisStep.detail) {
+      // "N라운드, " 접두사 제거 후 파싱
+      const cleaned = analysisStep.detail.replace(/^\d+라운드,\s*/, "");
+      const parts = cleaned.split(" / ");
+      for (const part of parts) {
+        const match = part.match(/(.+?)\s*(\d+)건/);
+        if (match) {
+          breakdown.push({ label: match[1].trim(), count: parseInt(match[2]) });
+        }
+      }
+    }
+    // breakdown이 비어있으면 선택된 카테고리 기반 placeholder
+    if (breakdown.length === 0) {
+      const activeCats = selectedCategories.length > 0
+        ? CATEGORIES.filter((c) => selectedCategories.includes(c.key))
+        : CATEGORIES;
+      for (const cat of activeCats) {
+        breakdown.push({ label: cat.label, count: null });
+      }
+    }
+    const total = breakdown.reduce((sum, b) => sum + (b.count ?? 0), 0);
+    if (total > 0 || analysisStep.status !== "pending") {
+      breakdown.push({ label: "합계", count: total > 0 ? total : null, isTotal: true });
+    }
+
     phases.push({
       id: "categorize",
-      label: "카테고리별 분석",
-      steps: catSteps,
-      status: derivePhaseStatus(catSteps),
-      progress: calcPhaseProgress(catSteps),
+      label: "뉴스 분석",
+      steps: [analysisStep],
+      status: analysisStep.status,
+      progress: analysisStep.status === "completed"
+        ? 100
+        : analysisStep.status === "running"
+          ? calcPhaseProgress([analysisStep])
+          : 0,
+      breakdown,
     });
   }
 
@@ -302,8 +333,6 @@ function groupStepsIntoPhases(
 }
 
 function PhaseCard({ phase }: { phase: PhaseGroup }) {
-  const hasSubSteps = phase.id === "categorize";
-
   return (
     <div
       className={cn(
@@ -369,51 +398,6 @@ function PhaseCard({ phase }: { phase: PhaseGroup }) {
                 </div>
               );
             })}
-          </div>
-        ) : hasSubSteps ? (
-          /* 카테고리별 분석: step 기반 + 합계 */
-          <div className="space-y-0.5">
-            {phase.steps.map((step) => (
-              <div
-                key={step.id}
-                className={cn(
-                  "flex items-center justify-between gap-2 text-[10px]",
-                  step.status === "running"
-                    ? "text-primary font-medium"
-                    : "text-muted-foreground",
-                )}
-              >
-                <span className="flex items-center gap-1.5 min-w-0">
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full shrink-0",
-                      step.status === "completed"
-                        ? "bg-safe"
-                        : step.status === "running"
-                          ? "bg-primary animate-pulse"
-                          : "bg-muted-foreground/30",
-                    )}
-                  />
-                  <span className="truncate">
-                    {CATEGORY_LABEL_MAP[step.id as CategoryKey] || step.label}
-                  </span>
-                </span>
-                <span className="tabular-nums shrink-0">{step.detail || "-"}</span>
-              </div>
-            ))}
-            {/* 합계 행 */}
-            {phase.status !== "pending" && (() => {
-              const totalAnalyzed = phase.steps.reduce((sum, s) => {
-                const m = s.detail?.match(/^(\d+)/);
-                return sum + (m ? parseInt(m[1]) : 0);
-              }, 0);
-              return totalAnalyzed > 0 ? (
-                <div className="flex items-center justify-between gap-2 text-[10px] text-foreground font-medium border-t border-border/30 pt-0.5 mt-0.5">
-                  <span className="truncate">합계</span>
-                  <span className="tabular-nums shrink-0">{totalAnalyzed}건</span>
-                </div>
-              ) : null;
-            })()}
           </div>
         ) : null}
       </div>

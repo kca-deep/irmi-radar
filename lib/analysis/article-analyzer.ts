@@ -106,7 +106,7 @@ async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult>
 
 // -- 재시도 래퍼 --
 
-async function analyzeWithRetry(
+export async function analyzeWithRetry(
   article: ArticleInput,
   maxRetries = 2
 ): Promise<ArticleAnalysisResult> {
@@ -131,7 +131,7 @@ async function analyzeWithRetry(
 
 // -- DB 저장 --
 
-function saveAnalysis(articleId: string, result: ArticleAnalysisResult): void {
+export function saveAnalysis(articleId: string, result: ArticleAnalysisResult): void {
   const db = getDb();
   const insertAnalysis = db.prepare(`
     INSERT OR REPLACE INTO analysis (article_id, risk_score, severity, key_factors, impact_region, ai_summary, analyzed_at)
@@ -159,7 +159,7 @@ function saveAnalysis(articleId: string, result: ArticleAnalysisResult): void {
 
 // -- 미분석 기사 조회 --
 
-function getUnanalyzedArticles(
+export function getUnanalyzedArticles(
   limit: number,
   category?: CategoryKey,
   dateFrom?: string,
@@ -257,7 +257,7 @@ export function getAnalyzedArticles(
 
 // -- 동시성 제어 배치 처리 --
 
-async function runConcurrent<T, R>(
+export async function runConcurrent<T, R>(
   items: T[],
   fn: (item: T) => Promise<R>,
   concurrency: number,
