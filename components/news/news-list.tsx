@@ -2,6 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
 import { NewsCard } from "./news-card";
 
 import type { NewsArticle } from "@/lib/types";
@@ -34,9 +35,18 @@ export function NewsList({ articles, onArticleClick }: NewsListProps) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {articles.map((article) => (
-        <NewsCard key={article.id} article={article} onClick={onArticleClick} />
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[minmax(160px,auto)]">
+      {articles.map((article, index) => (
+        <div
+          key={article.id}
+          className={cn(index === 0 && "sm:col-span-2 sm:row-span-2")}
+        >
+          <NewsCard
+            article={article}
+            featured={index === 0}
+            onClick={onArticleClick}
+          />
+        </div>
       ))}
     </div>
   );

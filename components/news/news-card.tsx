@@ -11,10 +11,11 @@ import type { NewsArticle } from "@/lib/types";
 
 interface NewsCardProps {
   article: NewsArticle;
+  featured?: boolean;
   onClick?: (article: NewsArticle) => void;
 }
 
-export function NewsCard({ article, onClick }: NewsCardProps) {
+export function NewsCard({ article, featured = false, onClick }: NewsCardProps) {
   const categoryIcon = CATEGORY_ICON_MAP[article.category];
   const analysis = article.analysis;
 
@@ -31,9 +32,10 @@ export function NewsCard({ article, onClick }: NewsCardProps) {
     <article
       onClick={() => onClick?.(article)}
       className={cn(
-        "rounded-lg border border-border bg-card shadow-sm p-4 cursor-pointer",
+        "rounded-lg border border-border bg-card shadow-sm cursor-pointer h-full flex flex-col",
         "transition-all duration-200 ease-out",
-        "hover:-translate-y-0.5 hover:shadow-md"
+        "hover:-translate-y-0.5 hover:shadow-md",
+        featured ? "p-5" : "p-4"
       )}
     >
       {/* 상단: 카테고리 배지 + 위험도/발행일 */}
@@ -67,17 +69,27 @@ export function NewsCard({ article, onClick }: NewsCardProps) {
       </div>
 
       {/* 중단: 제목 + 요약 */}
-      <h3 className="text-xs font-semibold leading-relaxed text-foreground line-clamp-2 mb-2">
+      <h3
+        className={cn(
+          "font-semibold leading-relaxed text-foreground mb-2",
+          featured ? "text-sm line-clamp-3" : "text-xs line-clamp-2"
+        )}
+      >
         {article.title}
       </h3>
-      <p className="text-[11px] leading-relaxed text-muted-foreground line-clamp-2 mb-3">
+      <p
+        className={cn(
+          "text-[11px] leading-relaxed text-muted-foreground mb-3 flex-1",
+          featured ? "line-clamp-5" : "line-clamp-2"
+        )}
+      >
         {article.summary}
       </p>
 
       {/* 하단: 키워드 태그 */}
       {article.keywords.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {article.keywords.slice(0, 4).map((keyword) => (
+        <div className="flex flex-wrap gap-1.5 mt-auto">
+          {article.keywords.slice(0, featured ? 6 : 4).map((keyword) => (
             <Badge
               key={keyword}
               variant="secondary"
