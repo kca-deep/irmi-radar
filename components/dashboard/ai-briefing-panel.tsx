@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AiBrain01Icon, BulbIcon } from "@hugeicons/core-free-icons";
+import { SEVERITY_LABEL_MAP } from "@/lib/constants";
 import { TypingMarkdownText } from "@/components/dashboard/typing-markdown-text";
 import { AnalyzedNewsCarousel } from "@/components/news/analyzed-news-carousel";
 import { parseMarkdown } from "@/lib/parse-markdown";
@@ -10,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 import { RiskGauge } from "@/components/dashboard/risk-gauge";
 
-import type { BriefingData, NewsArticle } from "@/lib/types";
+import type { BriefingData, NewsArticle, Severity } from "@/lib/types";
 
 interface AiBriefingPanelProps {
   briefing: BriefingData;
@@ -32,7 +33,10 @@ function RichText({ text }: { text: string }) {
       {segments.map((seg, i) => (
         <span
           key={i}
-          className={cn(seg.bold && "font-semibold text-emphasis")}
+          className={cn(
+            seg.bold && "font-semibold text-emphasis",
+            seg.highlight && "bg-highlight text-highlight-foreground rounded-sm px-0.5 py-px",
+          )}
         >
           {seg.text}
         </span>
@@ -41,12 +45,36 @@ function RichText({ text }: { text: string }) {
   );
 }
 
+const SEVERITY_ORDER: Severity[] = ["critical", "warning", "caution", "safe"];
+
+const SEVERITY_BG_MAP: Record<Severity, string> = {
+  critical: "bg-danger",
+  warning: "bg-warning",
+  caution: "bg-caution",
+  safe: "bg-safe",
+};
+
 export function AiBriefingPanel({ briefing, articles, overallScore }: AiBriefingPanelProps) {
+  const [selectedSeverity, setSelectedSeverity] = useState<Severity | null>(null);
+
   const analyzedArticles = useMemo(() => {
     return articles
       .filter((a) => a.analysis)
       .sort((a, b) => (b.analysis?.riskScore ?? 0) - (a.analysis?.riskScore ?? 0));
   }, [articles]);
+
+  const severityCounts = useMemo(() => {
+    const counts: Record<Severity, number> = { critical: 0, warning: 0, caution: 0, safe: 0 };
+    for (const a of analyzedArticles) {
+      if (a.analysis) counts[a.analysis.severity]++;
+    }
+    return counts;
+  }, [analyzedArticles]);
+
+  const filteredArticles = useMemo(() => {
+    if (!selectedSeverity) return analyzedArticles;
+    return analyzedArticles.filter((a) => a.analysis?.severity === selectedSeverity);
+  }, [analyzedArticles, selectedSeverity]);
 
   return (
     <div className="space-y-4">
@@ -78,10 +106,44 @@ export function AiBriefingPanel({ briefing, articles, overallScore }: AiBriefing
               <TypingMarkdownText text={briefing.summary} speed={15} />
             </p>
 
-            {/* AI 분석 뉴스 캐러셀 */}
+            {/* AI 분석 뉴스: 등급별 뱃지 + 조건부 캐러셀 */}
             {analyzedArticles.length > 0 && (
-              <div className="mt-4">
-                <AnalyzedNewsCarousel articles={analyzedArticles} />
+              <div className="mt-4 space-y-2">
+                {/* 등급별 뱃지 */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-medium text-muted-foreground mr-0.5">
+                    분석 뉴스
+                  </span>
+                  {SEVERITY_ORDER.map((sev) => {
+                    const count = severityCounts[sev];
+                    if (count === 0) return null;
+                    const isSelected = selectedSeverity === sev;
+                    const hasSelection = selectedSeverity !== null;
+                    return (
+                      <button
+                        key={sev}
+                        onClick={() => setSelectedSeverity(isSelected ? null : sev)}
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium transition-all cursor-pointer",
+                          SEVERITY_BG_MAP[sev],
+                          "text-white",
+                          isSelected && "ring-2 ring-foreground/30 ring-offset-1 ring-offset-background",
+                          hasSelection && !isSelected && "opacity-35",
+                        )}
+                      >
+                        {SEVERITY_LABEL_MAP[sev]} {count}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* 캐러셀: 초기 전체, 등급 선택 시 필터링 */}
+                {filteredArticles.length > 0 && (
+                  <AnalyzedNewsCarousel
+                    key={selectedSeverity ?? "all"}
+                    articles={filteredArticles}
+                  />
+                )}
               </div>
             )}
 
@@ -98,7 +160,7 @@ export function AiBriefingPanel({ briefing, articles, overallScore }: AiBriefing
                   핵심 제언
                 </span>
               </div>
-              <p className="min-w-0 text-xs leading-relaxed text-foreground line-clamp-1">
+              <p className="min-w-0 text-xs leading-relaxed text-foreground">
                 <RichText text={briefing.recommendation} />
               </p>
             </div>

@@ -11,9 +11,16 @@ const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "irmi.db");
 
 let _db: Database.Database | null = null;
+let _dbReadonly = false;
 
 /** DB 싱글턴 반환 (읽기 전용 모드 가능) */
 export function getDb(readonly = false): Database.Database {
+  // readwrite 요청인데 현재 readonly로 열려있으면 재연결
+  if (_db && _dbReadonly && !readonly) {
+    _db.close();
+    _db = null;
+  }
+
   if (_db) return _db;
 
   if (!fs.existsSync(DB_DIR)) {
@@ -24,6 +31,7 @@ export function getDb(readonly = false): Database.Database {
     readonly,
     fileMustExist: readonly,
   });
+  _dbReadonly = readonly;
 
   // WAL 모드: 읽기 성능 향상
   _db.pragma("journal_mode = WAL");
@@ -45,6 +53,7 @@ export function closeDb(): void {
   if (_db) {
     _db.close();
     _db = null;
+    _dbReadonly = false;
   }
 }
 

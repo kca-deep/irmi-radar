@@ -83,7 +83,7 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
           조회 중...
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
           {policies.map((policy) => (
             <a
               key={policy.id}
@@ -91,44 +91,30 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "block rounded-lg border border-policy-accent/20 bg-policy-accent/5 p-2.5 space-y-1",
-                "transition-colors hover:bg-policy-accent/10"
+                "block rounded-lg border border-policy-accent/20 bg-policy-accent/5 p-2.5 space-y-1.5",
+                "transition-colors hover:bg-policy-accent/10 min-w-0"
               )}
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-1 flex-1 min-w-0">
-                  {policy.title}
-                </p>
-                <span className="text-[10px] text-muted-foreground shrink-0">
-                  {policy.provider}
-                </span>
-              </div>
+              <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2 min-w-0">
+                {policy.title}
+              </p>
 
               {policy.benefit && (
-                <p className="text-[10px] text-foreground/70 leading-snug line-clamp-1">
+                <p className="text-[10px] text-foreground/70 leading-snug line-clamp-2">
                   {policy.benefit}
                 </p>
               )}
 
-              <div className="flex items-center justify-between">
-                {policy.contact && (
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1 min-w-0">
-                    <HugeiconsIcon
-                      icon={Call02Icon}
-                      size={9}
-                      strokeWidth={2}
-                      className="shrink-0"
-                    />
-                    <span className="truncate">{policy.contact}</span>
-                  </span>
-                )}
-                <span className="text-[10px] text-policy-accent flex items-center gap-0.5 ml-auto shrink-0">
-                  <HugeiconsIcon
-                    icon={ArrowRight01Icon}
-                    size={9}
-                    strokeWidth={2}
-                  />
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] text-muted-foreground truncate min-w-0">
+                  {policy.provider}
                 </span>
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={9}
+                  strokeWidth={2}
+                  className="text-policy-accent shrink-0"
+                />
               </div>
             </a>
           ))}

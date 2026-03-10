@@ -93,7 +93,7 @@ export function AssemblyRelatedSection({
           조회 중...
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
           {legislation.map((l) => (
             <a
               key={l.billNo}
@@ -101,33 +101,32 @@ export function AssemblyRelatedSection({
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "block rounded-lg border border-assembly-accent/20 bg-assembly-accent/5 p-3 space-y-1",
+                "block rounded-lg border border-assembly-accent/20 bg-assembly-accent/5 p-2.5 space-y-1.5 min-w-0",
                 "transition-colors hover:bg-assembly-accent/10"
               )}
             >
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
-                  {l.name}
-                </p>
-                <Badge
-                  variant="outline"
-                  className="text-[9px] shrink-0 border-assembly-accent/30 text-assembly-accent"
-                >
-                  입법예고
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">
+              <Badge
+                variant="outline"
+                className="text-[9px] border-assembly-accent/30 text-assembly-accent"
+              >
+                입법예고
+              </Badge>
+              <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
+                {l.name}
+              </p>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground truncate">
                   {l.committee}
-                </span>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                </p>
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                   <HugeiconsIcon
                     icon={Calendar03Icon}
                     size={9}
                     strokeWidth={2}
+                    className="shrink-0"
                   />
                   마감 {l.deadlineDt}
-                </span>
+                </p>
               </div>
             </a>
           ))}
@@ -139,40 +138,33 @@ export function AssemblyRelatedSection({
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "block rounded-lg border border-border/50 bg-muted/20 p-3 space-y-1",
+                "block rounded-lg border border-border/50 bg-muted/20 p-2.5 space-y-1.5 min-w-0",
                 "transition-colors hover:bg-muted/40"
               )}
             >
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
-                  {b.name}
-                </p>
-                <div className="flex items-center gap-1 shrink-0">
-                  {b.result && (
-                    <Badge variant="secondary" className="text-[9px]">
-                      {b.result}
-                    </Badge>
-                  )}
-                  <HugeiconsIcon
-                    icon={LegalDocument01Icon}
-                    size={10}
-                    strokeWidth={2}
-                    className="text-muted-foreground"
-                  />
-                </div>
+              <div className="flex items-center gap-1">
+                <HugeiconsIcon
+                  icon={LegalDocument01Icon}
+                  size={10}
+                  strokeWidth={2}
+                  className="text-muted-foreground shrink-0"
+                />
+                {b.result && (
+                  <Badge variant="secondary" className="text-[9px]">
+                    {b.result}
+                  </Badge>
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
+                {b.name}
+              </p>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground truncate">
                   {b.kind} / {b.proposerKind}
-                </span>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <HugeiconsIcon
-                    icon={ArrowRight01Icon}
-                    size={9}
-                    strokeWidth={2}
-                  />
+                </p>
+                <p className="text-[10px] text-muted-foreground">
                   {b.proposeDt}
-                </span>
+                </p>
               </div>
             </a>
           ))}

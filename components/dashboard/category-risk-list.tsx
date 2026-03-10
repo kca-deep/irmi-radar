@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
 import { CategoryRiskBar } from "@/components/dashboard/category-risk-bar";
@@ -10,9 +13,29 @@ interface CategoryRiskListProps {
 }
 
 export function CategoryRiskList({ categories }: CategoryRiskListProps) {
+  // 초기값: 점수가 가장 높은 카테고리를 펼침
+  const topCategory = useMemo(() => {
+    let maxKey: CategoryKey = CATEGORIES[0].key;
+    let maxScore = 0;
+    for (const cat of CATEGORIES) {
+      const risk = categories[cat.key];
+      if (risk && risk.score > maxScore) {
+        maxScore = risk.score;
+        maxKey = cat.key;
+      }
+    }
+    return maxKey;
+  }, [categories]);
+
+  const [openCategory, setOpenCategory] = useState<CategoryKey | null>(topCategory);
+
+  const handleToggle = (key: CategoryKey) => {
+    setOpenCategory((prev) => (prev === key ? null : key));
+  };
+
   return (
     <div className="flex h-full flex-col rounded-xl border border-border bg-card shadow-sm p-5">
-      {/* Header - 위기연쇄현황 패턴 */}
+      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <HugeiconsIcon
@@ -27,10 +50,14 @@ export function CategoryRiskList({ categories }: CategoryRiskListProps) {
         </div>
       </div>
 
-      {/* Category bars - 균등 배치 */}
-      <div className="flex flex-1 flex-col justify-between">
+      {/* Category cards */}
+      <div className="flex flex-1 flex-col">
         {CATEGORIES.map((cat, index) => {
-          const risk = categories[cat.key];
+          const risk = categories[cat.key] ?? {
+            score: 0,
+            trend: "stable" as const,
+            keyIssues: [],
+          };
           return (
             <CategoryRiskBar
               key={cat.key}
@@ -40,6 +67,9 @@ export function CategoryRiskList({ categories }: CategoryRiskListProps) {
               trend={risk.trend}
               keyIssues={risk.keyIssues}
               index={index}
+              isOpen={openCategory === cat.key}
+              isLast={index === CATEGORIES.length - 1}
+              onToggle={() => handleToggle(cat.key)}
             />
           );
         })}

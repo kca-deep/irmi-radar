@@ -288,6 +288,87 @@ async function syncGovServices(db: Database.Database, apiKey: string) {
   return allItems.length;
 }
 
+// ── gov_services → policies 변환 ──
+
+const POLICY_DETECT_KEYWORDS: Record<string, string[]> = {
+  prices: ["물가", "생활비", "에너지", "바우처", "긴급복지", "식료품", "난방"],
+  employment: ["고용", "취업", "일자리", "실업", "청년", "직업훈련", "구직"],
+  selfEmployed: ["소상공인", "자영업", "창업", "폐업", "상가", "배달", "임대료"],
+  finance: ["금융", "대출", "서민금융", "장려금", "채무", "이자", "연체"],
+  realEstate: ["주거", "전세", "임대", "주택", "월세", "주거비", "공공임대"],
+};
+
+function detectPolicyCategories(name: string, purpose: string, field: string): string[] {
+  const text = `${name} ${purpose} ${field}`;
+  const matched: string[] = [];
+  for (const [cat, keywords] of Object.entries(POLICY_DETECT_KEYWORDS)) {
+    if (keywords.some((kw) => text.includes(kw))) {
+      matched.push(cat);
+    }
+  }
+  return matched.length > 0 ? matched : ["prices"];
+}
+
+function convertGovServicesToPolicies(db: Database.Database): number {
+  const services = db
+    .prepare("SELECT * FROM gov_services")
+    .all() as Record<string, string | number | null>[];
+
+  if (services.length === 0) return 0;
+
+  // policies 테이블이 없으면 생성
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS policies (
+      id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT,
+      provider TEXT, contact TEXT, url TEXT,
+      target_categories TEXT, target_regions TEXT, related_signals TEXT,
+      eligibility TEXT, benefit TEXT
+    );
+  `);
+
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO policies
+    (id, title, description, provider, contact, url,
+     target_categories, target_regions, related_signals,
+     eligibility, benefit)
+    VALUES (@id, @title, @description, @provider, @contact, @url,
+            @targetCategories, @targetRegions, @relatedSignals,
+            @eligibility, @benefit)
+  `);
+
+  let count = 0;
+  const tx = db.transaction(() => {
+    for (const svc of services) {
+      const name = String(svc.service_name ?? "");
+      const purpose = String(svc.service_purpose ?? "");
+      const field = String(svc.service_field ?? "");
+      const categories = detectPolicyCategories(name, purpose, field);
+      const contact = String(svc.contact ?? "").split("||")[0] || "";
+      const targetAudience = String(svc.target_audience ?? "")
+        .replace(/\r?\n/g, " ").replace(/\s{2,}/g, " ").trim();
+      const supportContent = String(svc.support_content ?? "")
+        .replace(/\r?\n/g, " ").replace(/\s{2,}/g, " ").trim();
+
+      stmt.run({
+        id: `gov-${svc.service_id}`,
+        title: name,
+        description: purpose,
+        provider: String(svc.org_name ?? ""),
+        contact,
+        url: String(svc.detail_url ?? ""),
+        targetCategories: JSON.stringify(categories),
+        targetRegions: JSON.stringify([]),
+        relatedSignals: JSON.stringify([]),
+        eligibility: targetAudience,
+        benefit: supportContent,
+      });
+      count++;
+    }
+  });
+  tx();
+  return count;
+}
+
 // ── 메인 ──
 
 async function main() {
@@ -372,6 +453,18 @@ async function main() {
     }
   } else {
     console.warn("[2/2] DATA_GO_KR_API_KEY 미설정, 보조금24 건너뜀");
+  }
+
+  // gov_services → policies 변환
+  try {
+    const policyCount = convertGovServicesToPolicies(db);
+    if (policyCount > 0) {
+      console.log(`\n[+] gov_services -> policies 변환: ${policyCount}건`);
+      results.push({ name: "정책 변환(policies)", count: policyCount, status: "OK" });
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`  policies 변환 실패: ${msg}`);
   }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);

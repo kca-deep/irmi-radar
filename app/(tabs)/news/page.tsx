@@ -5,8 +5,23 @@ import { NEWS_PAGE_SIZE } from "@/lib/constants";
 export const dynamic = "force-dynamic";
 
 export default function NewsRoute() {
-  const articles = loadNews({ limit: NEWS_PAGE_SIZE, offset: 0 });
-  const totalCount = loadNewsCount();
+  // 분석 완료 기사가 있으면 분석 완료만, 없으면 전체
+  const analyzedCount = loadNewsCount({ analyzedOnly: true });
+  const hasAnalyzed = analyzedCount > 0;
 
-  return <NewsPage initialArticles={articles} totalCount={totalCount} pageSize={NEWS_PAGE_SIZE} />;
+  const articles = loadNews({
+    limit: NEWS_PAGE_SIZE,
+    offset: 0,
+    analyzedOnly: hasAnalyzed || undefined,
+  });
+  const totalCount = hasAnalyzed ? analyzedCount : loadNewsCount();
+
+  return (
+    <NewsPage
+      initialArticles={articles}
+      totalCount={totalCount}
+      pageSize={NEWS_PAGE_SIZE}
+      initialAnalyzedOnly={hasAnalyzed}
+    />
+  );
 }

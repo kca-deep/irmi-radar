@@ -178,7 +178,7 @@ export const EXTERNAL_ANALYSIS_STEPS = {
 export const ANALYSIS_SECONDS_PER_ARTICLE = 0.3;
 
 // -- 뉴스 목록 페이지 사이즈 --
-export const NEWS_PAGE_SIZE = parseInt(process.env.NEWS_PAGE_SIZE || "50", 10);
+export const NEWS_PAGE_SIZE = parseInt(process.env.NEWS_PAGE_SIZE || "10", 10);
 
 // -- 무한스크롤 자동 로드 최대 횟수 (이후 "더보기" 버튼) --
 export const NEWS_AUTO_LOAD_MAX = 3;
@@ -200,3 +200,6 @@ export const CATEGORY_SEARCH_KEYWORDS: Record<CategoryKey, string[]> = {
   finance: ["금리", "가계부채", "연체", "서민금융", "대출", "금융", "이자"],
   realEstate: ["부동산", "집값", "전세", "월세", "주거", "임대차", "아파트"],
 };
+
+// -- 티커 캐러셀 공통 속도 --
+export const TICKER_PX_PER_SEC = 100;

@@ -16,6 +16,7 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import { SCHEMA_SQL, INDEX_SQL, FTS_SQL, FTS_TRIGGERS_SQL } from "../lib/db/schema";
 
 // ── 직접 import 대신 인라인 참조 (tsx 실행 시 @/ alias 미지원 대비) ──
 
@@ -146,12 +147,22 @@ const ALL_KEYWORDS = new Set(Object.values(IRMI_KEYWORDS).flat());
 
 function stripHtml(html: string): string {
   return html
+    // 스크립트/스타일/iframe 제거
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
     .replace(/<iframe[^>]*>/gi, "")
+    // <br> 태그 → 줄바꿈
+    .replace(/<br\s*\/?>/gi, "\n")
+    // 블록 요소 닫는 태그 → 줄바꿈
+    .replace(/<\/(p|div|MKSUBTITLE|h[1-6]|li|tr|blockquote)>/gi, "\n")
+    // 이미지 태그 → 줄바꿈 (이미지 전후 텍스트 분리)
+    .replace(/<img[^>]*>/gi, "\n")
+    // 잘못된 HTML 태그 패턴 제거
     .replace(/<[^>]*'>/g, "")
+    // 나머지 HTML 태그 제거
     .replace(/<[^>]*>/g, "")
+    // HTML 엔티티 디코딩
     .replace(/&nbsp;/g, " ")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -160,7 +171,12 @@ function stripHtml(html: string): string {
     .replace(/&#39;/g, "'")
     .replace(/&#\d+;/g, "")
     .replace(/&\w+;/g, "")
-    .replace(/\s+/g, " ")
+    // 각 줄 내의 연속 공백만 정리 (줄바꿈 보존)
+    .replace(/[^\S\n]+/g, " ")
+    // 각 줄의 앞뒤 공백 제거
+    .replace(/^ +| +$/gm, "")
+    // 연속 빈 줄을 최대 2줄로 정리
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
@@ -379,198 +395,28 @@ function main() {
 
   // DB가 잠겨서 삭제 못한 경우: 기존 테이블 드롭
   if (!dbDeleted) {
+    db.pragma("foreign_keys = OFF");
+    // FTS, 트리거 먼저 정리
+    try { db.exec("DROP TABLE IF EXISTS articles_fts"); } catch {}
+    try {
+      const triggers = db.prepare("SELECT name FROM sqlite_master WHERE type='trigger'").all() as { name: string }[];
+      for (const { name } of triggers) {
+        db.exec(`DROP TRIGGER IF EXISTS "${name}"`);
+      }
+    } catch {}
     const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all() as { name: string }[];
     for (const { name } of tables) {
       db.exec(`DROP TABLE IF EXISTS "${name}"`);
     }
-    // FTS, 트리거도 정리
-    try { db.exec("DROP TABLE IF EXISTS articles_fts"); } catch {}
+    db.pragma("foreign_keys = ON");
     console.log("Dropped all existing tables");
   }
 
-  // 스키마 생성
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS articles (
-      id                     TEXT PRIMARY KEY,
-      title                  TEXT NOT NULL,
-      summary                TEXT,
-      content                TEXT,
-      category               TEXT NOT NULL,
-      category_label         TEXT,
-      original_category_code TEXT,
-      original_category_name TEXT,
-      middle_category_code   TEXT,
-      middle_category_name   TEXT,
-      keywords               TEXT,
-      published_at           TEXT NOT NULL,
-      region                 TEXT,
-      url                    TEXT,
-      writer                 TEXT,
-      relevance_score        REAL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS analysis (
-      article_id    TEXT PRIMARY KEY REFERENCES articles(id),
-      risk_score    REAL,
-      severity      TEXT,
-      key_factors   TEXT,
-      impact_region TEXT,
-      ai_summary    TEXT,
-      analyzed_at   TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS signals (
-      id             TEXT PRIMARY KEY,
-      title          TEXT NOT NULL,
-      description    TEXT,
-      severity       TEXT NOT NULL,
-      score          REAL,
-      category       TEXT NOT NULL,
-      category_label TEXT,
-      region         TEXT,
-      detected_at    TEXT,
-      evidence       TEXT,
-      cause          TEXT,
-      impact         TEXT,
-      action_points  TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS signal_articles (
-      signal_id  TEXT NOT NULL REFERENCES signals(id),
-      article_id TEXT NOT NULL REFERENCES articles(id),
-      PRIMARY KEY (signal_id, article_id)
-    );
-
-    CREATE TABLE IF NOT EXISTS gov_services (
-      service_id         TEXT PRIMARY KEY,
-      service_name       TEXT NOT NULL,
-      service_purpose    TEXT,
-      support_type       TEXT,
-      target_audience    TEXT,
-      selection_criteria TEXT,
-      support_content    TEXT,
-      apply_method       TEXT,
-      apply_deadline     TEXT,
-      detail_url         TEXT,
-      org_name           TEXT,
-      dept_name          TEXT,
-      contact            TEXT,
-      service_field      TEXT,
-      org_type           TEXT,
-      reception_org      TEXT,
-      view_count         INTEGER DEFAULT 0,
-      registered_at      TEXT,
-      modified_at        TEXT,
-      synced_at          TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS assembly_petitions (
-      bill_id    TEXT PRIMARY KEY,
-      bill_no    TEXT,
-      name       TEXT NOT NULL,
-      proposer   TEXT,
-      approver   TEXT,
-      propose_dt TEXT,
-      committee  TEXT,
-      link_url   TEXT,
-      synced_at  TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS assembly_legislations (
-      bill_id       TEXT PRIMARY KEY,
-      bill_no       TEXT,
-      name          TEXT NOT NULL,
-      proposer      TEXT,
-      proposer_kind TEXT,
-      committee     TEXT,
-      deadline_dt   TEXT,
-      link_url      TEXT,
-      synced_at     TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS assembly_bills (
-      bill_id       TEXT PRIMARY KEY,
-      bill_no       TEXT,
-      name          TEXT NOT NULL,
-      kind          TEXT,
-      proposer_kind TEXT,
-      propose_dt    TEXT,
-      result        TEXT,
-      link_url      TEXT,
-      synced_at     TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS policies (
-      id                TEXT PRIMARY KEY,
-      title             TEXT NOT NULL,
-      description       TEXT,
-      provider          TEXT,
-      contact           TEXT,
-      url               TEXT,
-      target_categories TEXT,
-      target_regions    TEXT,
-      related_signals   TEXT,
-      eligibility       TEXT,
-      benefit           TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS regions (
-      id                      TEXT PRIMARY KEY,
-      name                    TEXT NOT NULL,
-      score                   REAL DEFAULT 0,
-      trend                   TEXT,
-      category_prices         REAL DEFAULT 0,
-      category_employment     REAL DEFAULT 0,
-      category_self_employed  REAL DEFAULT 0,
-      category_finance        REAL DEFAULT 0,
-      category_real_estate    REAL DEFAULT 0,
-      top_issue               TEXT,
-      updated_at              TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS dashboard_cache (
-      key        TEXT PRIMARY KEY,
-      value      TEXT,
-      updated_at TEXT
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_articles_category    ON articles(category);
-    CREATE INDEX IF NOT EXISTS idx_articles_published   ON articles(published_at);
-    CREATE INDEX IF NOT EXISTS idx_articles_region      ON articles(region);
-    CREATE INDEX IF NOT EXISTS idx_articles_relevance   ON articles(relevance_score DESC);
-    CREATE INDEX IF NOT EXISTS idx_analysis_severity    ON analysis(severity);
-    CREATE INDEX IF NOT EXISTS idx_analysis_risk_score  ON analysis(risk_score DESC);
-    CREATE INDEX IF NOT EXISTS idx_signals_severity     ON signals(severity);
-    CREATE INDEX IF NOT EXISTS idx_signals_category     ON signals(category);
-    CREATE INDEX IF NOT EXISTS idx_signals_detected     ON signals(detected_at);
-    CREATE INDEX IF NOT EXISTS idx_policies_categories  ON policies(target_categories);
-    CREATE INDEX IF NOT EXISTS idx_regions_score        ON regions(score DESC);
-    CREATE INDEX IF NOT EXISTS idx_gov_services_field   ON gov_services(service_field);
-    CREATE INDEX IF NOT EXISTS idx_assembly_bills_dt    ON assembly_bills(propose_dt);
-
-    CREATE VIRTUAL TABLE IF NOT EXISTS articles_fts USING fts5(
-      title, summary, keywords,
-      content='articles', content_rowid='rowid',
-      tokenize='unicode61'
-    );
-
-    CREATE TRIGGER IF NOT EXISTS articles_fts_insert AFTER INSERT ON articles BEGIN
-      INSERT INTO articles_fts(rowid, title, summary, keywords)
-      VALUES (new.rowid, new.title, new.summary, new.keywords);
-    END;
-
-    CREATE TRIGGER IF NOT EXISTS articles_fts_delete BEFORE DELETE ON articles BEGIN
-      INSERT INTO articles_fts(articles_fts, rowid, title, summary, keywords)
-      VALUES ('delete', old.rowid, old.title, old.summary, old.keywords);
-    END;
-
-    CREATE TRIGGER IF NOT EXISTS articles_fts_update AFTER UPDATE ON articles BEGIN
-      INSERT INTO articles_fts(articles_fts, rowid, title, summary, keywords)
-      VALUES ('delete', old.rowid, old.title, old.summary, old.keywords);
-      INSERT INTO articles_fts(rowid, title, summary, keywords)
-      VALUES (new.rowid, new.title, new.summary, new.keywords);
-    END;
-  `);
+  // 스키마 생성 (schema.ts 단일 소스 사용)
+  db.exec(SCHEMA_SQL);
+  db.exec(INDEX_SQL);
+  db.exec(FTS_SQL);
+  db.exec(FTS_TRIGGERS_SQL);
 
   // INSERT prepared statement
   const insertStmt = db.prepare(`

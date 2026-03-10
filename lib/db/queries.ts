@@ -16,6 +16,7 @@ interface ArticleListParams {
   keyword?: string;
   dateFrom?: string;
   dateTo?: string;
+  analyzedOnly?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -46,7 +47,11 @@ export function getArticles(params: ArticleListParams = {}) {
     conditions.push("an.severity = ?");
     bindings.push(params.severity);
   }
+  if (params.analyzedOnly) {
+    conditions.push("an.article_id IS NOT NULL");
+  }
 
+  const joinType = params.analyzedOnly ? "INNER JOIN" : "LEFT JOIN";
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const limit = params.limit ?? 20;
   const offset = params.offset ?? 0;
@@ -62,7 +67,7 @@ export function getArticles(params: ArticleListParams = {}) {
     const sql = `
       SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary
       FROM articles a
-      LEFT JOIN analysis an ON a.id = an.article_id
+      ${joinType} analysis an ON a.id = an.article_id
       WHERE a.rowid IN (
         SELECT rowid FROM articles_fts WHERE articles_fts MATCH ?
       )
@@ -76,7 +81,7 @@ export function getArticles(params: ArticleListParams = {}) {
   const sql = `
     SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary
     FROM articles a
-    LEFT JOIN analysis an ON a.id = an.article_id
+    ${joinType} analysis an ON a.id = an.article_id
     ${where}
     ORDER BY a.published_at DESC
     LIMIT ? OFFSET ?
@@ -106,10 +111,17 @@ export function getArticleCount(params: Omit<ArticleListParams, "limit" | "offse
     conditions.push("a.published_at <= ?");
     bindings.push(params.dateTo);
   }
+  if (params.analyzedOnly) {
+    conditions.push("an.article_id IS NOT NULL");
+  }
 
+  const joinType = params.analyzedOnly ? "INNER JOIN" : "LEFT JOIN";
+  const joinClause = params.analyzedOnly
+    ? `${joinType} analysis an ON a.id = an.article_id`
+    : "";
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const sql = `SELECT COUNT(*) as count FROM articles a ${where}`;
+  const sql = `SELECT COUNT(*) as count FROM articles a ${joinClause} ${where}`;
   const row = db.prepare(sql).get(...bindings) as { count: number };
   return row.count;
 }
@@ -348,6 +360,61 @@ export function getAssemblyBills(params: { keyword?: string; limit?: number } = 
   }
 
   return db.prepare("SELECT * FROM assembly_bills ORDER BY propose_dt DESC LIMIT ?").all(limit);
+}
+
+// ────────────────────────────────────
+// 점수 히스토리
+// ────────────────────────────────────
+
+interface ScoreHistoryRow {
+  date: string;
+  overall_score: number;
+  prices: number;
+  employment: number;
+  self_employed: number;
+  finance: number;
+  real_estate: number;
+}
+
+/** 점수 히스토리 조회 (최근 N일) */
+export function getScoreHistory(days?: number): ScoreHistoryRow[] {
+  const db = getDb(true);
+  if (days) {
+    return db
+      .prepare(
+        `SELECT * FROM score_history
+         WHERE date >= date('now', '-' || ? || ' days')
+         ORDER BY date ASC`
+      )
+      .all(days) as ScoreHistoryRow[];
+  }
+  return db.prepare("SELECT * FROM score_history ORDER BY date ASC").all() as ScoreHistoryRow[];
+}
+
+/** 점수 히스토리 저장 (날짜별 UPSERT) */
+export function insertScoreHistory(entry: {
+  date: string;
+  overallScore: number;
+  prices: number;
+  employment: number;
+  selfEmployed: number;
+  finance: number;
+  realEstate: number;
+}): void {
+  const db = getDb();
+  db.prepare(
+    `INSERT OR REPLACE INTO score_history
+       (date, overall_score, prices, employment, self_employed, finance, real_estate)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    entry.date,
+    entry.overallScore,
+    entry.prices,
+    entry.employment,
+    entry.selfEmployed,
+    entry.finance,
+    entry.realEstate,
+  );
 }
 
 // ────────────────────────────────────

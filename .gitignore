@@ -51,10 +51,11 @@ next-env.d.ts
 .vscode/
 .idea/
 
-# News data (raw + processed)
-/data/2025/
-/data/processed/
-/data/production/
+# News data (raw + processed + DB)
+/data/
 *.db
 *.db-shm
 *.db-wal
+
+# Playwright MCP cache
+.playwright-mcp/

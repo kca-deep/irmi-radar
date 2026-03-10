@@ -1,5 +1,5 @@
 import { GOV_SERVICE_KEYWORDS } from "@/lib/constants";
-import type { CategoryKey, GovService, Policy } from "@/lib/types";
+import type { CategoryKey, GovService, GovServiceDetail, GovSupportCondition, Policy } from "@/lib/types";
 
 const BASE_URL = "https://api.odcloud.kr/api/gov24/v3";
 
@@ -191,4 +191,78 @@ export async function fetchPopularGovServices(
   // API 기본 정렬이 조회수 순이 아닐 수 있으므로 재정렬
   services.sort((a, b) => b.viewCount - a.viewCount);
   return services.slice(0, limit);
+}
+
+// -- Raw -> GovServiceDetail 변환 --
+function toGovServiceDetail(raw: Record<string, unknown>): GovServiceDetail {
+  return {
+    ...toGovService(raw),
+    law: String(raw["법령"] ?? ""),
+    requiredDocs: String(raw["구비서류"] ?? ""),
+    officialDocs: String(raw["공무원확인구비서류"] ?? ""),
+    onlineUrl: String(raw["온라인신청사이트URL"] ?? ""),
+    receptionOrg: String(raw["접수기관명"] ?? ""),
+    localRegulation: String(raw["자치법규"] ?? ""),
+    adminRule: String(raw["행정규칙"] ?? ""),
+  };
+}
+
+// -- 서비스 상세 조회 --
+export async function fetchGovServiceDetail(params: {
+  serviceId?: string;
+  page?: number;
+  perPage?: number;
+}): Promise<{ services: GovServiceDetail[]; totalCount: number }> {
+  const queryParams: Record<string, string> = {
+    page: String(params.page ?? 1),
+    perPage: String(params.perPage ?? 5),
+  };
+
+  if (params.serviceId) {
+    queryParams["cond[서비스ID::EQ]"] = params.serviceId;
+  }
+
+  const res = await fetchGovApi<GovApiResponse>("serviceDetail", queryParams);
+  return {
+    services: (res.data || []).map(toGovServiceDetail),
+    totalCount: res.matchCount ?? res.totalCount ?? 0,
+  };
+}
+
+// -- 지원조건 조회 --
+export async function fetchSupportConditions(params: {
+  serviceId?: string;
+  page?: number;
+  perPage?: number;
+}): Promise<{ conditions: GovSupportCondition[]; totalCount: number }> {
+  const queryParams: Record<string, string> = {
+    page: String(params.page ?? 1),
+    perPage: String(params.perPage ?? 5),
+  };
+
+  if (params.serviceId) {
+    queryParams["cond[서비스ID::EQ]"] = params.serviceId;
+  }
+
+  const res = await fetchGovApi<GovApiResponse>("supportConditions", queryParams);
+
+  const conditions: GovSupportCondition[] = (res.data || []).map((raw) => {
+    const jaFields = Object.keys(raw).filter((k) => k.startsWith("JA"));
+    const conditionsMap: Record<string, string | number | null> = {};
+    for (const key of jaFields) {
+      conditionsMap[key] = raw[key] as string | number | null;
+    }
+
+    return {
+      serviceId: String(raw["서비스ID"] ?? ""),
+      serviceName: String(raw["서비스명"] ?? ""),
+      conditions: conditionsMap,
+      activeConditions: jaFields.filter((k) => raw[k] === "Y"),
+    };
+  });
+
+  return {
+    conditions,
+    totalCount: res.matchCount ?? res.totalCount ?? 0,
+  };
 }

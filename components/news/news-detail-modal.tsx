@@ -6,6 +6,7 @@ import {
   News01Icon,
   AlertCircleIcon,
   ArrowRight01Icon,
+  Link01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Dialog,
@@ -87,6 +88,21 @@ export function NewsDetailModal({
               <>
                 <span className="mx-1 text-muted-foreground/40">|</span>
                 {article.region}
+              </>
+            )}
+            {article.url && (
+              <>
+                <span className="mx-1 text-muted-foreground/40">|</span>
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-0.5 text-primary hover:underline"
+                >
+                  <HugeiconsIcon icon={Link01Icon} size={10} strokeWidth={2} />
+                  원문 보기
+                </a>
               </>
             )}
           </div>

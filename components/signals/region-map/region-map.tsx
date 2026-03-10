@@ -142,7 +142,7 @@ export function RegionMap({
                       fill={getFillColor(englishName)}
                       fillOpacity={isHovered ? 0.9 : 0.7}
                       stroke={isSelected ? "var(--primary)" : "var(--map-border)"}
-                      strokeWidth={isSelected ? 2 : 0.5}
+                      strokeWidth={isSelected ? 2.5 : 1.5}
                       style={{
                         default: {
                           outline: "none",

@@ -9,7 +9,7 @@ import {
   Location01Icon,
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import { SEVERITY_LABEL_MAP, CATEGORY_LABEL_MAP } from "@/lib/constants";
+import { SEVERITY_LABEL_MAP, CATEGORY_LABEL_MAP, TICKER_PX_PER_SEC } from "@/lib/constants";
 import { SEVERITY_COLOR_MAP } from "@/lib/icon-maps";
 import { AnalyzedNewsSlide } from "./analyzed-news-slide";
 import { cn } from "@/lib/utils";
@@ -143,7 +143,6 @@ export function AnalyzedNewsCarousel({
   );
   const [arrowLeft, setArrowLeft] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const tickerRef = useRef<HTMLDivElement>(null);
 
   const handleArticleClick = useCallback(
     (article: NewsArticle, e: MouseEvent<HTMLDivElement>) => {
@@ -168,9 +167,15 @@ export function AnalyzedNewsCarousel({
     setSelectedArticle(null);
   }, []);
 
+  // 카드 크기 기반 duration 계산 (DOM 측정 대신 계산으로 속도 통일)
+  const CARD_W = 260;
+  const CARD_GAP = 12;
+  const halfWidth = articles.length * (CARD_W + CARD_GAP);
+  const duration = halfWidth / TICKER_PX_PER_SEC;
+
   if (articles.length === 0) return null;
 
-  const duration = articles.length * 4;
+  const isStatic = articles.length <= 4;
   const isPaused = selectedArticle !== null;
   const colorToken = selectedArticle?.analysis
     ? SEVERITY_COLOR_MAP[selectedArticle.analysis.severity]
@@ -198,24 +203,32 @@ export function AnalyzedNewsCarousel({
       <div className="relative" ref={containerRef}>
         <div className="overflow-hidden">
           <div
-            ref={tickerRef}
-            className="flex hover:[animation-play-state:paused]"
-            style={{
-              animation: `ticker ${duration}s linear infinite`,
-              animationPlayState: isPaused ? "paused" : "running",
-            }}
+            className={cn("flex", !isStatic && "w-max hover:[animation-play-state:paused]")}
+            style={
+              isStatic
+                ? undefined
+                : {
+                    animationName: duration > 0 ? "ticker" : "none",
+                    animationDuration: `${duration}s`,
+                    animationTimingFunction: "linear",
+                    animationIterationCount: "infinite",
+                    animationPlayState: isPaused ? "paused" : "running",
+                  }
+            }
           >
             <TickerSet
               articles={articles}
               selectedId={selectedArticle?.id}
               onArticleClick={handleArticleClick}
             />
-            <TickerSet
-              articles={articles}
-              selectedId={selectedArticle?.id}
-              onArticleClick={handleArticleClick}
-              keyPrefix="dup-"
-            />
+            {!isStatic && (
+              <TickerSet
+                articles={articles}
+                selectedId={selectedArticle?.id}
+                onArticleClick={handleArticleClick}
+                keyPrefix="dup-"
+              />
+            )}
           </div>
         </div>
 

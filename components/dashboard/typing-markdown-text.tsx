@@ -41,7 +41,8 @@ export function TypingMarkdownText({
               <span
                 className={cn(
                   "text-foreground",
-                  seg.bold && "font-semibold text-emphasis"
+                  seg.bold && "font-semibold text-emphasis",
+                  seg.highlight && "bg-highlight text-highlight-foreground rounded-sm px-0.5 py-px",
                 )}
               >
                 {visible}

@@ -116,6 +116,7 @@ export interface NewsArticle {
   content?: string;
   source?: string;
   region?: string;
+  url?: string;
   analysis?: NewsArticleAnalysis;
 }
 
@@ -166,6 +167,17 @@ export interface BriefingHighlight {
   message: string;
 }
 
+// -- API 사용량 --
+export interface ApiUsageData {
+  totalCalls: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalTokens: number;
+  totalCost: number;
+  provider: string;
+  model: string;
+}
+
 // -- AI 브리핑 데이터 --
 export interface BriefingData {
   generatedAt: string;
@@ -173,6 +185,7 @@ export interface BriefingData {
   highlights: BriefingHighlight[];
   recommendation: string;
   forecast: ForecastData;
+  apiUsage?: ApiUsageData;
 }
 
 // -- 채팅 메시지 --
@@ -288,14 +301,18 @@ export interface AnalysisStep {
   label: string;
   status: AnalysisStepStatus;
   category?: CategoryKey;
+  /** 단계별 상세 정보 (예: "총 12건", "3건 분석, 1건 실패") */
+  detail?: string;
 }
 
 // -- 분석 진행 상황 --
 export interface AnalysisProgress {
   steps: AnalysisStep[];
   currentStepIndex: number;
-  processedCount: number;
-  totalCount: number;
+  /** 완료된 단계 수 */
+  completedSteps: number;
+  /** 전체 단계 수 */
+  totalSteps: number;
   percent: number;
   elapsedSeconds: number;
   estimatedRemainingSeconds: number;
@@ -307,6 +324,15 @@ export interface AnalysisResult {
   severity: Severity;
   signalCount: number;
   elapsedSeconds: number;
+  tokenUsage?: {
+    totalCalls: number;
+    totalInputTokens: number;
+    totalOutputTokens: number;
+    totalTokens: number;
+    totalCost: number;
+    provider: string;
+    model: string;
+  };
 }
 
 // -- 분석 상태 --
@@ -375,6 +401,41 @@ export interface AssemblyBill {
   proposeDt: string;
   result: string;
   linkUrl: string;
+}
+
+// -- 국회 오픈API: NABO 경제전망 --
+export interface NaboForecast {
+  regDate: string;
+  department: string;
+  subject: string;
+  linkUrl: string;
+}
+
+// -- 국회 오픈API: NARS 현안분석 --
+export interface NarsAnalysis {
+  title: string;
+  insertDt: string;
+  pdfUrl: string;
+  viewerUrl: string;
+}
+
+// -- 보조금24: 공공서비스 상세 (serviceDetail 추가 필드) --
+export interface GovServiceDetail extends GovService {
+  law: string;
+  requiredDocs: string;
+  officialDocs: string;
+  onlineUrl: string;
+  receptionOrg: string;
+  localRegulation: string;
+  adminRule: string;
+}
+
+// -- 보조금24: 지원조건 --
+export interface GovSupportCondition {
+  serviceId: string;
+  serviceName: string;
+  conditions: Record<string, string | number | null>;
+  activeConditions: string[];
 }
 
 // -- 리포트 메타 --

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRMI Command Center</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="bg-grid"></div>
+<div class="bg-radial"></div>
+<div class="bg-noise"></div>
+<div class="scanline"></div>
+
+<!-- ========== HEADER ========== -->
+<header class="app-header">
+  <a href="#" class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4zm0-6a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"/></svg>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">이르미 <small>(IRMI)</small></span>
+      <span class="brand-sub">민생위기 조기경보 레이더</span>
+    </div>
+  </a>
+
+  <nav class="tab-nav">
+    <div class="tab-indicator"></div>
+    <button class="tab-btn active" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>대시보드</span>
+    </button>
+    <button class="tab-btn" data-tab="signals">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>위기 신호</span>
+    </button>
+    <button class="tab-btn" data-tab="news">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>뉴스 분석</span>
+    </button>
+  </nav>
+
+  <div class="header-controls">
+    <select class="period-select">
+      <option value="1w">최근 1주</option>
+      <option value="1m">최근 1개월</option>
+      <option value="3m">최근 3개월</option>
+    </select>
+    <button class="ctrl-btn" title="알림">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="main-content">
+
+  <!-- ===== DASHBOARD TAB ===== -->
+  <section id="dashboard" class="tab-panel active">
+
+    <!-- Gauge + AI Briefing -->
+    <div class="gauge-section fade-in">
+      <div class="card gauge-container">
+        <div class="radar-sweep"></div>
+        <svg class="gauge-svg" viewBox="0 0 200 200">
+          <circle class="gauge-bg" cx="100" cy="100" r="90" />
+          <circle class="gauge-fill" cx="100" cy="100" r="90" />
+          <text class="gauge-center-value" x="100" y="95">0</text>
+          <text class="gauge-center-label" x="100" y="118">종합 위기 지수</text>
+        </svg>
+        <div class="gauge-status">
+          <span class="gauge-status-dot"></span>
+          <span class="gauge-status-text">--</span>
+        </div>
+        <div class="gauge-updated"></div>
+      </div>
+
+      <div class="briefing-panel">
+        <div class="briefing-toolbar">
+          <span class="briefing-dot r"></span>
+          <span class="briefing-dot y"></span>
+          <span class="briefing-dot g"></span>
+          <span class="briefing-toolbar-title">irmi-ai-briefing -- session:2026-03-10</span>
+        </div>
+        <div class="briefing-body"></div>
+      </div>
+    </div>
+
+    <!-- Section: Category Risks -->
+    <div class="section-header">
+      <span class="section-label">카테고리별 위험도</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="category-grid stagger"></div>
+
+    <!-- Section: Signal Stats -->
+    <div class="section-header" style="margin-top:24px">
+      <span class="section-label">신호 통계</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="stats-row stagger"></div>
+
+    <!-- Section: Recent Signals -->
+    <div class="section-header">
+      <span class="section-label">최근 위기 신호</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="signals-preview stagger"></div>
+
+  </section>
+
+  <!-- ===== SIGNALS TAB ===== -->
+  <section id="signals" class="tab-panel">
+    <div class="filter-bar"></div>
+    <div class="signals-layout">
+      <div class="signals-list stagger"></div>
+      <div class="map-panel">
+        <div class="map-title">지역별 위기 현황</div>
+        <svg class="map-svg"></svg>
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--critical)"></span> 긴급</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--warning)"></span> 주의</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--caution)"></span> 관찰</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--safe)"></span> 안전</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== NEWS TAB ===== -->
+  <section id="news" class="tab-panel">
+    <div class="news-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="키워드로 뉴스 검색..." />
+      <kbd>Ctrl+K</kbd>
+    </div>
+    <div class="news-tags"></div>
+    <div class="news-bento stagger"></div>
+  </section>
+
+</main>
+
+<!-- ========== TICKER ========== -->
+<div class="ticker-bar">
+  <div class="ticker-label">LIVE</div>
+  <div class="ticker-track">
+    <div class="ticker-content"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

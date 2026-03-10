@@ -11,16 +11,15 @@ import { RegionMap } from "@/components/signals/region-map";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_LABEL_MAP } from "@/lib/constants";
 
-import type { Signal, Policy, CategoryKey, Severity, RegionScore, NewsArticle } from "@/lib/types";
+import type { Signal, Policy, CategoryKey, Severity, RegionScore } from "@/lib/types";
 
 interface SignalsPageProps {
   signals: Signal[];
   policies: Policy[];
   regionScores: RegionScore[];
-  articles: NewsArticle[];
 }
 
-export function SignalsPage({ signals, policies, regionScores, articles }: SignalsPageProps) {
+export function SignalsPage({ signals, policies, regionScores }: SignalsPageProps) {
   // 필터 상태
   const [category, setCategory] = useState<CategoryKey | "all">("all");
   const [region, setRegion] = useState<string>("all");
@@ -136,7 +135,6 @@ export function SignalsPage({ signals, policies, regionScores, articles }: Signa
       {/* 상세 다이얼로그 */}
       <SignalDetailDialog
         signal={selectedSignal}
-        articles={articles}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />

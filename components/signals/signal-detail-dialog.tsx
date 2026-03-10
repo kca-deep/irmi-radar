@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AlertCircleIcon,
   Target01Icon,
   News01Icon,
   Calendar03Icon,
+  Search01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Dialog,
@@ -76,36 +77,54 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
 
 interface SignalDetailDialogProps {
   signal: Signal | null;
-  articles: NewsArticle[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function SignalDetailDialog({
   signal,
-  articles,
   open,
   onOpenChange,
 }: SignalDetailDialogProps) {
+  const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
+  const [articlesLoading, setArticlesLoading] = useState(false);
+
+  const fetchRelatedArticles = useCallback(async (signalId: string) => {
+    setArticlesLoading(true);
+    try {
+      const res = await fetch(`/api/signals/${signalId}/articles`);
+      if (res.ok) {
+        const json = await res.json();
+        setRelatedArticles(json.data ?? []);
+      } else {
+        setRelatedArticles([]);
+      }
+    } catch {
+      setRelatedArticles([]);
+    } finally {
+      setArticlesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open && signal) {
+      fetchRelatedArticles(signal.id);
+    } else {
+      setRelatedArticles([]);
+    }
+  }, [open, signal, fetchRelatedArticles]);
+
   if (!signal) return null;
 
   const severityColor = SEVERITY_COLOR_MAP[signal.severity];
   const severityLabel = SEVERITY_LABEL_MAP[signal.severity];
   const categoryIcon = CATEGORY_ICON_MAP[signal.category];
 
-  const relatedArticles = useMemo(() => {
-    if (!signal.relatedArticleIds || signal.relatedArticleIds.length === 0) {
-      return [];
-    }
-    const idSet = new Set(signal.relatedArticleIds);
-    return articles.filter((a) => idSet.has(a.id));
-  }, [signal.relatedArticleIds, articles]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-6xl max-h-[85vh] p-0">
+      <DialogContent className="w-[95vw] sm:max-w-6xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
         {/* 헤더 */}
-        <DialogHeader className="px-6 pt-6 pb-4">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <Badge
               className={cn(
@@ -138,63 +157,37 @@ export function SignalDetailDialog({
           <DialogDescription className="text-left">
             {signal.description}
           </DialogDescription>
+
+          {/* 감지 근거 + 원인 분석 + 영향 범위 통합 카드 */}
+          {(signal.evidence.length > 0 || signal.analysis.cause || signal.analysis.impact) && (
+            <div className="mt-2 rounded-lg border border-border/50 bg-muted/20 px-4 py-2.5 space-y-1">
+              {signal.evidence.length > 0 && (
+                <p className="text-xs leading-relaxed text-foreground">
+                  <span className="font-semibold text-warning mr-1.5">감지 근거</span>
+                  {signal.evidence.join(" / ")}
+                </p>
+              )}
+              {signal.analysis.cause && (
+                <p className="text-xs leading-relaxed text-foreground">
+                  <span className="font-semibold text-warning mr-1.5">원인 분석</span>
+                  {signal.analysis.cause}
+                </p>
+              )}
+              {signal.analysis.impact && (
+                <p className="text-xs leading-relaxed text-foreground">
+                  <span className="font-semibold text-danger mr-1.5">영향 범위</span>
+                  {signal.analysis.impact}
+                </p>
+              )}
+            </div>
+          )}
         </DialogHeader>
 
         {/* 좌우 2컬럼 본문 */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-0 border-t border-border/30">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-0 border-t border-border/30 flex-1 min-h-0 overflow-hidden">
           {/* 좌측: 위기 분석 + 관련 뉴스 */}
-          <ScrollArea className="max-h-[60vh]">
-            <div className="px-6 py-4 space-y-3">
-              {/* 감지 근거 - 인라인 칩 */}
-              <div>
-                <h4 className="flex items-center gap-2 font-semibold text-xs text-muted-foreground mb-2">
-                  <HugeiconsIcon icon={News01Icon} size={14} strokeWidth={2} />
-                  감지 근거
-                </h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {signal.evidence.map((item, index) => (
-                    <span
-                      key={index}
-                      className="text-[11px] leading-snug px-2 py-1 rounded-md border border-border/50 bg-muted/40 text-foreground"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* 원인 분석 + 영향 범위 - 2컬럼 */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
-                  <h4 className="flex items-center gap-1.5 font-semibold text-xs mb-1.5">
-                    <HugeiconsIcon
-                      icon={AlertCircleIcon}
-                      size={13}
-                      strokeWidth={2}
-                      className="text-warning"
-                    />
-                    원인 분석
-                  </h4>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    {signal.analysis.cause}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
-                  <h4 className="flex items-center gap-1.5 font-semibold text-xs mb-1.5">
-                    <HugeiconsIcon
-                      icon={Target01Icon}
-                      size={13}
-                      strokeWidth={2}
-                      className="text-danger"
-                    />
-                    영향 범위
-                  </h4>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    {signal.analysis.impact}
-                  </p>
-                </div>
-              </div>
-
+          <ScrollArea className="h-full">
+            <div className="px-6 pt-2 pb-4 space-y-3">
               {/* 관련 뉴스 기사 */}
               <div>
                 <h4 className="flex items-center gap-2 font-semibold text-xs text-muted-foreground mb-2">
@@ -210,8 +203,12 @@ export function SignalDetailDialog({
                   </Badge>
                 </h4>
 
-                {relatedArticles.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {articlesLoading ? (
+                  <div className="text-center py-4 text-xs text-muted-foreground">
+                    관련 기사를 불러오는 중...
+                  </div>
+                ) : relatedArticles.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2.5">
                     {relatedArticles.map((article) => (
                       <RelatedArticleCard key={article.id} article={article} />
                     ))}
@@ -226,9 +223,9 @@ export function SignalDetailDialog({
           </ScrollArea>
 
           {/* 우측: 관련 지원정책 + 국회 동향 */}
-          <div className="border-t lg:border-t-0 lg:border-l border-border/30">
-            <ScrollArea className="max-h-[60vh]">
-              <div className="px-6 py-4 space-y-4">
+          <div className="border-t lg:border-t-0 lg:border-l border-border/30 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="px-6 pt-2 pb-4 space-y-4">
                 {/* 관련 지원 정책 (보조금24) */}
                 <GovPolicySection category={signal.category} />
 

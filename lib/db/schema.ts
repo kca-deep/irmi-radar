@@ -158,6 +158,18 @@ CREATE TABLE IF NOT EXISTS dashboard_cache (
   value      TEXT,
   updated_at TEXT
 );
+
+-- 점수 히스토리 (일별 종합/카테고리 점수 시계열)
+CREATE TABLE IF NOT EXISTS score_history (
+  date           TEXT PRIMARY KEY,
+  overall_score  REAL NOT NULL,
+  prices         REAL DEFAULT 0,
+  employment     REAL DEFAULT 0,
+  self_employed  REAL DEFAULT 0,
+  finance        REAL DEFAULT 0,
+  real_estate    REAL DEFAULT 0,
+  created_at     TEXT DEFAULT (datetime('now'))
+);
 `;
 
 export const INDEX_SQL = `
@@ -174,6 +186,7 @@ CREATE INDEX IF NOT EXISTS idx_policies_categories  ON policies(target_categorie
 CREATE INDEX IF NOT EXISTS idx_regions_score        ON regions(score DESC);
 CREATE INDEX IF NOT EXISTS idx_gov_services_field   ON gov_services(service_field);
 CREATE INDEX IF NOT EXISTS idx_assembly_bills_dt    ON assembly_bills(propose_dt);
+CREATE INDEX IF NOT EXISTS idx_score_history_date   ON score_history(date);
 `;
 
 export const FTS_SQL = `

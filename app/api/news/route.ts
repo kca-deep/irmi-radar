@@ -28,6 +28,8 @@ export async function GET(request: Request) {
 
     const keyword = params.get("keyword");
     const category = params.get("category") as CategoryKey | null;
+    const dateFrom = params.get("dateFrom");
+    const dateTo = params.get("dateTo");
     const limit = Math.min(
       parseInt(params.get("limit") || String(NEWS_PAGE_SIZE), 10) || NEWS_PAGE_SIZE,
       200
@@ -45,9 +47,14 @@ export async function GET(request: Request) {
       );
     }
 
+    const analyzedOnly = params.get("analyzedOnly") === "true";
+
     const filters = {
       keyword: keyword ?? undefined,
       category: category ?? undefined,
+      dateFrom: dateFrom ?? undefined,
+      dateTo: dateTo ?? undefined,
+      analyzedOnly: analyzedOnly || undefined,
     };
 
     const [news, total] = [

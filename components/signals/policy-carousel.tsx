@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Wallet01Icon,
@@ -9,7 +9,7 @@ import {
   Location01Icon,
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
-import { CATEGORY_LABEL_MAP, CATEGORIES } from "@/lib/constants";
+import { CATEGORY_LABEL_MAP, CATEGORIES, TICKER_PX_PER_SEC } from "@/lib/constants";
 import { CATEGORY_DOT_MAP, CATEGORY_BADGE_MAP } from "@/lib/icon-maps";
 import { cn } from "@/lib/utils";
 
@@ -95,6 +95,8 @@ function TickerSet({
 export function PolicyCarousel() {
   const [policies, setPolicies] = useState<PolicyWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [duration, setDuration] = useState(0);
+  const tickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadAll() {
@@ -119,6 +121,13 @@ export function PolicyCarousel() {
     loadAll();
   }, []);
 
+  useEffect(() => {
+    if (tickerRef.current) {
+      const halfWidth = tickerRef.current.scrollWidth / 2;
+      setDuration(halfWidth / TICKER_PX_PER_SEC);
+    }
+  }, [policies]);
+
   if (loading) {
     return (
       <div className="rounded-xl border border-border bg-card shadow-sm p-4">
@@ -136,8 +145,6 @@ export function PolicyCarousel() {
   }
 
   if (policies.length === 0) return null;
-
-  const duration = policies.length * 3;
 
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm p-4 space-y-3">
@@ -170,9 +177,13 @@ export function PolicyCarousel() {
       {/* Ticker */}
       <div className="overflow-hidden">
         <div
+          ref={tickerRef}
           className="flex hover:[animation-play-state:paused]"
           style={{
-            animation: `ticker ${duration}s linear infinite`,
+            animationName: duration > 0 ? "ticker" : "none",
+            animationDuration: `${duration}s`,
+            animationTimingFunction: "linear",
+            animationIterationCount: "infinite",
           }}
         >
           <TickerSet policies={policies} />

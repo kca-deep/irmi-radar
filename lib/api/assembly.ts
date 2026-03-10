@@ -2,6 +2,8 @@ import type {
   AssemblyPetition,
   AssemblyLegislation,
   AssemblyBill,
+  NaboForecast,
+  NarsAnalysis,
 } from "@/lib/types";
 
 const BASE_URL = "https://open.assembly.go.kr/portal/openapi";
@@ -10,6 +12,8 @@ const API_CODES = {
   petitions: "nvqbafvaajdiqhehi",
   legislation: "nknalejkafmvgzmpt",
   bills: "BILLRCP",
+  naboForecast: "npmbwjybaffxwvbbk",
+  narsAnalysis: "nvkfeqbsacvlzjmea",
 } as const;
 
 type ApiType = keyof typeof API_CODES;
@@ -199,4 +203,64 @@ export async function fetchBillsByKeywords(
   limit = 5
 ): Promise<AssemblyBill[]> {
   return fetchBills(keywords.join(","), limit);
+}
+
+// -- Raw 타입: NABO 경제전망 --
+interface RawNaboForecast {
+  REG_DATE: string;
+  DEPARTMENT_NAME: string;
+  SUBJECT: string;
+  LINK_URL: string;
+}
+
+// -- Raw 타입: NARS 현안분석 --
+interface RawNarsAnalysis {
+  PDFFILEURL: string;
+  VIEWERURL: string;
+  BOOKNM: string;
+  INSERTDT: string;
+}
+
+// -- NABO 경제전망 조회 --
+export async function fetchNaboForecasts(
+  limit = 10
+): Promise<NaboForecast[]> {
+  const { rows } = await fetchAssemblyApi<RawNaboForecast>("naboForecast", {
+    pSize: String(limit),
+  });
+
+  return rows.map((r) => ({
+    regDate: r.REG_DATE,
+    department: r.DEPARTMENT_NAME,
+    subject: r.SUBJECT,
+    linkUrl: r.LINK_URL,
+  }));
+}
+
+// -- NARS 현안분석 조회 --
+export async function fetchNarsAnalyses(
+  limit = 10
+): Promise<NarsAnalysis[]> {
+  const { rows } = await fetchAssemblyApi<RawNarsAnalysis>("narsAnalysis", {
+    pSize: String(limit),
+  });
+
+  return rows.map((r) => ({
+    title: r.BOOKNM,
+    insertDt: r.INSERTDT,
+    pdfUrl: r.PDFFILEURL,
+    viewerUrl: r.VIEWERURL,
+  }));
+}
+
+// -- 키워드로 NARS 현안분석 필터링 --
+export async function fetchNarsAnalysesByKeywords(
+  keywords: string[],
+  limit = 5
+): Promise<NarsAnalysis[]> {
+  const all = await fetchNarsAnalyses(50);
+  const filtered = all.filter((item) =>
+    keywords.some((kw) => item.title.includes(kw))
+  );
+  return filtered.slice(0, limit);
 }
