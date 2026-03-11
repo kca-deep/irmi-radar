@@ -155,6 +155,18 @@ ${signalInfo}`;
   };
 }
 
+// -- 종합점수 가중평균 공식 --
+
+function calculateOverallScore(categoryScores: number[]): number {
+  if (categoryScores.length === 0) return 0;
+  const sorted = [...categoryScores].sort((a, b) => b - a);
+  const max = sorted[0];
+  const top2Avg = sorted.length >= 2 ? (sorted[0] + sorted[1]) / 2 : sorted[0];
+  const avg = categoryScores.reduce((a, b) => a + b, 0) / categoryScores.length;
+  // 최고 카테고리 35% + 상위 2개 평균 35% + 전체 평균 30%
+  return Math.round(max * 0.35 + top2Avg * 0.35 + avg * 0.30);
+}
+
 // -- 메인 함수 --
 
 export async function buildDashboard(
@@ -188,10 +200,20 @@ export async function buildDashboard(
   // 4. AI 종합 분석
   const aiResult = await generateSummary(categories, signalSummaries);
 
+  // 4-1. 종합점수: AI 자유재량 대신 카테고리 점수 기반 가중평균 공식 적용
+  const overallScore = calculateOverallScore(categories.map((c) => c.score));
+  let overallSeverity: Severity = "safe";
+  for (const config of SEVERITY_CONFIG) {
+    if (overallScore >= config.scoreMin && overallScore <= config.scoreMax) {
+      overallSeverity = config.key;
+      break;
+    }
+  }
+
   // 5. 대시보드 캐시 저장
   const cacheData = {
-    overallScore: aiResult.overallScore,
-    severity: aiResult.severity,
+    overallScore,
+    severity: overallSeverity,
     summary: aiResult.summary,
     keyRisks: aiResult.keyRisks,
     outlook: aiResult.outlook,
@@ -254,7 +276,7 @@ export async function buildDashboard(
      VALUES (?, ?, ?, ?, ?, ?, ?)`
   ).run(
     today,
-    aiResult.overallScore,
+    overallScore,
     categoryScores["prices"] ?? 0,
     categoryScores["employment"] ?? 0,
     categoryScores["selfEmployed"] ?? 0,
@@ -282,8 +304,8 @@ export async function buildDashboard(
   }
 
   return {
-    overallScore: aiResult.overallScore,
-    severity: aiResult.severity,
+    overallScore,
+    severity: overallSeverity,
     summary: aiResult.summary,
     keyRisks: aiResult.keyRisks,
     outlook: aiResult.outlook,

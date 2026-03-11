@@ -7,7 +7,7 @@ export default function Page() {
   const dashboard = loadDashboard();
   const briefing = loadBriefing();
   const crisisChain = loadCrisisChain();
-  const articles = loadNews();
+  const articles = loadNews({ analyzedOnly: true });
 
   return (
     <DashboardPage

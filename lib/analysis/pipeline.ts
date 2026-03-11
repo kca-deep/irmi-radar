@@ -153,16 +153,18 @@ export async function runPipeline(
   callbacks.onStepStart?.("collect", "데이터 수집");
 
   // 선택된 카테고리별로 미분석 기사 수 확인
+  const activeCats: CategoryKey[] = categories?.length
+    ? categories
+    : ALL_CATEGORIES;
   let totalUnanalyzed = 0;
-  if (categories?.length) {
-    for (const cat of categories) {
-      const r = await analyzeArticles({ dryRun: true, category: cat, dateFrom, dateTo });
-      totalUnanalyzed += r.total;
-      console.log(`[Pipeline] 미분석 기사 (${cat}): ${r.total}건`);
-    }
-  } else {
-    const r = await analyzeArticles({ dryRun: true, dateFrom, dateTo });
-    totalUnanalyzed = r.total;
+  const catUnanalyzed: { cat: CategoryKey; count: number; total: number }[] = [];
+
+  for (const cat of activeCats) {
+    const r = await analyzeArticles({ dryRun: true, category: cat, dateFrom, dateTo });
+    const count = limitPerCategory !== Infinity ? Math.min(r.total, limitPerCategory) : r.total;
+    totalUnanalyzed += count;
+    catUnanalyzed.push({ cat, count, total: r.total });
+    console.log(`[Pipeline] 미분석 기사 (${cat}): ${count}/${r.total}건${limitPerCategory !== Infinity ? ` (limit: ${limitPerCategory})` : ""}`);
   }
   console.log(`[Pipeline] 미분석 기사 합계: ${totalUnanalyzed}건`);
 
@@ -184,9 +186,14 @@ export async function runPipeline(
     }
   }
 
+  // 카테고리별 미분석 건수를 detail에 포함 (limit 적용 시 count/total건)
+  const collectDetailParts = catUnanalyzed.map(({ cat, count, total }) => {
+    const label = CATEGORY_LABEL_MAP[cat];
+    return count < total ? `${label} ${count}/${total}건` : `${label} ${total}건`;
+  });
   callbacks.onStepComplete?.(
     "collect",
-    `미분석 기사 ${totalUnanalyzed.toLocaleString()}건 확인`
+    collectDetailParts.join(" / ")
   );
 
   if (dryRun) {
@@ -219,7 +226,7 @@ export async function runPipeline(
       const articles = getUnanalyzedArticles(fetchLimit, cat, dateFrom, dateTo);
       queues.set(cat, articles);
       totalTarget += articles.length;
-      console.log(`[Pipeline] 큐 로드: ${cat} - ${articles.length}건`);
+      console.log(`[Pipeline] 큐 로드: ${cat} - ${articles.length}건${limitPerCategory !== Infinity ? ` (limit: ${limitPerCategory})` : ""}`);
     }
 
     // 카테고리별 통계

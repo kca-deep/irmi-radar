@@ -48,6 +48,7 @@ export async function GET(request: Request) {
     }
 
     const analyzedOnly = params.get("analyzedOnly") === "true";
+    const sort = params.get("sort") === "riskScore" ? "riskScore" as const : undefined;
 
     const filters = {
       keyword: keyword ?? undefined,
@@ -55,6 +56,7 @@ export async function GET(request: Request) {
       dateFrom: dateFrom ?? undefined,
       dateTo: dateTo ?? undefined,
       analyzedOnly: analyzedOnly || undefined,
+      sort,
     };
 
     const [news, total] = [

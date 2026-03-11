@@ -419,6 +419,7 @@ export function loadNews(filters?: {
   dateFrom?: string;
   dateTo?: string;
   analyzedOnly?: boolean;
+  sort?: "publishedAt" | "riskScore";
   limit?: number;
   offset?: number;
 }): NewsArticle[] {
@@ -431,6 +432,7 @@ export function loadNews(filters?: {
         dateFrom: filters?.dateFrom,
         dateTo: filters?.dateTo,
         analyzedOnly: filters?.analyzedOnly,
+        sort: filters?.sort,
         limit: filters?.limit ?? 50,
         offset: filters?.offset ?? 0,
       }) as ArticleRow[];
@@ -442,7 +444,11 @@ export function loadNews(filters?: {
   const all = mock.loadNews(filters);
   const offset = filters?.offset ?? 0;
   const limit = filters?.limit ?? 50;
-  return all.slice(offset, offset + limit);
+  const sliced = all.slice(offset, offset + limit);
+  if (filters?.sort === "riskScore") {
+    sliced.sort((a, b) => (b.analysis?.riskScore ?? -1) - (a.analysis?.riskScore ?? -1));
+  }
+  return sliced;
 }
 
 export function loadNewsCount(filters?: {

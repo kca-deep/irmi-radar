@@ -9,6 +9,8 @@ import { getDb } from "./index";
 // 기사 조회
 // ────────────────────────────────────
 
+type ArticleSortKey = "publishedAt" | "riskScore";
+
 interface ArticleListParams {
   category?: CategoryKey;
   severity?: Severity;
@@ -17,6 +19,7 @@ interface ArticleListParams {
   dateFrom?: string;
   dateTo?: string;
   analyzedOnly?: boolean;
+  sort?: ArticleSortKey;
   limit?: number;
   offset?: number;
 }
@@ -56,6 +59,10 @@ export function getArticles(params: ArticleListParams = {}) {
   const limit = params.limit ?? 20;
   const offset = params.offset ?? 0;
 
+  const orderClause = params.sort === "riskScore"
+    ? "ORDER BY COALESCE(an.risk_score, -1) DESC, a.published_at DESC"
+    : "ORDER BY a.published_at DESC";
+
   // 키워드 검색이 있으면 FTS 사용
   if (params.keyword) {
     const ftsQuery = params.keyword
@@ -72,7 +79,7 @@ export function getArticles(params: ArticleListParams = {}) {
         SELECT rowid FROM articles_fts WHERE articles_fts MATCH ?
       )
       ${conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : ""}
-      ORDER BY a.published_at DESC
+      ${orderClause}
       LIMIT ? OFFSET ?
     `;
     return db.prepare(sql).all(ftsQuery, ...bindings, limit, offset);
@@ -83,7 +90,7 @@ export function getArticles(params: ArticleListParams = {}) {
     FROM articles a
     ${joinType} analysis an ON a.id = an.article_id
     ${where}
-    ORDER BY a.published_at DESC
+    ${orderClause}
     LIMIT ? OFFSET ?
   `;
   return db.prepare(sql).all(...bindings, limit, offset);

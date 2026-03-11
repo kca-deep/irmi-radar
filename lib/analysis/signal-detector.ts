@@ -164,9 +164,9 @@ ${articleList}`;
         ? (sig.action_points as string[]).filter((s) => typeof s === "string").slice(0, 3)
         : [],
       evidence,
-      articleIds: articleIds.length > 0 ? articleIds : articles.slice(0, 5).map((a) => a.id),
+      articleIds,
     };
-  });
+  }).filter((sig: DetectedSignal) => sig.articleIds.length >= 2);
 }
 
 // -- 메인 함수 --

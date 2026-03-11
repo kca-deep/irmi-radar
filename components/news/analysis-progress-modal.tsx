@@ -57,11 +57,13 @@ interface AnalysisProgressModalProps {
   customEndDate: string;
   selectedCategories: CategoryKey[];
   externalData: ExternalDataOptions;
+  limitPerCategory: number | undefined;
   onPeriodChange: (period: AnalysisPeriodPreset) => void;
   onCustomStartDateChange: (date: string) => void;
   onCustomEndDateChange: (date: string) => void;
   onCategoryToggle: (key: CategoryKey | "all") => void;
   onExternalDataToggle: (key: keyof ExternalDataOptions) => void;
+  onLimitPerCategoryChange: (limit: number | undefined) => void;
   onStartAnalysis: () => void;
   onCancel: () => void;
   onGoToDashboard: () => void;
@@ -148,7 +150,7 @@ interface PhaseGroup {
   steps: AnalysisStep[];
   status: AnalysisStepStatus;
   progress: number;
-  breakdown?: { label: string; count: number | null; unit?: string; isTotal?: boolean }[];
+  breakdown?: { label: string; count: number | null; excluded?: number; unit?: string; isTotal?: boolean }[];
 }
 
 function derivePhaseStatus(steps: AnalysisStep[]): AnalysisStepStatus {
@@ -185,15 +187,39 @@ function groupStepsIntoPhases(
 
   const collectStep = steps.find((s) => s.id === "collect");
   if (collectStep) {
-    const activeCats = selectedCategories.length > 0
-      ? CATEGORIES.filter((c) => selectedCategories.includes(c.key))
-      : CATEGORIES;
-    const catCounts = activeCats.map((cat) => ({
-      label: cat.label,
-      count: articles.filter((a) => a.category === cat.key).length as number | null,
-    }));
-    const total = catCounts.reduce((sum, c) => sum + (c.count ?? 0), 0);
-    const breakdown = [...catCounts, { label: "합계", count: total, isTotal: true }];
+    // 서버 detail 파싱: "물가 100/620건 / 고용 80건 / ..."
+    const breakdown: { label: string; count: number | null; excluded?: number; isTotal?: boolean }[] = [];
+    if (collectStep.detail) {
+      const parts = collectStep.detail.split(" / ");
+      for (const part of parts) {
+        // "물가 100/620건" 또는 "물가 620건"
+        const matchSlash = part.match(/(.+?)\s*(\d+)\/(\d+)건/);
+        if (matchSlash) {
+          const count = parseInt(matchSlash[2]);
+          const total = parseInt(matchSlash[3]);
+          breakdown.push({ label: matchSlash[1].trim(), count, excluded: total - count });
+        } else {
+          const match = part.match(/(.+?)\s*(\d+)건/);
+          if (match) {
+            breakdown.push({ label: match[1].trim(), count: parseInt(match[2]) });
+          }
+        }
+      }
+    }
+    // detail이 아직 없으면 (pending 상태) 선택된 카테고리 기반 placeholder
+    if (breakdown.length === 0) {
+      const activeCats = selectedCategories.length > 0
+        ? CATEGORIES.filter((c) => selectedCategories.includes(c.key))
+        : CATEGORIES;
+      for (const cat of activeCats) {
+        breakdown.push({ label: cat.label, count: null });
+      }
+    }
+    const total = breakdown.reduce((sum, c) => sum + (c.count ?? 0), 0);
+    const totalExcluded = breakdown.reduce((sum, c) => sum + (c.excluded ?? 0), 0);
+    if (total > 0 || collectStep.status !== "pending") {
+      breakdown.push({ label: "합계", count: total > 0 ? total : null, excluded: totalExcluded > 0 ? totalExcluded : undefined, isTotal: true });
+    }
 
     phases.push({
       id: "collect",
@@ -392,8 +418,11 @@ function PhaseCard({ phase }: { phase: PhaseGroup }) {
                     )}
                     <span className="truncate">{item.label}</span>
                   </span>
-                  <span className="tabular-nums shrink-0">
+                  <span className="tabular-nums shrink-0 flex items-center gap-1">
                     {item.count !== null ? `${item.count}${item.unit || "건"}` : "-"}
+                    {"excluded" in item && item.excluded != null && item.excluded > 0 && (
+                      <span className="text-muted-foreground/60">(-{item.excluded})</span>
+                    )}
                   </span>
                 </div>
               );
@@ -435,11 +464,13 @@ export function AnalysisProgressModal({
   customEndDate,
   selectedCategories,
   externalData,
+  limitPerCategory,
   onPeriodChange,
   onCustomStartDateChange,
   onCustomEndDateChange,
   onCategoryToggle,
   onExternalDataToggle,
+  onLimitPerCategoryChange,
   onStartAnalysis,
   onCancel,
   onGoToDashboard,
@@ -492,6 +523,9 @@ export function AnalysisProgressModal({
       (k) => CATEGORIES.find((c) => c.key === k)?.label ?? k
     );
     settingSummaryParts.push(labels.join(", "));
+  }
+  if (limitPerCategory != null) {
+    settingSummaryParts.push(`카테고리당 ${limitPerCategory}건`);
   }
   if (externalData.includeAssembly) settingSummaryParts.push("국회 입법 동향");
   if (externalData.includeGovServices) settingSummaryParts.push("보조금24 정책");
@@ -607,6 +641,36 @@ export function AnalysisProgressModal({
                       </button>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* 카테고리당 분석 건수 제한 */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={2} className="text-muted-foreground" />
+                  <span className="text-xs font-medium text-foreground">카테고리당 분석 건수</span>
+                  <span className="text-[10px] text-muted-foreground">(비워두면 전체)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder="제한 없음"
+                    value={limitPerCategory ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      onLimitPerCategoryChange(
+                        v === "" ? undefined : Math.max(1, parseInt(v, 10) || 1)
+                      );
+                    }}
+                    className="h-7 text-xs w-[120px] tabular-nums"
+                  />
+                  {limitPerCategory != null && (
+                    <span className="text-[10px] text-muted-foreground">
+                      카테고리당 최대 {limitPerCategory}건씩,
+                      총 {limitPerCategory * (isAllCategories ? CATEGORIES.length : selectedCategories.length)}건
+                    </span>
+                  )}
                 </div>
               </div>
 

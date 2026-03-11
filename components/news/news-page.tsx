@@ -111,6 +111,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     includeAssembly: false,
     includeGovServices: false,
   });
+  const [limitPerCategory, setLimitPerCategory] = useState<number | undefined>(undefined);
 
   // 분석 실행 상태
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
@@ -159,6 +160,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
       }
       if (analyzedOnly) {
         params.set("analyzedOnly", "true");
+        params.set("sort", "riskScore");
       }
       return `/api/news?${params.toString()}`;
     },
@@ -292,6 +294,11 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
   // 외부 데이터 토글 (functional updater로 stale closure 방지)
   const handleExternalDataToggle = useCallback((key: keyof ExternalDataOptions) => {
     setExternalData((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  // 카테고리당 분석 건수 제한
+  const handleLimitPerCategoryChange = useCallback((limit: number | undefined) => {
+    setLimitPerCategory(limit);
   }, []);
 
   // 모달 열기
@@ -482,6 +489,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
         period: analysisPeriod,
         customStartDate: analysisPeriod === "custom" ? customStartDate : undefined,
         customEndDate: analysisPeriod === "custom" ? customEndDate : undefined,
+        limitPerCategory: limitPerCategory || undefined,
         includeAssembly: externalData.includeAssembly || undefined,
         includeGovServices: externalData.includeGovServices || undefined,
       };
@@ -659,7 +667,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     } finally {
       abortRef.current = null;
     }
-  }, [analysisCategories, analysisPeriod, customStartDate, customEndDate, externalData, buildAnalysisSteps, startMockAnalysis]);
+  }, [analysisCategories, analysisPeriod, customStartDate, customEndDate, limitPerCategory, externalData, buildAnalysisSteps, startMockAnalysis]);
 
   // 분석 시작 (real -> mock fallback)
   const handleStartAnalysis = useCallback(() => {
@@ -849,11 +857,13 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
         customEndDate={customEndDate}
         selectedCategories={analysisCategories}
         externalData={externalData}
+        limitPerCategory={limitPerCategory}
         onPeriodChange={setAnalysisPeriod}
         onCustomStartDateChange={setCustomStartDate}
         onCustomEndDateChange={setCustomEndDate}
         onCategoryToggle={handleAnalysisCategoryToggle}
         onExternalDataToggle={handleExternalDataToggle}
+        onLimitPerCategoryChange={handleLimitPerCategoryChange}
         onStartAnalysis={handleStartAnalysis}
         onCancel={handleCancel}
         onGoToDashboard={handleGoToDashboard}

@@ -13,6 +13,7 @@ export default function NewsRoute() {
     limit: NEWS_PAGE_SIZE,
     offset: 0,
     analyzedOnly: hasAnalyzed || undefined,
+    sort: hasAnalyzed ? "riskScore" : undefined,
   });
   const totalCount = hasAnalyzed ? analyzedCount : loadNewsCount();
 
