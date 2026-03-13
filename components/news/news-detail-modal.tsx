@@ -133,11 +133,6 @@ export function NewsDetailModal({
                 </>
               )}
             </div>
-            {analysis && (
-              <span className={cn("text-lg font-extrabold tabular-nums", SEV_TEXT[colorToken!])}>
-                {analysis.riskScore}
-              </span>
-            )}
           </div>
           <DialogTitle className="text-sm font-semibold leading-relaxed pr-6">
             {article.title}
