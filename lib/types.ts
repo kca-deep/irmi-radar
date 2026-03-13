@@ -57,6 +57,16 @@ export interface CategoryScoreHistoryEntry {
 // -- 기간 키 --
 export type PeriodKey = "1w" | "1m" | "3m";
 
+// -- 카테고리별 등급 분포 (미니 차트용) --
+export interface CategorySeverityDist {
+  category: CategoryKey;
+  critical: number;
+  warning: number;
+  caution: number;
+  safe: number;
+  total: number;
+}
+
 // -- 대시보드 데이터 --
 export interface DashboardData {
   lastUpdated: string;
@@ -66,6 +76,10 @@ export interface DashboardData {
   recentSignals: SignalPreview[];
   scoreHistory: ScoreHistoryEntry[];
   categoryScoreHistory: CategoryScoreHistoryEntry[];
+  /** 카테고리별 등급 분포 (analysis 테이블 기반) */
+  categoryDist: CategorySeverityDist[];
+  /** 전일대비 신호 증감 (null = 전일 데이터 없음) */
+  signalDelta: number | null;
 }
 
 // -- 신호 상세 분석 --

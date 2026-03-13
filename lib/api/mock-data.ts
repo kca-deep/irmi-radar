@@ -21,7 +21,12 @@ import chatJson from "@/data/mock/chat-examples.json";
 
 // -- Dashboard --
 export function loadDashboard(): DashboardData {
-  return dashboardJson as DashboardData;
+  const data = dashboardJson as DashboardData;
+  return {
+    ...data,
+    categoryDist: data.categoryDist ?? [],
+    signalDelta: data.signalDelta ?? null,
+  };
 }
 
 // -- Briefing --

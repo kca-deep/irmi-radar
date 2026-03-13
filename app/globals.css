@@ -284,6 +284,17 @@
   animation: selection-ping 2s ease-out infinite;
 }
 
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
 @keyframes ticker {
   0% {
     transform: translateX(0);

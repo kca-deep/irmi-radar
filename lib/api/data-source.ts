@@ -160,7 +160,7 @@ function loadSignalArticleIds(signalId: string): string[] {
 export function loadDashboard(): DashboardData {
   if (isDb()) {
     try {
-      const { getDashboardCache, getSignals: dbGetSignals, getScoreHistory } = require("@/lib/db/queries");
+      const { getDashboardCache, getSignals: dbGetSignals, getScoreHistory, getCategorySeverityDistribution, getSignalCountByDate } = require("@/lib/db/queries");
       const cached = getDashboardCache("dashboard") as string | null;
       if (cached) {
         const data = JSON.parse(cached);
@@ -225,6 +225,31 @@ export function loadDashboard(): DashboardData {
           }));
         } catch { /* skip */ }
 
+        // 카테고리별 등급 분포 (analysis 테이블)
+        let categoryDist: import("@/lib/types").CategorySeverityDist[] = [];
+        try {
+          const distRows = getCategorySeverityDistribution() as {
+            category: string; critical: number; warning: number; caution: number; safe: number; total: number;
+          }[];
+          categoryDist = distRows.map((r) => ({
+            category: r.category as CategoryKey,
+            critical: r.critical,
+            warning: r.warning,
+            caution: r.caution,
+            safe: r.safe,
+            total: r.total,
+          }));
+        } catch { /* skip */ }
+
+        // 전일대비 신호 증감
+        let signalDelta: number | null = null;
+        try {
+          const dateCounts = getSignalCountByDate() as { date: string; count: number }[];
+          if (dateCounts.length >= 2) {
+            signalDelta = dateCounts[0].count - dateCounts[1].count;
+          }
+        } catch { /* skip */ }
+
         return {
           lastUpdated: data.updatedAt || new Date().toISOString(),
           overallScore: data.overallScore ?? 0,
@@ -238,6 +263,8 @@ export function loadDashboard(): DashboardData {
           recentSignals,
           scoreHistory,
           categoryScoreHistory,
+          categoryDist,
+          signalDelta,
         };
       }
     } catch {
@@ -266,11 +293,9 @@ export function loadBriefing(): BriefingData {
         return {
           generatedAt: data.updatedAt || new Date().toISOString(),
           summary: data.summary || "",
-          highlights: (data.keyRisks || []).map((risk: string, i: number) => ({
-            id: `hl-${i}`,
-            text: risk,
+          highlights: (data.keyRisks || []).map((risk: string) => ({
             category: "prices" as CategoryKey,
-            severity: "warning" as Severity,
+            message: risk,
           })),
           recommendation: data.outlook || "",
           forecast: {

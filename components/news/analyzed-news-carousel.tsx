@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { MouseEvent } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  AlertCircleIcon,
   Cancel01Icon,
   Location01Icon,
 } from "@hugeicons/core-free-icons";
@@ -186,23 +185,7 @@ export function AnalyzedNewsCarousel({
     : "warning";
 
   return (
-    <div className="space-y-3">
-      {/* 섹션 헤더 */}
-      <div className="flex items-center gap-2">
-        <HugeiconsIcon
-          icon={AlertCircleIcon}
-          size={16}
-          strokeWidth={2}
-          className="text-brand"
-        />
-        <span className="text-xs font-semibold text-foreground">
-          AI 분석 결과
-        </span>
-        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-          {articles.length}건
-        </Badge>
-      </div>
-
+    <div>
       {/* Ticker + Tooltip wrapper */}
       <div className="relative" ref={containerRef}>
         <div className="overflow-hidden">

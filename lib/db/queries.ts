@@ -179,6 +179,47 @@ export function getCategoryRiskScores() {
     .all();
 }
 
+/** 카테고리별 등급 분포 (미니 차트용) */
+export function getCategorySeverityDistribution() {
+  const db = getDb(true);
+  return db
+    .prepare(
+      `SELECT a.category,
+              COUNT(CASE WHEN an.severity = 'critical' THEN 1 END) as critical,
+              COUNT(CASE WHEN an.severity = 'warning' THEN 1 END) as warning,
+              COUNT(CASE WHEN an.severity = 'caution' THEN 1 END) as caution,
+              COUNT(CASE WHEN an.severity = 'safe' THEN 1 END) as safe,
+              COUNT(*) as total
+       FROM articles a
+       JOIN analysis an ON a.id = an.article_id
+       GROUP BY a.category
+       ORDER BY COUNT(CASE WHEN an.severity = 'critical' THEN 1 END) DESC,
+                COUNT(CASE WHEN an.severity = 'warning' THEN 1 END) DESC`
+    )
+    .all() as {
+      category: string;
+      critical: number;
+      warning: number;
+      caution: number;
+      safe: number;
+      total: number;
+    }[];
+}
+
+/** 신호 일별 카운트 (전일대비용, 최근 2일) */
+export function getSignalCountByDate() {
+  const db = getDb(true);
+  return db
+    .prepare(
+      `SELECT date(detected_at) as date, COUNT(*) as count
+       FROM signals
+       WHERE date(detected_at) >= date('now', '-1 day')
+       GROUP BY date(detected_at)
+       ORDER BY date(detected_at) DESC`
+    )
+    .all() as { date: string; count: number }[];
+}
+
 // ────────────────────────────────────
 // 신호 조회
 // ────────────────────────────────────
