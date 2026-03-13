@@ -206,37 +206,271 @@ export function getCategorySeverityDistribution() {
     }[];
 }
 
-/** 신호 일별 카운트 (전일대비용, 최근 2일) */
+/** 신호 일별 카운트 (전일대비용, 최근 2회차) */
 export function getSignalCountByDate() {
   const db = getDb(true);
-  return db
-    .prepare(
-      `SELECT date(detected_at) as date, COUNT(*) as count
-       FROM signals
-       WHERE date(detected_at) >= date('now', '-1 day')
-       GROUP BY date(detected_at)
-       ORDER BY date(detected_at) DESC`
-    )
-    .all() as { date: string; count: number }[];
+  // 최근 2개 완료 회차의 신호 수 비교
+  const runs = getRecentCompletedRuns(2);
+  if (runs.length === 0) return [];
+
+  return runs.map((run) => {
+    const row = db.prepare(
+      "SELECT COUNT(*) as count FROM signals WHERE run_id = ?"
+    ).get(run.id) as { count: number };
+    return { date: run.run_date, count: row.count };
+  });
 }
 
 // ────────────────────────────────────
-// 신호 조회
+// 분석 회차 (analysis_runs)
+// ────────────────────────────────────
+
+/** 분석 회차 생성 → run_id 반환 */
+export function createAnalysisRun(config?: Record<string, unknown>): string {
+  const db = getDb();
+  const now = new Date();
+  const id = now.toISOString().replace(/[-:T]/g, "").slice(0, 15);
+  const runDate = now.toISOString().slice(0, 10);
+
+  db.prepare(
+    `INSERT INTO analysis_runs (id, run_date, started_at, status, config)
+     VALUES (?, ?, ?, 'running', ?)`
+  ).run(id, runDate, now.toISOString(), config ? JSON.stringify(config) : null);
+
+  return id;
+}
+
+/** 분석 회차 완료 */
+export function completeAnalysisRun(runId: string, data: {
+  overallScore: number;
+  overallSeverity: string;
+  summary?: string;
+  prices?: number;
+  employment?: number;
+  selfEmployed?: number;
+  finance?: number;
+  realEstate?: number;
+  articlesTotal?: number;
+  articlesAnalyzed?: number;
+  tokenUsage?: Record<string, unknown>;
+}): void {
+  const db = getDb();
+  db.prepare(
+    `UPDATE analysis_runs SET
+       status = 'completed',
+       completed_at = datetime('now'),
+       overall_score = ?,
+       overall_severity = ?,
+       summary = ?,
+       prices = ?,
+       employment = ?,
+       self_employed = ?,
+       finance = ?,
+       real_estate = ?,
+       articles_total = ?,
+       articles_analyzed = ?,
+       token_usage = ?
+     WHERE id = ?`
+  ).run(
+    data.overallScore,
+    data.overallSeverity,
+    data.summary ?? null,
+    data.prices ?? 0,
+    data.employment ?? 0,
+    data.selfEmployed ?? 0,
+    data.finance ?? 0,
+    data.realEstate ?? 0,
+    data.articlesTotal ?? 0,
+    data.articlesAnalyzed ?? 0,
+    data.tokenUsage ? JSON.stringify(data.tokenUsage) : null,
+    runId,
+  );
+}
+
+/** 분석 회차 실패 처리 */
+export function failAnalysisRun(runId: string): void {
+  const db = getDb();
+  db.prepare(
+    "UPDATE analysis_runs SET status = 'failed', completed_at = datetime('now') WHERE id = ?"
+  ).run(runId);
+}
+
+/** 최신 완료된 분석 회차 */
+export function getLatestCompletedRun() {
+  const db = getDb(true);
+  return db.prepare(
+    `SELECT * FROM analysis_runs
+     WHERE status = 'completed'
+     ORDER BY completed_at DESC LIMIT 1`
+  ).get() as AnalysisRunRow | undefined;
+}
+
+/** 특정 회차 직전의 완료된 분석 회차 */
+export function getPreviousCompletedRun(currentRunId: string) {
+  const db = getDb(true);
+  const current = db.prepare(
+    "SELECT completed_at FROM analysis_runs WHERE id = ?"
+  ).get(currentRunId) as { completed_at: string } | undefined;
+
+  if (!current) return undefined;
+
+  return db.prepare(
+    `SELECT * FROM analysis_runs
+     WHERE status = 'completed' AND completed_at < ?
+     ORDER BY completed_at DESC LIMIT 1`
+  ).get(current.completed_at) as AnalysisRunRow | undefined;
+}
+
+/** 최근 N개 완료된 분석 회차 */
+export function getRecentCompletedRuns(limit = 10) {
+  const db = getDb(true);
+  return db.prepare(
+    `SELECT * FROM analysis_runs
+     WHERE status = 'completed'
+     ORDER BY completed_at DESC LIMIT ?`
+  ).all(limit) as AnalysisRunRow[];
+}
+
+export interface AnalysisRunRow {
+  id: string;
+  run_date: string;
+  started_at: string;
+  completed_at: string | null;
+  status: string;
+  overall_score: number | null;
+  overall_severity: string | null;
+  summary: string | null;
+  prices: number;
+  employment: number;
+  self_employed: number;
+  finance: number;
+  real_estate: number;
+  articles_total: number;
+  articles_analyzed: number;
+  token_usage: string | null;
+  config: string | null;
+}
+
+// ────────────────────────────────────
+// 대시보드 스냅샷
+// ────────────────────────────────────
+
+/** 스냅샷 저장 */
+export function saveDashboardSnapshot(runId: string, cacheKey: string, data: string): void {
+  const db = getDb();
+  db.prepare(
+    `INSERT OR REPLACE INTO dashboard_snapshots (run_id, cache_key, data)
+     VALUES (?, ?, ?)`
+  ).run(runId, cacheKey, data);
+}
+
+/** 특정 회차의 스냅샷 조회 */
+export function getDashboardSnapshot(runId: string, cacheKey: string): string | null {
+  const db = getDb(true);
+  const row = db.prepare(
+    "SELECT data FROM dashboard_snapshots WHERE run_id = ? AND cache_key = ?"
+  ).get(runId, cacheKey) as { data: string } | undefined;
+  return row?.data ?? null;
+}
+
+/** 최신 완료 회차의 스냅샷 조회 */
+export function getLatestDashboardSnapshot(cacheKey: string): { runId: string; data: string } | null {
+  const db = getDb(true);
+  const row = db.prepare(
+    `SELECT ds.run_id, ds.data
+     FROM dashboard_snapshots ds
+     JOIN analysis_runs ar ON ds.run_id = ar.id
+     WHERE ds.cache_key = ? AND ar.status = 'completed'
+     ORDER BY ar.completed_at DESC LIMIT 1`
+  ).get(cacheKey) as { run_id: string; data: string } | undefined;
+
+  if (!row) return null;
+  return { runId: row.run_id, data: row.data };
+}
+
+// ────────────────────────────────────
+// 카테고리 상세 이력
+// ────────────────────────────────────
+
+/** 카테고리 상세 저장 */
+export function saveCategoryDetail(runId: string, detail: {
+  category: string;
+  score: number;
+  trend: string;
+  articleCount: number;
+  criticalCount: number;
+  warningCount: number;
+  keyIssues: string[];
+  topKeywords?: string[];
+}): void {
+  const db = getDb();
+  db.prepare(
+    `INSERT OR REPLACE INTO category_details
+       (run_id, category, score, trend, article_count, critical_count, warning_count, key_issues, top_keywords)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    runId,
+    detail.category,
+    detail.score,
+    detail.trend,
+    detail.articleCount,
+    detail.criticalCount,
+    detail.warningCount,
+    JSON.stringify(detail.keyIssues),
+    detail.topKeywords ? JSON.stringify(detail.topKeywords) : null,
+  );
+}
+
+/** 특정 회차의 카테고리 상세 조회 */
+export function getCategoryDetailsByRunId(runId: string) {
+  const db = getDb(true);
+  return db.prepare(
+    "SELECT * FROM category_details WHERE run_id = ? ORDER BY score DESC"
+  ).all(runId) as CategoryDetailRow[];
+}
+
+export interface CategoryDetailRow {
+  run_id: string;
+  category: string;
+  score: number;
+  trend: string;
+  article_count: number;
+  critical_count: number;
+  warning_count: number;
+  key_issues: string | null;
+  top_keywords: string | null;
+}
+
+// ────────────────────────────────────
+// 신호 조회 (run_id 기반)
 // ────────────────────────────────────
 
 interface SignalListParams {
   category?: CategoryKey;
   severity?: Severity;
   region?: string;
+  runId?: string;
   limit?: number;
   offset?: number;
 }
 
-/** 신호 목록 (필터 + 페이지네이션) */
+/** 신호 목록 (필터 + 페이지네이션) - 미지정 시 최신 회차 */
 export function getSignals(params: SignalListParams = {}) {
   const db = getDb(true);
   const conditions: string[] = [];
   const bindings: (string | number)[] = [];
+
+  // run_id 필터: 지정되면 해당 회차, 아니면 최신 완료 회차
+  if (params.runId) {
+    conditions.push("s.run_id = ?");
+    bindings.push(params.runId);
+  } else {
+    const latestRun = getLatestCompletedRun();
+    if (latestRun) {
+      conditions.push("s.run_id = ?");
+      bindings.push(latestRun.id);
+    }
+  }
 
   if (params.category) {
     conditions.push("s.category = ?");
@@ -257,7 +491,7 @@ export function getSignals(params: SignalListParams = {}) {
 
   const sql = `
     SELECT s.*,
-           (SELECT COUNT(*) FROM signal_articles sa WHERE sa.signal_id = s.id) as related_article_count
+           (SELECT COUNT(*) FROM signal_articles sa WHERE sa.signal_id = s.id AND sa.run_id = s.run_id) as related_article_count
     FROM signals s
     ${where}
     ORDER BY s.score DESC, s.detected_at DESC
@@ -266,19 +500,39 @@ export function getSignals(params: SignalListParams = {}) {
   return db.prepare(sql).all(...bindings, limit, offset);
 }
 
-/** 신호에 연결된 기사 목록 */
-export function getSignalArticles(signalId: string) {
+/** 특정 회차의 신호 통계 */
+export function getSignalStatsByRunId(runId: string) {
   const db = getDb(true);
+  return db.prepare(
+    `SELECT
+       COUNT(*) as total,
+       COUNT(CASE WHEN severity = 'critical' THEN 1 END) as critical_count,
+       COUNT(CASE WHEN severity = 'warning' THEN 1 END) as warning_count,
+       COUNT(CASE WHEN severity = 'caution' THEN 1 END) as caution_count
+     FROM signals WHERE run_id = ?`
+  ).get(runId) as { total: number; critical_count: number; warning_count: number; caution_count: number };
+}
+
+/** 신호에 연결된 기사 목록 */
+export function getSignalArticles(signalId: string, runId?: string) {
+  const db = getDb(true);
+
+  // runId가 없으면 최신 회차에서 찾기
+  const effectiveRunId = runId || (() => {
+    const latest = getLatestCompletedRun();
+    return latest?.id ?? "__legacy__";
+  })();
+
   return db
     .prepare(
       `SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary, an.key_factors, an.impact_region
        FROM articles a
        JOIN signal_articles sa ON a.id = sa.article_id
        LEFT JOIN analysis an ON a.id = an.article_id
-       WHERE sa.signal_id = ?
+       WHERE sa.signal_id = ? AND sa.run_id = ?
        ORDER BY a.published_at DESC`
     )
-    .all(signalId);
+    .all(signalId, effectiveRunId);
 }
 
 // ────────────────────────────────────
@@ -346,16 +600,32 @@ export function getPolicies(params: PolicyListParams = {}) {
 // 지역별 현황
 // ────────────────────────────────────
 
-/** 전체 지역 목록 (점수순) */
-export function getRegions() {
+/** 전체 지역 목록 (점수순) - 최신 완료 회차 기준 */
+export function getRegions(runId?: string) {
   const db = getDb(true);
-  return db.prepare("SELECT * FROM regions ORDER BY score DESC").all();
+
+  const effectiveRunId = runId || (() => {
+    const latest = getLatestCompletedRun();
+    return latest?.id ?? "__legacy__";
+  })();
+
+  return db.prepare(
+    "SELECT * FROM regions WHERE run_id = ? ORDER BY score DESC"
+  ).all(effectiveRunId);
 }
 
 /** 지역 단건 조회 */
-export function getRegionById(id: string) {
+export function getRegionById(id: string, runId?: string) {
   const db = getDb(true);
-  return db.prepare("SELECT * FROM regions WHERE id = ?").get(id);
+
+  const effectiveRunId = runId || (() => {
+    const latest = getLatestCompletedRun();
+    return latest?.id ?? "__legacy__";
+  })();
+
+  return db.prepare(
+    "SELECT * FROM regions WHERE id = ? AND run_id = ?"
+  ).get(id, effectiveRunId);
 }
 
 // ────────────────────────────────────
@@ -448,12 +718,13 @@ export function insertScoreHistory(entry: {
   selfEmployed: number;
   finance: number;
   realEstate: number;
+  runId?: string;
 }): void {
   const db = getDb();
   db.prepare(
     `INSERT OR REPLACE INTO score_history
-       (date, overall_score, prices, employment, self_employed, finance, real_estate)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+       (date, overall_score, prices, employment, self_employed, finance, real_estate, run_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     entry.date,
     entry.overallScore,
@@ -462,6 +733,7 @@ export function insertScoreHistory(entry: {
     entry.selfEmployed,
     entry.finance,
     entry.realEstate,
+    entry.runId ?? null,
   );
 }
 

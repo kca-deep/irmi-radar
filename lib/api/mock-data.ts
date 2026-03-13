@@ -26,6 +26,8 @@ export function loadDashboard(): DashboardData {
     ...data,
     categoryDist: data.categoryDist ?? [],
     signalDelta: data.signalDelta ?? null,
+    dailyDelta: data.dailyDelta ?? null,
+    runId: data.runId ?? null,
   };
 }
 

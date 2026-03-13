@@ -37,6 +37,8 @@ export interface DetectOptions {
   rebuild?: boolean;
   /** 분석 대상 카테고리 (미지정 시 전체) */
   categories?: CategoryKey[];
+  /** 분석 회차 ID */
+  runId?: string;
 }
 
 export interface DetectResult {
@@ -177,14 +179,20 @@ export async function detectSignals(options: DetectOptions = {}): Promise<Detect
     maxArticlesPerCategory = 20,
     rebuild = true,
     categories,
+    runId,
   } = options;
 
   const db = getDb();
 
-  // 기존 신호 정리
+  // 기존 신호 정리 (run_id가 있으면 해당 회차만, 없으면 레거시 방식)
   if (rebuild) {
-    db.prepare("DELETE FROM signal_articles").run();
-    db.prepare("DELETE FROM signals").run();
+    if (runId) {
+      db.prepare("DELETE FROM signal_articles WHERE run_id = ?").run(runId);
+      db.prepare("DELETE FROM signals WHERE run_id = ?").run(runId);
+    } else {
+      db.prepare("DELETE FROM signal_articles").run();
+      db.prepare("DELETE FROM signals").run();
+    }
   }
 
   const allSignals: DetectedSignal[] = [];
@@ -206,20 +214,23 @@ export async function detectSignals(options: DetectOptions = {}): Promise<Detect
     }
   }
 
-  // DB 저장
+  // DB 저장 (run_id 포함)
+  const effectiveRunId = runId ?? "__legacy__";
+
   const insertSignal = db.prepare(`
     INSERT OR REPLACE INTO signals
-      (id, title, description, severity, score, category, category_label, region, detected_at, evidence, cause, impact, action_points)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)
+      (id, run_id, title, description, severity, score, category, category_label, region, detected_at, evidence, cause, impact, action_points)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)
   `);
   const insertLink = db.prepare(`
-    INSERT OR IGNORE INTO signal_articles (signal_id, article_id) VALUES (?, ?)
+    INSERT OR IGNORE INTO signal_articles (signal_id, run_id, article_id) VALUES (?, ?, ?)
   `);
 
   const txn = db.transaction(() => {
     for (const sig of allSignals) {
       insertSignal.run(
         sig.id,
+        effectiveRunId,
         sig.title,
         sig.description,
         sig.severity,
@@ -233,7 +244,7 @@ export async function detectSignals(options: DetectOptions = {}): Promise<Detect
         JSON.stringify(sig.actionPoints)
       );
       for (const articleId of sig.articleIds) {
-        insertLink.run(sig.id, articleId);
+        insertLink.run(sig.id, effectiveRunId, articleId);
       }
     }
   });

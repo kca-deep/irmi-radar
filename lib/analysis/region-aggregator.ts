@@ -115,7 +115,7 @@ export interface RegionScore {
   topIssue: string;
 }
 
-export function aggregateRegions(): RegionScore[] {
+export function aggregateRegions(runId?: string): RegionScore[] {
   const db = getDb();
 
   // analysis.impact_region이 있는 행 조회
@@ -208,16 +208,19 @@ export function aggregateRegions(): RegionScore[] {
     results.push(regionScore);
   }
 
-  // DB 저장
+  // DB 저장 (run_id 포함)
+  const effectiveRunId = runId ?? "__legacy__";
+
   const upsert = db.prepare(`
     INSERT OR REPLACE INTO regions
-      (id, name, score, trend, category_prices, category_employment, category_self_employed, category_finance, category_real_estate, top_issue, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      (run_id, id, name, score, trend, category_prices, category_employment, category_self_employed, category_finance, category_real_estate, top_issue, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `);
 
   const txn = db.transaction(() => {
     for (const r of results) {
       upsert.run(
+        effectiveRunId,
         r.id,
         r.name,
         r.score,

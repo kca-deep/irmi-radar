@@ -21,11 +21,19 @@ import {
 import { detectSignals } from "./signal-detector";
 import { buildDashboard, type DashboardBuildResult } from "./dashboard-builder";
 import { aggregateRegions } from "./region-aggregator";
+import { calculateDailyDelta } from "./daily-comparator";
 import { fetchLegislationByKeywords, fetchBillsByKeywords, fetchNarsAnalysesByKeywords } from "@/lib/api/assembly";
 import { fetchGovServicesByCategory } from "@/lib/api/gov-service";
 import { getDb, initializeSchema } from "@/lib/db/index";
+import {
+  createAnalysisRun,
+  completeAnalysisRun,
+  failAnalysisRun,
+  saveDashboardSnapshot,
+} from "@/lib/db/queries";
+import { usageTracker } from "@/lib/api/ai-client";
 import { CATEGORY_LABEL_MAP } from "@/lib/constants";
-import type { CategoryKey, AssemblyLegislation, AssemblyBill, GovService, NarsAnalysis } from "@/lib/types";
+import type { CategoryKey, AssemblyLegislation, AssemblyBill, GovService, NarsAnalysis, Severity } from "@/lib/types";
 
 // -- 타입 --
 
@@ -80,6 +88,7 @@ export interface PipelineCallbacks {
 }
 
 export interface PipelineResult {
+  runId: string;
   totalAnalyzed: number;
   totalFailed: number;
   dashboard: DashboardBuildResult | null;
@@ -137,7 +146,18 @@ export async function runPipeline(
   // 스키마 보장 (score_history 등 누락 테이블 자동 생성)
   initializeSchema(getDb());
 
-  console.log("[Pipeline] 파이프라인 시작");
+  // 분석 회차 생성
+  const runId = createAnalysisRun({
+    categories: categories ?? "all",
+    dateFrom,
+    dateTo,
+    limitPerCategory,
+    concurrency,
+    includeAssembly,
+    includeGovServices,
+  });
+
+  console.log("[Pipeline] 파이프라인 시작 (runId: " + runId + ")");
   console.log("[Pipeline] 옵션:", {
     categories: categories?.join(", ") || "전체",
     dateFrom: dateFrom || "없음",
@@ -197,7 +217,9 @@ export async function runPipeline(
   );
 
   if (dryRun) {
+    failAnalysisRun(runId);
     return {
+      runId,
       totalAnalyzed: 0,
       totalFailed: 0,
       dashboard: null,
@@ -456,25 +478,26 @@ export async function runPipeline(
   let regionCount = 0;
 
   try {
-    // 1) 위기 신호 탐지 (AI) - 선택된 카테고리만
+    // 1) 위기 신호 탐지 (AI) - 선택된 카테고리만, run_id 포함
     console.log("[Pipeline] 위기 신호 탐지 시작...");
     const signalResult = await detectSignals({
       windowDays: signalWindowDays,
       rebuild: true,
       categories,
+      runId,
     });
     signalCount = signalResult.signalCount;
     console.log(`[Pipeline] 위기 신호 탐지 완료: ${signalCount}건`);
 
-    // 2) 지역별 집계
+    // 2) 지역별 집계 (run_id 포함)
     console.log("[Pipeline] 지역별 집계 시작...");
-    const regions = aggregateRegions();
+    const regions = aggregateRegions(runId);
     regionCount = regions.filter((r) => r.score > 0).length;
     console.log(`[Pipeline] 지역별 집계 완료: ${regionCount}곳`);
 
-    // 3) 대시보드 빌드 (AI) - 선택된 카테고리만
+    // 3) 대시보드 빌드 (AI) - 선택된 카테고리만, run_id 포함
     console.log("[Pipeline] 대시보드 빌드 시작...");
-    dashboard = await buildDashboard({ categories });
+    dashboard = await buildDashboard({ categories, runId });
     console.log(`[Pipeline] 대시보드 빌드 완료: ${dashboard.overallScore}점 (${dashboard.severity})`);
 
     callbacks.onStepComplete?.(
@@ -487,7 +510,97 @@ export async function runPipeline(
     callbacks.onStepError?.("aggregate", err as Error);
   }
 
+  // -- Step: compare (전일대비 비교) --
+  if (dashboard) {
+    checkCancelled();
+    callbacks.onStepStart?.("compare", "전일대비 분석");
+
+    try {
+      const categoryScores: Record<string, number> = {};
+      // dashboard 빌드 결과에서 카테고리 점수 추출 (dashboard_cache에서)
+      const db = getDb(true);
+      const cached = db.prepare("SELECT value FROM dashboard_cache WHERE key = 'dashboard'").get() as { value: string } | undefined;
+      if (cached) {
+        const data = JSON.parse(cached.value);
+        for (const cat of (data.categories || [])) {
+          categoryScores[cat.category] = cat.score;
+        }
+      }
+
+      const dailyDelta = calculateDailyDelta(
+        runId,
+        dashboard.overallScore,
+        dashboard.severity,
+        categoryScores,
+      );
+
+      if (dailyDelta) {
+        // AI 요약이 있으면 dailyDelta에 추가
+        const dashCached = db.prepare("SELECT value FROM dashboard_cache WHERE key = 'dashboard'").get() as { value: string } | undefined;
+        if (dashCached) {
+          const dashData = JSON.parse(dashCached.value);
+          if (dashData.comparisonSummary) {
+            dailyDelta.aiSummary = dashData.comparisonSummary;
+          }
+        }
+
+        // 전일대비 결과를 스냅샷으로 저장
+        saveDashboardSnapshot(runId, "daily_delta", JSON.stringify(dailyDelta));
+
+        const dir = dailyDelta.overall.direction === "up" ? "+" : dailyDelta.overall.direction === "down" ? "" : "";
+        console.log(`[Pipeline] 전일대비: ${dir}${dailyDelta.overall.delta}점, 신규신호 ${dailyDelta.signals.newCount}건`);
+        callbacks.onStepComplete?.("compare", `전일대비 ${dir}${dailyDelta.overall.delta}점`);
+      } else {
+        console.log("[Pipeline] 전일대비: 이전 분석 데이터 없음 (첫 분석)");
+        callbacks.onStepComplete?.("compare", "이전 분석 없음 (첫 분석)");
+      }
+    } catch (err) {
+      console.error("[Pipeline] compare 에러:", (err as Error).message);
+      callbacks.onStepError?.("compare", err as Error);
+    }
+  }
+
+  // -- Finalize: 분석 회차 완료 처리 --
+  if (dashboard) {
+    const usage = usageTracker.getSummary();
+    // 카테고리 점수를 dashboard_cache에서 추출
+    const catScoresForRun: Record<string, number> = {};
+    try {
+      const dashCached = db.prepare("SELECT value FROM dashboard_cache WHERE key = 'dashboard'").get() as { value: string } | undefined;
+      if (dashCached) {
+        const dashData = JSON.parse(dashCached.value);
+        for (const cat of (dashData.categories || [])) {
+          catScoresForRun[cat.category] = cat.score;
+        }
+      }
+    } catch { /* skip */ }
+
+    completeAnalysisRun(runId, {
+      overallScore: dashboard.overallScore,
+      overallSeverity: dashboard.severity,
+      summary: dashboard.summary,
+      prices: catScoresForRun["prices"],
+      employment: catScoresForRun["employment"],
+      selfEmployed: catScoresForRun["selfEmployed"],
+      finance: catScoresForRun["finance"],
+      realEstate: catScoresForRun["realEstate"],
+      articlesTotal: totalAnalyzed + totalFailed,
+      articlesAnalyzed: totalAnalyzed,
+      tokenUsage: usage.totalCalls > 0 ? {
+        totalCalls: usage.totalCalls,
+        totalInputTokens: usage.totalInputTokens,
+        totalOutputTokens: usage.totalOutputTokens,
+        totalCost: usage.totalCost,
+      } : undefined,
+    });
+    console.log(`[Pipeline] 분석 회차 완료 (runId: ${runId})`);
+  } else {
+    failAnalysisRun(runId);
+    console.log(`[Pipeline] 분석 회차 실패 (runId: ${runId})`);
+  }
+
   return {
+    runId,
     totalAnalyzed,
     totalFailed,
     dashboard,

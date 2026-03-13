@@ -40,8 +40,70 @@ export function getDb(readonly = false): Database.Database {
   return _db;
 }
 
+/**
+ * 분석 결과 테이블을 run_id 기반 새 스키마로 재생성
+ *
+ * 보존 대상 (스키마 변경 없음):
+ *   articles, analysis, gov_services, assembly_*, policies, articles_fts
+ *
+ * 재생성 대상 (PK/스키마 변경됨):
+ *   signals, signal_articles, regions,
+ *   dashboard_cache, score_history
+ *
+ * 신규 생성:
+ *   analysis_runs, dashboard_snapshots, category_details
+ */
+function migrateToRunIdSchema(db: Database.Database): void {
+  const hasRunsTable = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='analysis_runs'"
+  ).get();
+
+  if (hasRunsTable) return; // 이미 마이그레이션됨
+
+  console.log("[DB] run_id 기반 스키마로 마이그레이션 시작...");
+  console.log("[DB] articles, analysis 테이블은 보존됩니다.");
+
+  // 분석 결과 테이블 DROP (articles, analysis 제외)
+  const tablesToDrop = [
+    "signal_articles",
+    "signals",
+    "regions",
+    "dashboard_cache",
+    "score_history",
+  ];
+
+  for (const table of tablesToDrop) {
+    const exists = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
+    ).get(table);
+    if (exists) {
+      db.exec(`DROP TABLE IF EXISTS ${table};`);
+      console.log(`[DB] DROP TABLE ${table}`);
+    }
+  }
+
+  // 관련 인덱스도 정리 (테이블 DROP 시 자동 삭제되지만 명시적 정리)
+  const indexesToDrop = [
+    "idx_signals_severity",
+    "idx_signals_category",
+    "idx_signals_detected",
+    "idx_regions_score",
+    "idx_score_history_date",
+  ];
+
+  for (const idx of indexesToDrop) {
+    db.exec(`DROP INDEX IF EXISTS ${idx};`);
+  }
+
+  console.log("[DB] 기존 분석 결과 테이블 삭제 완료. 새 스키마를 적용합니다.");
+}
+
 /** 스키마 초기화 (전처리 스크립트에서 호출) */
 export function initializeSchema(db: Database.Database): void {
+  // 1. 기존 분석 결과 테이블 DROP (articles/analysis 보존)
+  migrateToRunIdSchema(db);
+
+  // 2. 새 스키마 적용 (CREATE IF NOT EXISTS)
   db.exec(SCHEMA_SQL);
   db.exec(INDEX_SQL);
   db.exec(FTS_SQL);

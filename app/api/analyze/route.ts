@@ -185,6 +185,7 @@ export async function POST(request: Request) {
         const lastCall = usage.calls.length > 0 ? usage.calls[usage.calls.length - 1] : null;
 
         sendEvent("complete", {
+          runId: result.runId,
           overallScore: result.dashboard?.overallScore ?? 0,
           severity: result.dashboard?.severity ?? getSeverityByScore(0),
           signalCount: result.signalCount,

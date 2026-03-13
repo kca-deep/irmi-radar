@@ -7,6 +7,13 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { callLLM, usageTracker } from "@/lib/api/ai-client";
 import { getDb } from "@/lib/db/index";
+import {
+  saveDashboardSnapshot,
+  saveCategoryDetail,
+  getSignalStatsByRunId,
+  getPreviousCompletedRun,
+  getCategoryDetailsByRunId,
+} from "@/lib/db/queries";
 import { aggregateCategories, type CategoryRiskResult } from "./category-aggregator";
 import { SEVERITY_CONFIG } from "@/lib/constants";
 import type { CategoryKey, Severity } from "@/lib/types";
@@ -58,6 +65,8 @@ interface AISummaryResult {
   keyRisks: string[];
   outlook: string;
   crisisChain: CrisisChainAIResult | null;
+  comparisonSummary: string | null;
+  notableChanges: string[];
 }
 
 async function generateSummary(
@@ -65,6 +74,7 @@ async function generateSummary(
   signalSummaries: string[],
   confirmedOverallScore: number,
   confirmedSeverityLabel: string,
+  prevContext: string = "",
 ): Promise<AISummaryResult> {
   const severityLabel = (score: number) => {
     if (score >= 80) return "긴급";
@@ -106,7 +116,7 @@ ${confirmedOverallScore}점(${confirmedSeverityLabel})
 ${categoryInfo}
 
 # 감지된 위기 신호
-${signalInfo}`;
+${signalInfo}${prevContext}`;
 
   const raw = await callLLM({
     system: loadPrompt(),
@@ -139,6 +149,12 @@ ${signalInfo}`;
       : Array.isArray(parsed.outlook)
         ? (parsed.outlook as string[]).filter((s) => typeof s === "string").join(" / ").slice(0, 200)
         : "",
+    comparisonSummary: typeof parsed.comparison_summary === "string"
+      ? parsed.comparison_summary.slice(0, 500)
+      : null,
+    notableChanges: Array.isArray(parsed.notable_changes)
+      ? (parsed.notable_changes as string[]).filter((s) => typeof s === "string").slice(0, 5)
+      : [],
     crisisChain: parsed.crisis_chain
       ? {
           edges: Array.isArray(parsed.crisis_chain.edges)
@@ -178,28 +194,38 @@ function calculateOverallScore(categoryScores: number[]): number {
 // -- 메인 함수 --
 
 export async function buildDashboard(
-  options: { categories?: CategoryKey[] } = {}
+  options: { categories?: CategoryKey[]; runId?: string } = {}
 ): Promise<DashboardBuildResult> {
   const db = getDb();
+  const runId = options.runId;
 
   // 1. 카테고리 집계 (SQL 기반 유지) - 선택된 카테고리만
   const categories = aggregateCategories(options.categories);
 
-  // 2. 신호 통계
-  const signalStats = db
-    .prepare(
-      `SELECT
-        COUNT(*) as total,
-        COUNT(CASE WHEN severity = 'critical' THEN 1 END) as critical_count,
-        COUNT(CASE WHEN severity = 'warning' THEN 1 END) as warning_count
-      FROM signals`
-    )
-    .get() as { total: number; critical_count: number; warning_count: number };
+  // 2. 신호 통계 (run_id 기반)
+  let signalStats: { total: number; critical_count: number; warning_count: number };
+  if (runId) {
+    const stats = getSignalStatsByRunId(runId);
+    signalStats = { total: stats.total, critical_count: stats.critical_count, warning_count: stats.warning_count };
+  } else {
+    signalStats = db
+      .prepare(
+        `SELECT
+          COUNT(*) as total,
+          COUNT(CASE WHEN severity = 'critical' THEN 1 END) as critical_count,
+          COUNT(CASE WHEN severity = 'warning' THEN 1 END) as warning_count
+        FROM signals`
+      )
+      .get() as { total: number; critical_count: number; warning_count: number };
+  }
 
   // 3. 신호 요약 (AI 입력용)
-  const signalRows = db
-    .prepare(`SELECT title, description, severity, score FROM signals ORDER BY score DESC`)
-    .all() as { title: string; description: string; severity: string; score: number }[];
+  const signalQuery = runId
+    ? `SELECT title, description, severity, score FROM signals WHERE run_id = ? ORDER BY score DESC`
+    : `SELECT title, description, severity, score FROM signals ORDER BY score DESC`;
+  const signalRows = runId
+    ? db.prepare(signalQuery).all(runId) as { title: string; description: string; severity: string; score: number }[]
+    : db.prepare(signalQuery).all() as { title: string; description: string; severity: string; score: number }[];
 
   const signalSummaries = signalRows.map(
     (s) => `[${s.severity}/${s.score}점] ${s.title}: ${s.description}`
@@ -219,21 +245,45 @@ export async function buildDashboard(
     critical: "긴급", warning: "주의", caution: "관찰", safe: "안전",
   };
 
-  // 5. AI 종합 분석 (확정된 종합점수를 함께 전달)
+  // 4.5. 전일대비 컨텍스트 준비 (run_id가 있을 때만)
+  let prevContext = "";
+  if (runId) {
+    const prevRun = getPreviousCompletedRun(runId);
+    if (prevRun && prevRun.overall_score != null) {
+      const prevSevLabel = severityLabelMap[(prevRun.overall_severity as Severity) ?? "safe"];
+      const prevCats = getCategoryDetailsByRunId(prevRun.id);
+      const prevCatInfo = prevCats.map((c) => `${c.category}: ${c.score}점`).join(", ");
+
+      prevContext = `
+
+## 이전 분석 결과 (비교 기준: ${prevRun.run_date})
+- 종합: ${prevRun.overall_score}점 (${prevSevLabel})
+- 카테고리: ${prevCatInfo}
+
+## 추가 출력
+- comparison_summary: 이전 대비 핵심 변화를 2-3문장으로 요약하세요
+- notable_changes: 주목할 변화 목록 (등급 변경, 급등/급락 카테고리, 신규 위기신호)`;
+    }
+  }
+
+  // 5. AI 종합 분석 (확정된 종합점수를 함께 전달 + 전일대비 컨텍스트)
   const aiResult = await generateSummary(
     categories,
     signalSummaries,
     overallScore,
     severityLabelMap[overallSeverity],
+    prevContext,
   );
 
-  // 6. 대시보드 캐시 저장
+  // 6. 대시보드 캐시 저장 (레거시 호환 + 스냅샷 이중 저장)
   const cacheData = {
     overallScore,
     severity: overallSeverity,
     summary: aiResult.summary,
     keyRisks: aiResult.keyRisks,
     outlook: aiResult.outlook,
+    comparisonSummary: aiResult.comparisonSummary ?? null,
+    notableChanges: aiResult.notableChanges ?? [],
     categories: categories.map((c) => ({
       category: c.category,
       label: c.label,
@@ -252,18 +302,21 @@ export async function buildDashboard(
     updatedAt: new Date().toISOString(),
   };
 
+  const cacheJson = JSON.stringify(cacheData);
+
+  // 레거시 캐시 (하위 호환)
   db.prepare(
     `INSERT OR REPLACE INTO dashboard_cache (key, value, updated_at)
      VALUES ('dashboard', ?, datetime('now'))`
-  ).run(JSON.stringify(cacheData));
+  ).run(cacheJson);
+
+  // 스냅샷 저장 (run_id가 있을 때)
+  if (runId) {
+    saveDashboardSnapshot(runId, "dashboard", cacheJson);
+  }
 
   // 7. Crisis Chain 캐시 저장
   if (aiResult.crisisChain) {
-    const categoryMap: Record<string, { label: string; score: number }> = {};
-    for (const c of categories) {
-      categoryMap[c.category] = { label: c.label, score: c.score };
-    }
-
     const crisisChainData = {
       nodes: categories.map((c) => ({
         id: c.category,
@@ -274,13 +327,34 @@ export async function buildDashboard(
       chains: aiResult.crisisChain.chains,
     };
 
+    const chainJson = JSON.stringify(crisisChainData);
+
     db.prepare(
       `INSERT OR REPLACE INTO dashboard_cache (key, value, updated_at)
        VALUES ('crisis_chain', ?, datetime('now'))`
-    ).run(JSON.stringify(crisisChainData));
+    ).run(chainJson);
+
+    if (runId) {
+      saveDashboardSnapshot(runId, "crisis_chain", chainJson);
+    }
   }
 
-  // 8. Score History 저장 (일별 UPSERT)
+  // 8. Category Details 저장 (run_id가 있을 때)
+  if (runId) {
+    for (const c of categories) {
+      saveCategoryDetail(runId, {
+        category: c.category,
+        score: c.score,
+        trend: c.trend,
+        articleCount: c.articleCount,
+        criticalCount: c.criticalCount,
+        warningCount: c.warningCount,
+        keyIssues: c.keyIssues,
+      });
+    }
+  }
+
+  // 9. Score History 저장 (일별 UPSERT)
   const today = new Date().toISOString().slice(0, 10);
   const categoryScores: Record<string, number> = {};
   for (const c of categories) {
@@ -289,8 +363,8 @@ export async function buildDashboard(
 
   db.prepare(
     `INSERT OR REPLACE INTO score_history
-       (date, overall_score, prices, employment, self_employed, finance, real_estate)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+       (date, overall_score, prices, employment, self_employed, finance, real_estate, run_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     today,
     overallScore,
@@ -299,9 +373,10 @@ export async function buildDashboard(
     categoryScores["selfEmployed"] ?? 0,
     categoryScores["finance"] ?? 0,
     categoryScores["realEstate"] ?? 0,
+    runId ?? null,
   );
 
-  // 9. API 사용량 캐시 저장
+  // 10. API 사용량 캐시 저장
   const usage = usageTracker.getSummary();
   if (usage.totalCalls > 0) {
     const lastCall = usage.calls[usage.calls.length - 1];
@@ -314,10 +389,16 @@ export async function buildDashboard(
       provider: lastCall?.provider ?? "",
       model: lastCall?.model ?? "",
     };
+
+    const usageJson = JSON.stringify(usageData);
     db.prepare(
       `INSERT OR REPLACE INTO dashboard_cache (key, value, updated_at)
        VALUES ('api_usage', ?, datetime('now'))`
-    ).run(JSON.stringify(usageData));
+    ).run(usageJson);
+
+    if (runId) {
+      saveDashboardSnapshot(runId, "api_usage", usageJson);
+    }
   }
 
   return {

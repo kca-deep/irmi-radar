@@ -67,6 +67,43 @@ export interface CategorySeverityDist {
   total: number;
 }
 
+// -- 전일대비 비교 --
+export interface DailyDelta {
+  previousDate: string | null;
+  previousRunId: string | null;
+  overall: {
+    delta: number | null;
+    direction: "up" | "down" | "unchanged";
+    severityChanged: boolean;
+    previousSeverity: Severity | null;
+  };
+  categories: Record<CategoryKey, {
+    delta: number | null;
+    direction: "up" | "down" | "unchanged";
+    previousScore: number | null;
+  }>;
+  signals: {
+    totalDelta: number | null;
+    newCount: number;
+    resolvedCount: number;
+    upgradedCount: number;
+    downgradedCount: number;
+  };
+  aiSummary: string | null;
+}
+
+// -- 분석 회차 --
+export interface AnalysisRunInfo {
+  id: string;
+  runDate: string;
+  startedAt: string;
+  completedAt: string | null;
+  status: "running" | "completed" | "failed";
+  overallScore: number | null;
+  overallSeverity: Severity | null;
+  articlesAnalyzed: number;
+}
+
 // -- 대시보드 데이터 --
 export interface DashboardData {
   lastUpdated: string;
@@ -80,6 +117,10 @@ export interface DashboardData {
   categoryDist: CategorySeverityDist[];
   /** 전일대비 신호 증감 (null = 전일 데이터 없음) */
   signalDelta: number | null;
+  /** 전일대비 상세 비교 (null = 이전 분석 없음) */
+  dailyDelta: DailyDelta | null;
+  /** 현재 분석 회차 ID */
+  runId: string | null;
 }
 
 // -- 신호 상세 분석 --

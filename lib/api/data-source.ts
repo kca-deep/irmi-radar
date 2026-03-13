@@ -8,6 +8,7 @@
 
 import type {
   DashboardData,
+  DailyDelta,
   BriefingData,
   CrisisChainData,
   Signal,
@@ -160,8 +161,30 @@ function loadSignalArticleIds(signalId: string): string[] {
 export function loadDashboard(): DashboardData {
   if (isDb()) {
     try {
-      const { getDashboardCache, getSignals: dbGetSignals, getScoreHistory, getCategorySeverityDistribution, getSignalCountByDate } = require("@/lib/db/queries");
-      const cached = getDashboardCache("dashboard") as string | null;
+      const {
+        getDashboardCache,
+        getLatestCompletedRun,
+        getLatestDashboardSnapshot,
+        getSignals: dbGetSignals,
+        getScoreHistory,
+        getCategorySeverityDistribution,
+        getSignalCountByDate,
+      } = require("@/lib/db/queries");
+
+      // 최신 완료 회차 조회
+      const latestRun = getLatestCompletedRun();
+      const runId = latestRun?.id ?? null;
+
+      // 스냅샷 우선, 없으면 레거시 캐시
+      let cached: string | null = null;
+      if (runId) {
+        const snapshot = getLatestDashboardSnapshot("dashboard");
+        if (snapshot) cached = snapshot.data;
+      }
+      if (!cached) {
+        cached = getDashboardCache("dashboard") as string | null;
+      }
+
       if (cached) {
         const data = JSON.parse(cached);
         // dashboard_cache → DashboardData 변환
@@ -187,8 +210,8 @@ export function loadDashboard(): DashboardData {
           }
         }
 
-        // 최근 신호 미리보기
-        const signalRows = dbGetSignals({ limit: 4 }) as SignalRow[];
+        // 최근 신호 미리보기 (최신 회차 기준)
+        const signalRows = dbGetSignals({ runId, limit: 4 }) as SignalRow[];
         const recentSignals: SignalPreview[] = signalRows.map((s: SignalRow) => ({
           id: s.id,
           title: s.title,
@@ -250,6 +273,18 @@ export function loadDashboard(): DashboardData {
           }
         } catch { /* skip */ }
 
+        // 전일대비 상세 (daily_delta 스냅샷)
+        let dailyDelta: DailyDelta | null = null;
+        if (runId) {
+          try {
+            const { getDashboardSnapshot } = require("@/lib/db/queries");
+            const deltaSnapshot = getDashboardSnapshot(runId, "daily_delta") as string | null;
+            if (deltaSnapshot) {
+              dailyDelta = JSON.parse(deltaSnapshot);
+            }
+          } catch { /* skip */ }
+        }
+
         return {
           lastUpdated: data.updatedAt || new Date().toISOString(),
           overallScore: data.overallScore ?? 0,
@@ -265,6 +300,8 @@ export function loadDashboard(): DashboardData {
           categoryScoreHistory,
           categoryDist,
           signalDelta,
+          dailyDelta,
+          runId,
         };
       }
     } catch {
