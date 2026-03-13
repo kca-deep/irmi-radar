@@ -56,7 +56,7 @@ export function AnalyzedNewsSlide({
     <div
       onClick={(e) => onClick?.(article, e)}
       className={cn(
-        "w-[260px] shrink-0 rounded-lg border px-3 py-2.5 cursor-pointer",
+        "w-[280px] shrink-0 rounded-xl border px-4 py-3 cursor-pointer",
         "bg-card/50 hover:bg-card transition-colors",
         selected ? SELECTED_BORDER_CLASS[colorToken] : BORDER_CLASS[colorToken]
       )}
@@ -66,11 +66,11 @@ export function AnalyzedNewsSlide({
         <div className="flex items-center gap-1">
           <Badge
             variant="secondary"
-            className={cn("text-[9px] px-1.5 py-0", BADGE_CLASS[colorToken])}
+            className={cn("text-[10px] px-1.5 py-0", BADGE_CLASS[colorToken])}
           >
             {SEVERITY_LABEL_MAP[analysis.severity]}
           </Badge>
-          <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
             {CATEGORY_LABEL_MAP[article.category]}
           </Badge>
         </div>
@@ -85,9 +85,16 @@ export function AnalyzedNewsSlide({
       </div>
 
       {/* Title */}
-      <p className="mt-1.5 text-[11px] font-medium leading-snug text-foreground line-clamp-1">
+      <p className="mt-1.5 text-xs font-medium leading-snug text-foreground line-clamp-1">
         {article.title}
       </p>
+
+      {/* AI Summary */}
+      {analysis.summary && (
+        <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground line-clamp-1">
+          {analysis.summary}
+        </p>
+      )}
     </div>
   );
 }

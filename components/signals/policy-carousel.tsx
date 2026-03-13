@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Wallet01Icon,
   Loading03Icon,
-  Call02Icon,
   Location01Icon,
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +38,7 @@ function PolicySlide({ policy }: { policy: PolicyWithCategory }) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "w-[300px] shrink-0 rounded-lg border border-border bg-card/50 px-3 py-2.5 cursor-pointer",
+        "w-[280px] shrink-0 rounded-xl border border-border bg-card/50 px-4 py-3 cursor-pointer",
         "hover:bg-card transition-colors"
       )}
     >
@@ -58,19 +57,13 @@ function PolicySlide({ policy }: { policy: PolicyWithCategory }) {
           {region}
         </span>
       </div>
-      <p className="text-xs font-medium leading-snug text-foreground line-clamp-1 mb-1">
+      <p className="text-xs font-medium leading-snug text-foreground line-clamp-1">
         {policy.title}
       </p>
-      {policy.benefit && (
-        <p className="text-[11px] text-muted-foreground line-clamp-1 mb-1">
-          {policy.benefit}
+      {(policy.benefit || policy.contact) && (
+        <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground line-clamp-1">
+          {[policy.benefit, policy.contact].filter(Boolean).join(" · ")}
         </p>
-      )}
-      {policy.contact && (
-        <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-          <HugeiconsIcon icon={Call02Icon} size={10} strokeWidth={2} className="shrink-0" />
-          <span className="truncate">{policy.contact}</span>
-        </span>
       )}
     </a>
   );
@@ -121,12 +114,14 @@ export function PolicyCarousel() {
     loadAll();
   }, []);
 
+  const isStatic = policies.length <= 4;
+
   useEffect(() => {
-    if (tickerRef.current) {
+    if (!isStatic && tickerRef.current) {
       const halfWidth = tickerRef.current.scrollWidth / 2;
       setDuration(halfWidth / TICKER_PX_PER_SEC);
     }
-  }, [policies]);
+  }, [policies, isStatic]);
 
   if (loading) {
     return (
@@ -160,7 +155,7 @@ export function PolicyCarousel() {
           <h3 className="text-sm font-semibold text-foreground">
             민생 지원정책
           </h3>
-          <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
             {policies.length}건
           </Badge>
         </div>
@@ -178,16 +173,20 @@ export function PolicyCarousel() {
       <div className="overflow-hidden">
         <div
           ref={tickerRef}
-          className="flex hover:[animation-play-state:paused]"
-          style={{
-            animationName: duration > 0 ? "ticker" : "none",
-            animationDuration: `${duration}s`,
-            animationTimingFunction: "linear",
-            animationIterationCount: "infinite",
-          }}
+          className={cn("flex", !isStatic && "hover:[animation-play-state:paused]")}
+          style={
+            isStatic
+              ? undefined
+              : {
+                  animationName: duration > 0 ? "ticker" : "none",
+                  animationDuration: `${duration}s`,
+                  animationTimingFunction: "linear",
+                  animationIterationCount: "infinite",
+                }
+          }
         >
           <TickerSet policies={policies} />
-          <TickerSet policies={policies} keyPrefix="dup-" />
+          {!isStatic && <TickerSet policies={policies} keyPrefix="dup-" />}
         </div>
       </div>
     </div>

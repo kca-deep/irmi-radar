@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { MouseEvent } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -142,7 +142,9 @@ export function AnalyzedNewsCarousel({
     null
   );
   const [arrowLeft, setArrowLeft] = useState(0);
+  const [duration, setDuration] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const tickerRef = useRef<HTMLDivElement>(null);
 
   const handleArticleClick = useCallback(
     (article: NewsArticle, e: MouseEvent<HTMLDivElement>) => {
@@ -167,15 +169,17 @@ export function AnalyzedNewsCarousel({
     setSelectedArticle(null);
   }, []);
 
-  // 카드 크기 기반 duration 계산 (DOM 측정 대신 계산으로 속도 통일)
-  const CARD_W = 260;
-  const CARD_GAP = 12;
-  const halfWidth = articles.length * (CARD_W + CARD_GAP);
-  const duration = halfWidth / TICKER_PX_PER_SEC;
+  // scrollWidth 기반 동적 duration 계산 (PolicyCarousel과 통일)
+  const isStatic = articles.length <= 4;
+
+  useEffect(() => {
+    if (!isStatic && tickerRef.current) {
+      const halfWidth = tickerRef.current.scrollWidth / 2;
+      setDuration(halfWidth / TICKER_PX_PER_SEC);
+    }
+  }, [articles, isStatic]);
 
   if (articles.length === 0) return null;
-
-  const isStatic = articles.length <= 4;
   const isPaused = selectedArticle !== null;
   const colorToken = selectedArticle?.analysis
     ? SEVERITY_COLOR_MAP[selectedArticle.analysis.severity]
@@ -189,12 +193,12 @@ export function AnalyzedNewsCarousel({
           icon={AlertCircleIcon}
           size={16}
           strokeWidth={2}
-          className="text-primary"
+          className="text-brand"
         />
         <span className="text-xs font-semibold text-foreground">
           AI 분석 결과
         </span>
-        <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5">
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
           {articles.length}건
         </Badge>
       </div>
@@ -203,6 +207,7 @@ export function AnalyzedNewsCarousel({
       <div className="relative" ref={containerRef}>
         <div className="overflow-hidden">
           <div
+            ref={tickerRef}
             className={cn("flex", !isStatic && "w-max hover:[animation-play-state:paused]")}
             style={
               isStatic
