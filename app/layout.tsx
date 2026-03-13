@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { Noto_Sans_KR, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const jetbrainsMono = JetBrains_Mono({
+const notoSansKR = Noto_Sans_KR({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
   variable: "--font-sans",
 });
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 const geistMono = Geist_Mono({
@@ -33,12 +34,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={`${jetbrainsMono.variable} dark`} suppressHydrationWarning>
+    <html lang="ko" className={`${notoSansKR.variable} dark`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${jetbrainsMono.variable} ${geistMono.variable} antialiased`}
       >
         {children}
       </body>

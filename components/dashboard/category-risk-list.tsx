@@ -42,7 +42,7 @@ export function CategoryRiskList({ categories }: CategoryRiskListProps) {
             icon={AnalyticsUpIcon}
             size={18}
             strokeWidth={2}
-            className="text-score-accent"
+            className="text-brand"
           />
           <h3 className="text-sm font-semibold text-foreground">
             카테고리별 위험도

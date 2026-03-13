@@ -167,8 +167,8 @@ export function AiBriefingPanel({ briefing, articles, overallScore }: AiBriefing
           </div>
 
           {/* 우측 20%: 종합 리스크 점수 + 범례 */}
-          <div className="flex flex-col items-center justify-center lg:border-l lg:border-border/30 lg:pl-5">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+          <div className="flex flex-col items-center justify-center rounded-xl bg-brand-surface border border-brand-border lg:p-5">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-widest text-brand-muted">
               종합 점수
             </div>
             <div className="[&_svg]:size-44">

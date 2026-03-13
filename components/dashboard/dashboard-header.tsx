@@ -25,7 +25,7 @@ export function DashboardHeader({ lastUpdated }: DashboardHeaderProps) {
             icon={DashboardSpeed01Icon}
             size={20}
             strokeWidth={2}
-            className="text-primary"
+            className="text-brand"
           />
           종합 민생 리스크 지수
         </h1>
