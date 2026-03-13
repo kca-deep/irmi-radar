@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { News01Icon, Loading03Icon, AiBrain01Icon } from "@hugeicons/core-free-icons";
+import { News01Icon, Loading03Icon, AiBrain01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { NewsFilterBar } from "./news-filter-bar";
 import { NewsList } from "./news-list";
@@ -111,7 +111,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     includeAssembly: false,
     includeGovServices: false,
   });
-  const [limitPerCategory, setLimitPerCategory] = useState<number | undefined>(undefined);
+  const [limitPerCategory, setLimitPerCategory] = useState<number | undefined>(10);
 
   // 분석 실행 상태
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
@@ -688,6 +688,27 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     setProgress(null);
   }, []);
 
+  // 분석 결과 초기화
+  const [isResetting, setIsResetting] = useState(false);
+  const handleReset = useCallback(async () => {
+    if (!window.confirm("AI 분석 결과를 모두 초기화하시겠습니까?\n(원본 뉴스 데이터는 유지됩니다)")) return;
+
+    setIsResetting(true);
+    try {
+      const res = await fetch("/api/analyze/reset", { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        router.refresh();
+      } else {
+        alert(json.error || "초기화에 실패했습니다");
+      }
+    } catch {
+      alert("초기화 요청 중 오류가 발생했습니다");
+    } finally {
+      setIsResetting(false);
+    }
+  }, [router]);
+
   // 모달 닫기
   const handleCloseModal = useCallback(() => {
     if (analysisState === "running") return;
@@ -720,7 +741,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
               icon={News01Icon}
               size={20}
               strokeWidth={2}
-              className="text-primary"
+              className="text-brand"
             />
             뉴스 분석
           </h1>
@@ -728,29 +749,55 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
             AI가 뉴스 데이터를 분석하여 민생 위기 신호를 감지합니다.
           </p>
         </div>
-        <Button
-          onClick={handleOpenModal}
-          disabled={analysisState === "running"}
-          className="gap-2 shrink-0"
-          size="sm"
-        >
-          {analysisState === "running" ? (
-            <>
-              <HugeiconsIcon
-                icon={Loading03Icon}
-                size={14}
-                strokeWidth={2}
-                className="animate-spin"
-              />
-              분석 진행 중...
-            </>
-          ) : (
-            <>
-              <HugeiconsIcon icon={AiBrain01Icon} size={14} strokeWidth={2} />
-              AI 분석 시작하기
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            disabled={analysisState === "running" || isResetting}
+            className="gap-1.5 shrink-0 text-muted-foreground"
+          >
+            {isResetting ? (
+              <>
+                <HugeiconsIcon
+                  icon={Loading03Icon}
+                  size={14}
+                  strokeWidth={2}
+                  className="animate-spin"
+                />
+                초기화 중...
+              </>
+            ) : (
+              <>
+                <HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={2} />
+                분석 초기화
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={handleOpenModal}
+            disabled={analysisState === "running"}
+            className="gap-2 shrink-0"
+            size="sm"
+          >
+            {analysisState === "running" ? (
+              <>
+                <HugeiconsIcon
+                  icon={Loading03Icon}
+                  size={14}
+                  strokeWidth={2}
+                  className="animate-spin"
+                />
+                분석 진행 중...
+              </>
+            ) : (
+              <>
+                <HugeiconsIcon icon={AiBrain01Icon} size={14} strokeWidth={2} />
+                AI 분석 시작하기
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* 필터 바 */}

@@ -62,7 +62,9 @@ interface AISummaryResult {
 
 async function generateSummary(
   categories: CategoryRiskResult[],
-  signalSummaries: string[]
+  signalSummaries: string[],
+  confirmedOverallScore: number,
+  confirmedSeverityLabel: string,
 ): Promise<AISummaryResult> {
   const severityLabel = (score: number) => {
     if (score >= 80) return "긴급";
@@ -94,7 +96,13 @@ async function generateSummary(
       ? signalSummaries.map((s, i) => `${i + 1}. ${s}`).join("\n")
       : "감지된 위기 신호 없음";
 
-  const userPrompt = `# 카테고리별 분석 결과 (점수 0~100, 60이상 주의, 80이상 긴급)
+  const userPrompt = `# 확정된 종합 민생위기지수
+${confirmedOverallScore}점(${confirmedSeverityLabel})
+- 이 점수는 시스템이 가중평균 공식으로 산출한 확정값입니다.
+- summary, key_risks 등에서 종합 점수를 언급할 때 반드시 이 값을 그대로 사용하십시오.
+- overall_score 필드에도 이 값을 그대로 반환하십시오.
+
+# 카테고리별 분석 결과 (점수 0~100, 60이상 주의, 80이상 긴급)
 ${categoryInfo}
 
 # 감지된 위기 신호
@@ -197,10 +205,7 @@ export async function buildDashboard(
     (s) => `[${s.severity}/${s.score}점] ${s.title}: ${s.description}`
   );
 
-  // 4. AI 종합 분석
-  const aiResult = await generateSummary(categories, signalSummaries);
-
-  // 4-1. 종합점수: AI 자유재량 대신 카테고리 점수 기반 가중평균 공식 적용
+  // 4. 종합점수: 카테고리 점수 기반 가중평균 공식으로 먼저 확정
   const overallScore = calculateOverallScore(categories.map((c) => c.score));
   let overallSeverity: Severity = "safe";
   for (const config of SEVERITY_CONFIG) {
@@ -210,7 +215,19 @@ export async function buildDashboard(
     }
   }
 
-  // 5. 대시보드 캐시 저장
+  const severityLabelMap: Record<Severity, string> = {
+    critical: "긴급", warning: "주의", caution: "관찰", safe: "안전",
+  };
+
+  // 5. AI 종합 분석 (확정된 종합점수를 함께 전달)
+  const aiResult = await generateSummary(
+    categories,
+    signalSummaries,
+    overallScore,
+    severityLabelMap[overallSeverity],
+  );
+
+  // 6. 대시보드 캐시 저장
   const cacheData = {
     overallScore,
     severity: overallSeverity,
@@ -240,7 +257,7 @@ export async function buildDashboard(
      VALUES ('dashboard', ?, datetime('now'))`
   ).run(JSON.stringify(cacheData));
 
-  // 6. Crisis Chain 캐시 저장
+  // 7. Crisis Chain 캐시 저장
   if (aiResult.crisisChain) {
     const categoryMap: Record<string, { label: string; score: number }> = {};
     for (const c of categories) {
@@ -263,7 +280,7 @@ export async function buildDashboard(
     ).run(JSON.stringify(crisisChainData));
   }
 
-  // 7. Score History 저장 (일별 UPSERT)
+  // 8. Score History 저장 (일별 UPSERT)
   const today = new Date().toISOString().slice(0, 10);
   const categoryScores: Record<string, number> = {};
   for (const c of categories) {
@@ -284,7 +301,7 @@ export async function buildDashboard(
     categoryScores["realEstate"] ?? 0,
   );
 
-  // 8. API 사용량 캐시 저장
+  // 9. API 사용량 캐시 저장
   const usage = usageTracker.getSummary();
   if (usage.totalCalls > 0) {
     const lastCall = usage.calls[usage.calls.length - 1];
