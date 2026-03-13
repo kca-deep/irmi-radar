@@ -108,7 +108,7 @@ export function RegionMap({
           icon={Location01Icon}
           size={18}
           strokeWidth={2}
-          className="text-primary"
+          className="text-brand"
         />
         <h3 className="text-sm font-semibold text-foreground">지역별 위기 현황</h3>
       </div>
@@ -141,7 +141,7 @@ export function RegionMap({
                       geography={geo}
                       fill={getFillColor(englishName)}
                       fillOpacity={isHovered ? 0.9 : 0.7}
-                      stroke={isSelected ? "var(--primary)" : "var(--map-border)"}
+                      stroke={isSelected ? "var(--brand)" : "var(--map-border)"}
                       strokeWidth={isSelected ? 2.5 : 1.5}
                       style={{
                         default: {
@@ -210,7 +210,7 @@ export function RegionMap({
           </span>
           <button
             onClick={() => onRegionSelect("all")}
-            className="ml-2 text-xs text-primary hover:underline"
+            className="ml-2 text-xs text-brand hover:underline"
           >
             전체 보기
           </button>

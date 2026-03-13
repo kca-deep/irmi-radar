@@ -7,12 +7,12 @@ type Theme = "light" | "dark";
 const STORAGE_KEY = "irmi-theme";
 
 function getSnapshot(): Theme {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
 
 function getServerSnapshot(): Theme {
-  return "dark";
+  return "light";
 }
 
 function subscribe(callback: () => void): () => void {

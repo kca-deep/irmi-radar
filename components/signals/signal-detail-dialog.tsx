@@ -33,7 +33,7 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
   const severityColor = severity ? SEVERITY_COLOR_MAP[severity] : null;
 
   return (
-    <div className="rounded-lg border border-border/50 bg-muted/20 p-3 space-y-2">
+    <div className="rounded-lg border border-border bg-background p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         {severityColor && riskScore !== undefined && (
           <Badge
@@ -160,7 +160,7 @@ export function SignalDetailDialog({
 
           {/* 감지 근거 + 원인 분석 + 영향 범위 통합 카드 */}
           {(signal.evidence.length > 0 || signal.analysis.cause || signal.analysis.impact) && (
-            <div className="mt-2 rounded-lg border border-border/50 bg-muted/20 px-4 py-2.5 space-y-1">
+            <div className="mt-2 rounded-lg border border-crisis-accent/20 bg-crisis-surface px-4 py-2.5 space-y-1">
               {signal.evidence.length > 0 && (
                 <p className="text-xs leading-relaxed text-foreground">
                   <span className="font-semibold text-warning mr-1.5">감지 근거</span>
@@ -184,7 +184,7 @@ export function SignalDetailDialog({
         </DialogHeader>
 
         {/* 좌우 2컬럼 본문 */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-0 border-t border-border/30 flex-1 min-h-0 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-0 border-t border-border flex-1 min-h-0 overflow-hidden">
           {/* 좌측: 위기 분석 + 관련 뉴스 */}
           <ScrollArea className="h-full">
             <div className="px-6 pt-2 pb-4 space-y-3">
@@ -195,7 +195,7 @@ export function SignalDetailDialog({
                     icon={News01Icon}
                     size={14}
                     strokeWidth={2}
-                    className="text-primary"
+                    className="text-brand"
                   />
                   관련 뉴스 기사
                   <Badge variant="secondary" className="text-[10px] ml-1">
@@ -223,7 +223,7 @@ export function SignalDetailDialog({
           </ScrollArea>
 
           {/* 우측: 관련 지원정책 + 국회 동향 */}
-          <div className="border-t lg:border-t-0 lg:border-l border-border/30 overflow-hidden">
+          <div className="border-t lg:border-t-0 lg:border-l border-border overflow-hidden">
             <ScrollArea className="h-full">
               <div className="px-6 pt-2 pb-4 space-y-4">
                 {/* 관련 지원 정책 (보조금24) */}

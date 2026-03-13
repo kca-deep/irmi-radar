@@ -57,6 +57,8 @@ interface ArticleRow {
   risk_score?: number | null;
   analysis_severity?: string | null;
   ai_summary?: string | null;
+  key_factors?: string | null;
+  impact_region?: string | null;
 }
 
 function toNewsArticle(row: ArticleRow): NewsArticle {
@@ -86,8 +88,12 @@ function toNewsArticle(row: ArticleRow): NewsArticle {
       ? {
           riskScore: row.risk_score,
           severity: (row.analysis_severity || "safe") as Severity,
-          keyFactors: [],
+          keyFactors: (() => {
+            try { return JSON.parse(row.key_factors || "[]"); }
+            catch { return []; }
+          })(),
           relatedCategories: [],
+          impactRegion: row.impact_region || undefined,
           summary: row.ai_summary || "",
         }
       : undefined,

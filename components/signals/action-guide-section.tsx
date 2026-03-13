@@ -38,14 +38,14 @@ export function ActionGuideSection({
             icon={CheckmarkCircle02Icon}
             size={16}
             strokeWidth={2}
-            className="text-primary"
+            className="text-brand"
           />
           대응 가이드
         </h4>
         <ol className="space-y-2 pl-1">
           {signal.analysis.actionPoints.map((point, index) => (
             <li key={index} className="flex items-start gap-2 text-sm">
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-brand/10 text-brand text-xs flex items-center justify-center font-medium">
                 {index + 1}
               </span>
               <span className="text-muted-foreground">{point}</span>
@@ -62,7 +62,7 @@ export function ActionGuideSection({
               icon={LegalDocument01Icon}
               size={16}
               strokeWidth={2}
-              className="text-primary"
+              className="text-brand"
             />
             관련 지원 정책
           </h4>

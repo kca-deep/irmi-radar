@@ -30,6 +30,15 @@ export const CATEGORY_BADGE_MAP: Record<CategoryKey, string> = {
   realEstate: "bg-cat-real-estate/10 text-cat-real-estate border-cat-real-estate/30",
 };
 
+// -- 카테고리별 보더 색상 (카드용) --
+export const CATEGORY_BORDER_MAP: Record<CategoryKey, string> = {
+  prices: "border-cat-prices/30",
+  employment: "border-cat-employment/30",
+  selfEmployed: "border-cat-self-employed/30",
+  finance: "border-cat-finance/30",
+  realEstate: "border-cat-real-estate/30",
+};
+
 // -- 카테고리별 도트 색상 (범례용) --
 export const CATEGORY_DOT_MAP: Record<CategoryKey, string> = {
   prices: "bg-cat-prices",

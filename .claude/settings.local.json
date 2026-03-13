@@ -5,5 +5,8 @@
     "context7",
     "playwright"
   ],
-  "enableAllProjectMcpServers": true
+  "enableAllProjectMcpServers": true,
+  "workbench.editorAssociations": {
+    "*.db": "sqlite3-editor.editor"
+  }
 }

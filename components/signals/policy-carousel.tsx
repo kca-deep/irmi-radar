@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORY_LABEL_MAP, CATEGORIES, TICKER_PX_PER_SEC } from "@/lib/constants";
-import { CATEGORY_DOT_MAP, CATEGORY_BADGE_MAP } from "@/lib/icon-maps";
+import { CATEGORY_DOT_MAP, CATEGORY_BADGE_MAP, CATEGORY_BORDER_MAP } from "@/lib/icon-maps";
 import { cn } from "@/lib/utils";
 
 import type { CategoryKey, Policy } from "@/lib/types";
@@ -38,7 +38,8 @@ function PolicySlide({ policy }: { policy: PolicyWithCategory }) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "w-[280px] shrink-0 rounded-xl border border-border bg-card/50 px-4 py-3 cursor-pointer",
+        "w-[280px] shrink-0 rounded-xl border bg-card/50 px-4 py-3 cursor-pointer",
+        CATEGORY_BORDER_MAP[policy._category],
         "hover:bg-card transition-colors"
       )}
     >
@@ -173,7 +174,7 @@ export function PolicyCarousel() {
       <div className="overflow-hidden">
         <div
           ref={tickerRef}
-          className={cn("flex", !isStatic && "hover:[animation-play-state:paused]")}
+          className={cn("flex", !isStatic && "w-max hover:[animation-play-state:paused]")}
           style={
             isStatic
               ? undefined

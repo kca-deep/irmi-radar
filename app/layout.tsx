@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 // Blocking script to apply saved theme before first paint (prevents FOUC)
-const themeScript = `(function(){try{var t=localStorage.getItem("irmi-theme");if(t==="light"){document.documentElement.classList.remove("dark")}else{document.documentElement.classList.add("dark")}}catch(e){document.documentElement.classList.add("dark")}})()`;
+const themeScript = `(function(){try{var t=localStorage.getItem("irmi-theme");if(t==="dark"){document.documentElement.classList.add("dark")}else{document.documentElement.classList.remove("dark")}}catch(e){}})()`;
 
 export default function RootLayout({
   children,
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={`${notoSansKR.variable} dark`} suppressHydrationWarning>
+    <html lang="ko" className={`${notoSansKR.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

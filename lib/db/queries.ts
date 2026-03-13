@@ -72,7 +72,7 @@ export function getArticles(params: ArticleListParams = {}) {
       .join(" OR ");
 
     const sql = `
-      SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary
+      SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary, an.key_factors, an.impact_region
       FROM articles a
       ${joinType} analysis an ON a.id = an.article_id
       WHERE a.rowid IN (
@@ -86,7 +86,7 @@ export function getArticles(params: ArticleListParams = {}) {
   }
 
   const sql = `
-    SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary
+    SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary, an.key_factors, an.impact_region
     FROM articles a
     ${joinType} analysis an ON a.id = an.article_id
     ${where}
@@ -230,7 +230,7 @@ export function getSignalArticles(signalId: string) {
   const db = getDb(true);
   return db
     .prepare(
-      `SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary
+      `SELECT a.*, an.risk_score, an.severity AS analysis_severity, an.ai_summary, an.key_factors, an.impact_region
        FROM articles a
        JOIN signal_articles sa ON a.id = sa.article_id
        LEFT JOIN analysis an ON a.id = an.article_id

@@ -61,6 +61,30 @@ function loadSystemPrompt(): string {
   return _cachedPrompt;
 }
 
+// -- 후처리 보정 --
+
+/** 5의 배수 점수를 +-1~2 보정 (프롬프트 규칙 준수 보강) */
+function deRoundScore(score: number): number {
+  if (score === 0) return 0;
+  if (score % 5 !== 0) return score;
+  const offset = (score % 10 === 0 ? 1 : -1) * (1 + (score % 7 === 0 ? 1 : 0));
+  return Math.max(1, Math.min(99, score + offset));
+}
+
+/** 허용 지역 접두사 (17개 시도 + 전국) */
+const VALID_REGION_PREFIXES = [
+  "서울","부산","대구","인천","광주","대전","울산","세종",
+  "경기","강원","충북","충남","전북","전남","경북","경남","제주","전국",
+];
+
+/** 해외 지역 등 비정규 impact_region을 null로 정규화 */
+function sanitizeRegion(region: string | null): string | null {
+  if (!region) return null;
+  const trimmed = region.trim();
+  if (!trimmed) return null;
+  return VALID_REGION_PREFIXES.some((p) => trimmed.startsWith(p)) ? trimmed : null;
+}
+
 // -- 단건 분석 --
 
 async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult> {
@@ -83,12 +107,15 @@ async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult>
   const cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
   const parsed = JSON.parse(cleaned);
 
-  // 유효성 검증 + 정규화
-  const riskScore = Math.max(0, Math.min(100, Number(parsed.risk_score) || 0));
+  // 유효성 검증 + 정규화 + 후처리 보정
+  const rawScore = Math.max(0, Math.min(100, Number(parsed.risk_score) || 0));
+  const riskScore = deRoundScore(rawScore);
   let severity: Severity = "safe";
   if (riskScore >= 80) severity = "critical";
   else if (riskScore >= 60) severity = "warning";
   else if (riskScore >= 40) severity = "caution";
+
+  const rawRegion = typeof parsed.impact_region === "string" ? parsed.impact_region : null;
 
   return {
     keywords: Array.isArray(parsed.keywords)
@@ -99,7 +126,7 @@ async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult>
     keyFactors: Array.isArray(parsed.key_factors)
       ? parsed.key_factors.filter((k: unknown) => typeof k === "string").slice(0, 5)
       : [],
-    impactRegion: typeof parsed.impact_region === "string" ? parsed.impact_region : null,
+    impactRegion: sanitizeRegion(rawRegion),
     summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 150) : "",
   };
 }

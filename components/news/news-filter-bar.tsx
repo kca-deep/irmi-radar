@@ -58,7 +58,7 @@ export function NewsFilterBar({
             "flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-colors",
             "border border-border/50",
             analyzedOnly
-              ? "bg-primary text-primary-foreground border-primary"
+              ? "bg-brand text-brand-foreground border-brand"
               : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           )}
         >
@@ -77,7 +77,7 @@ export function NewsFilterBar({
               "px-2 py-0.5 rounded-md text-xs font-medium transition-colors",
               "border border-border/50",
               category === "all"
-                ? "bg-primary text-primary-foreground border-primary"
+                ? "bg-brand text-brand-foreground border-brand"
                 : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             )}
           >
@@ -93,7 +93,7 @@ export function NewsFilterBar({
                   "flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-colors",
                   "border border-border/50",
                   category === cat.key
-                    ? "bg-primary text-primary-foreground border-primary"
+                    ? "bg-brand text-brand-foreground border-brand"
                     : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >

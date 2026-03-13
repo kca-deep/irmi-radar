@@ -98,7 +98,7 @@ export function NewsDetailModal({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-0.5 text-primary hover:underline"
+                  className="inline-flex items-center gap-0.5 text-brand hover:underline"
                 >
                   <HugeiconsIcon icon={Link01Icon} size={10} strokeWidth={2} />
                   원문 보기
@@ -113,7 +113,7 @@ export function NewsDetailModal({
         {/* 2단 레이아웃: 좌측 본문 | 우측 AI 분석 */}
         <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] flex-1 min-h-0">
           {/* 좌측: 기사 원문 */}
-          <ScrollArea className="min-h-0 sm:border-r border-border/30">
+          <ScrollArea className="min-h-0 sm:border-r border-border">
             <div className="p-4 space-y-4">
               <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 <HugeiconsIcon
@@ -143,7 +143,7 @@ export function NewsDetailModal({
           </ScrollArea>
 
           {/* 우측: AI 분석 결과 */}
-          <ScrollArea className="min-h-0 border-t sm:border-t-0 border-border/30">
+          <ScrollArea className="min-h-0 border-t sm:border-t-0 border-border">
             <div className="p-4 space-y-3">
               <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 <HugeiconsIcon
@@ -155,14 +155,14 @@ export function NewsDetailModal({
               </div>
 
               {analysis ? (
-                <div className="rounded-lg border border-border/30 bg-background divide-y divide-border/20">
+                <div className="rounded-lg border border-briefing-accent/20 bg-briefing-surface divide-y divide-border/50">
                   {/* 위험도 */}
                   <div className="flex items-center justify-between p-3">
                     <span className="text-[10px] text-muted-foreground">
                       위험도
                     </span>
                     <div className="flex items-center gap-2">
-                      <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="w-20 h-1.5 rounded-full bg-card overflow-hidden">
                         <div
                           className={cn(
                             "h-full rounded-full transition-all",
@@ -276,7 +276,7 @@ export function NewsDetailModal({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border border-border/30 bg-muted/30 p-6 text-center">
+                <div className="rounded-lg border border-border bg-background p-6 text-center">
                   <p className="text-xs text-muted-foreground">
                     AI 분석을 실행하면 상세 분석 결과가 표시됩니다
                   </p>

@@ -71,8 +71,15 @@ export function normalizeRegion(raw: string | null): string | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
+  // "전국" 계열 → null (전체 지역 대상)
+  if (trimmed.startsWith("전국")) return null;
+
   // 정확히 17개 시도명 중 하나
   if ((REGION_NAMES as readonly string[]).includes(trimmed)) return trimmed;
+
+  // 괄호 앞 부분 추출: "경기 (안산, 시흥 집중)" → "경기"
+  const beforeParen = trimmed.split("(")[0].trim();
+  if (beforeParen && (REGION_NAMES as readonly string[]).includes(beforeParen)) return beforeParen;
 
   // 하위 시군구 매핑 테이블 조회
   if (SUB_REGION_MAP[trimmed]) return SUB_REGION_MAP[trimmed];

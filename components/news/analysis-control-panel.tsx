@@ -26,12 +26,12 @@ export function AnalysisControlPanel({
     <div className="rounded-xl border border-border bg-card shadow-sm p-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10">
             <HugeiconsIcon
               icon={AiBrain01Icon}
               size={20}
               strokeWidth={2}
-              className="text-primary"
+              className="text-brand"
             />
           </div>
           <div className="min-w-0">

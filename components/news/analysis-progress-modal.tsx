@@ -399,7 +399,7 @@ function PhaseCard({ phase }: { phase: PhaseGroup }) {
                   className={cn(
                     "flex items-center justify-between gap-2 text-[10px]",
                     isTotalRow
-                      ? "text-foreground font-medium border-t border-border/30 pt-0.5 mt-0.5"
+                      ? "text-foreground font-medium border-t border-border pt-0.5 mt-0.5"
                       : "text-muted-foreground",
                   )}
                 >
@@ -587,7 +587,7 @@ export function AnalysisProgressModal({
                       className={cn(
                         "px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
                         selectedPeriod === preset.key
-                          ? "bg-primary text-primary-foreground border-primary"
+                          ? "bg-brand text-brand-foreground border-brand"
                           : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       )}
                     >
@@ -616,7 +616,7 @@ export function AnalysisProgressModal({
                     className={cn(
                       "px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
                       isAllCategories
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "bg-brand text-brand-foreground border-brand"
                         : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
@@ -632,7 +632,7 @@ export function AnalysisProgressModal({
                         className={cn(
                           "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
                           isSelected
-                            ? "bg-primary text-primary-foreground border-primary"
+                            ? "bg-brand text-brand-foreground border-brand"
                             : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                         )}
                       >
@@ -686,7 +686,7 @@ export function AnalysisProgressModal({
                     className={cn(
                       "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
                       externalData.includeAssembly
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "bg-brand text-brand-foreground border-brand"
                         : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
@@ -697,7 +697,7 @@ export function AnalysisProgressModal({
                     className={cn(
                       "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
                       externalData.includeGovServices
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "bg-brand text-brand-foreground border-brand"
                         : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
@@ -713,7 +713,7 @@ export function AnalysisProgressModal({
             </>
           ) : (
             /* 진행/완료 시 설정 요약 (접힌 상태) */
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-muted/30 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
               <span className="text-[11px] font-medium text-muted-foreground shrink-0">분석 조건</span>
               <div className="flex flex-wrap items-center gap-1">
                 {settingSummaryParts.map((part, i) => (
@@ -808,7 +808,7 @@ export function AnalysisProgressModal({
 
           {/* -- 완료 결과 요약 -- */}
           {isCompleted && result && (
-            <div className="flex items-center gap-3 rounded-lg border border-border/30 bg-background px-4 py-3">
+            <div className="flex items-center gap-3 rounded-lg border border-brand-border bg-brand-surface px-4 py-3">
               <div className="flex items-center gap-2 flex-1">
                 <span className="text-xs text-muted-foreground">종합 리스크</span>
                 <span className={cn("text-lg font-bold", `text-${severityColor}`)}>
@@ -835,7 +835,7 @@ export function AnalysisProgressModal({
 
           {/* -- 토큰 사용량 -- */}
           {isCompleted && result?.tokenUsage && result.tokenUsage.totalCalls > 0 && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-muted/40 px-4 py-2.5 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-background px-4 py-2.5 text-[11px] text-muted-foreground">
               <span className="flex items-center gap-1.5 font-medium text-foreground">
                 <HugeiconsIcon icon={CoinsIcon} size={13} strokeWidth={2} className="text-muted-foreground" />
                 API 사용량
@@ -865,7 +865,7 @@ export function AnalysisProgressModal({
 
           {/* -- 에러 -- */}
           {analysisState === "error" && (
-            <div className="rounded-lg border border-danger/30 bg-danger/5 p-4 text-center">
+            <div className="rounded-lg border border-danger/40 bg-danger/10 p-4 text-center">
               <p className="text-xs text-danger font-medium mb-1">
                 분석 중 오류가 발생했습니다
               </p>
@@ -876,7 +876,7 @@ export function AnalysisProgressModal({
           )}
 
           {/* -- 하단 영역 -- */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/30">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border">
             {/* 좌측: 분석 대상 정보 (설정 모드) */}
             {isIdle && (
               <div className="flex items-center gap-3">
