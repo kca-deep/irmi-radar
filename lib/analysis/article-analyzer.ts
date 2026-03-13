@@ -8,6 +8,7 @@ import { join } from "path";
 import { callLLM } from "@/lib/api/ai-client";
 import { getDb } from "@/lib/db/index";
 import { PipelineCancelledError } from "./pipeline";
+import { IRMI_KEYWORDS } from "@/lib/db/category-map";
 import type { CategoryKey, Severity } from "@/lib/types";
 
 // -- 타입 --
@@ -85,11 +86,76 @@ function sanitizeRegion(region: string | null): string | null {
   return VALID_REGION_PREFIXES.some((p) => trimmed.startsWith(p)) ? trimmed : null;
 }
 
+// -- 비민생 키워드 감지 --
+
+const NEGATIVE_PATTERNS = [
+  /마약|투약|필로폰|대마|코카인|흡입/,
+  /살인|폭행|성범죄|성폭력|강도|납치/,
+  /연예인|아이돌|배우|가수|셀럽|패션 화제/,
+  /프로야구|프로축구|프로농구|e스포츠/,
+  /시상식|콘서트|팬미팅|영화제/,
+];
+
+const ECONOMIC_CRIME_PATTERNS = [
+  /보이스피싱|금융사기|투자사기|주가조작/,
+  /전세사기|분양사기|부동산사기/,
+  /횡령|배임|임금체불|탈세|탈루/,
+  /불법대출|사금융|불법추심/,
+];
+
+/** 비민생 키워드 포함 여부 (경제범죄는 제외) */
+function hasNegativeKeywords(title: string, summary: string): boolean {
+  const text = `${title} ${summary}`;
+  if (ECONOMIC_CRIME_PATTERNS.some((p) => p.test(text))) return false;
+  return NEGATIVE_PATTERNS.some((p) => p.test(text));
+}
+
+/** 해당 카테고리의 IRMI 키워드가 텍스트에 포함되는지 확인 */
+function hasCategoryKeywords(
+  category: CategoryKey,
+  title: string,
+  summary: string,
+  content: string,
+): boolean {
+  const keywords = IRMI_KEYWORDS[category];
+  const text = `${title} ${summary} ${content}`;
+  return keywords.some((kw) => text.includes(kw));
+}
+
+/** 후처리 점수 보정 (프롬프트 위반 방어) */
+function postValidateScore(
+  article: ArticleInput,
+  rawScore: number,
+  categoryMatch: boolean | undefined,
+): number {
+  let score = rawScore;
+
+  // 1. AI가 category_match = false를 반환한 경우
+  if (categoryMatch === false) {
+    score = Math.min(score, 14);
+  }
+
+  // 2. 비민생 키워드 감지 (경제범죄 제외)
+  if (hasNegativeKeywords(article.title, article.summary)) {
+    score = Math.min(score, 18);
+  }
+
+  // 3. 높은 점수인데 카테고리 키워드가 전혀 없는 경우
+  if (score >= 60) {
+    const contentSnippet = article.content?.slice(0, 800) || "";
+    if (!hasCategoryKeywords(article.category, article.title, article.summary, contentSnippet)) {
+      score = Math.min(score, 38);
+    }
+  }
+
+  return score;
+}
+
 // -- 단건 분석 --
 
 async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult> {
   const contentSnippet = article.content
-    ? `\n본문(발췌): ${article.content.slice(0, 500)}`
+    ? `\n본문(발췌): ${article.content.slice(0, 800)}`
     : "";
 
   const userPrompt = `카테고리: ${article.categoryLabel} (${article.category})
@@ -109,7 +175,9 @@ async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult>
 
   // 유효성 검증 + 정규화 + 후처리 보정
   const rawScore = Math.max(0, Math.min(100, Number(parsed.risk_score) || 0));
-  const riskScore = deRoundScore(rawScore);
+  const categoryMatch = typeof parsed.category_match === "boolean" ? parsed.category_match : undefined;
+  const validatedScore = postValidateScore(article, rawScore, categoryMatch);
+  const riskScore = deRoundScore(validatedScore);
   let severity: Severity = "safe";
   if (riskScore >= 80) severity = "critical";
   else if (riskScore >= 60) severity = "warning";
