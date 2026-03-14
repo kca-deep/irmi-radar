@@ -26,10 +26,10 @@ interface CategoryRiskBarProps {
 
 // Tailwind purge 대응: 정적 클래스 매핑
 const CARD_BG_OPEN_CLASS: Record<string, string> = {
-  danger: "bg-muted/50",
-  warning: "bg-muted/50",
-  caution: "bg-muted/50",
-  safe: "bg-muted/50",
+  danger: "bg-danger/5",
+  warning: "bg-warning/5",
+  caution: "bg-caution/5",
+  safe: "bg-safe/5",
 };
 
 const BADGE_BG_CLASS: Record<string, string> = {
@@ -58,6 +58,13 @@ const BULLET_CLASS: Record<string, string> = {
   warning: "bg-warning",
   caution: "bg-caution",
   safe: "bg-safe",
+};
+
+const COMPARE_BG_CLASS: Record<string, string> = {
+  danger: "bg-danger/6",
+  warning: "bg-warning/6",
+  caution: "bg-caution/6",
+  safe: "bg-safe/6",
 };
 
 export function CategoryRiskBar({
@@ -185,7 +192,7 @@ export function CategoryRiskBar({
         <div className="px-3 pb-3 pt-0">
           {/* Previous score comparison */}
           {previousScore != null && (
-            <div className="mb-2 rounded-md bg-muted/40 px-2.5 py-1.5">
+            <div className={cn("mb-2 rounded-md px-2.5 py-1.5", COMPARE_BG_CLASS[colorToken])}>
               <div className="mb-1 flex items-center justify-between text-[10px] tabular-nums">
                 <span className="text-muted-foreground">전일 {previousScore.toFixed(1)}</span>
                 <span className="font-bold text-foreground">금일 {score.toFixed(1)}</span>

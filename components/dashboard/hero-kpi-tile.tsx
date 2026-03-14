@@ -570,13 +570,13 @@ export function HeroKpiTile({
 
           {/* Daily delta category chart */}
           {dailyDelta != null && deltaChartData.length > 0 && (
-            <div className="mt-auto rounded-lg bg-muted/40 p-2.5 animate-[delta-row-in_400ms_ease-out_both]">
+            <div className="mt-auto rounded-lg bg-brand/4 p-2.5 animate-[delta-row-in_400ms_ease-out_both]">
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-[9px] font-bold text-foreground/60 uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-brand-muted/80 uppercase tracking-wider">
                   전일대비
                 </span>
                 {dailyDelta.previousDate && (
-                  <span className="rounded bg-muted px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground tabular-nums">
+                  <span className="rounded bg-brand/8 px-1.5 py-0.5 text-[8px] font-medium text-brand-muted/60 tabular-nums">
                     {dailyDelta.previousDate.slice(5).replace("-", ".")} 기준
                   </span>
                 )}
