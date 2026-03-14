@@ -18,6 +18,7 @@ export interface CategoryRisk {
   score: number;
   trend: Trend;
   keyIssues: string[];
+  articleCount?: number;
 }
 
 // -- 신호 통계 --

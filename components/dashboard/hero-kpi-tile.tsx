@@ -276,13 +276,14 @@ function DumbbellDeltaChart({ data }: { data: DeltaChartItem[] }) {
             <line
               x1={x} x2={x}
               y1={0} y2={data.length * DB_ROW_H}
-              stroke="var(--border)" strokeWidth={0.5}
-              opacity={v === 50 ? 0.6 : 0.3}
+              stroke="var(--muted-foreground)" strokeWidth={0.5}
+              opacity={v === 50 ? 0.35 : 0.25}
+              strokeDasharray={v === 50 ? "none" : "2 2"}
             />
             <text
               x={x} y={data.length * DB_ROW_H + 10}
               textAnchor="middle" dominantBaseline="central"
-              fontSize={7} fill="var(--muted-foreground)" opacity={0.5}
+              fontSize={7} fill="var(--muted-foreground)" opacity={0.65}
             >
               {v}
             </text>

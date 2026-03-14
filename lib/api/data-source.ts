@@ -195,6 +195,7 @@ export function loadDashboard(): DashboardData {
             score: cat.score,
             trend: cat.trend || "stable",
             keyIssues: cat.keyIssues || [],
+            articleCount: cat.articleCount ?? undefined,
           };
         }
 

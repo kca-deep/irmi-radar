@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon, News01Icon } from "@hugeicons/core-free-icons";
 import { Progress } from "@/components/ui/progress";
 import { getSeverityByScore, SEVERITY_LABEL_MAP } from "@/lib/constants";
-import { CATEGORY_ICON_MAP, SEVERITY_COLOR_MAP, TREND_ICON_MAP } from "@/lib/icon-maps";
+import { CATEGORY_ICON_MAP, SEVERITY_COLOR_MAP } from "@/lib/icon-maps";
 import { cn } from "@/lib/utils";
 
 import type { CategoryKey, Trend } from "@/lib/types";
@@ -16,6 +16,7 @@ interface CategoryRiskBarProps {
   score: number;
   trend: Trend;
   keyIssues?: string[];
+  articleCount?: number;
   index?: number;
   isOpen?: boolean;
   isLast?: boolean;
@@ -67,12 +68,21 @@ const COMPARE_BG_CLASS: Record<string, string> = {
   safe: "bg-safe/6",
 };
 
+const CAT_ICON_COLOR_CLASS: Record<CategoryKey, string> = {
+  prices: "text-cat-prices",
+  employment: "text-cat-employment",
+  selfEmployed: "text-cat-self-employed",
+  finance: "text-cat-finance",
+  realEstate: "text-cat-real-estate",
+};
+
 export function CategoryRiskBar({
   categoryKey,
   label,
   score,
   trend,
   keyIssues,
+  articleCount,
   index = 0,
   isOpen = false,
   isLast = false,
@@ -85,7 +95,6 @@ export function CategoryRiskBar({
   const severity = getSeverityByScore(score);
   const colorToken = SEVERITY_COLOR_MAP[severity];
   const categoryIcon = CATEGORY_ICON_MAP[categoryKey];
-  const trendInfo = TREND_ICON_MAP[trend];
   const severityLabel = SEVERITY_LABEL_MAP[severity];
 
   useEffect(() => {
@@ -96,6 +105,9 @@ export function CategoryRiskBar({
     return () => clearTimeout(timer);
   }, [score, index]);
 
+  // 첫 번째 핵심 이슈를 미리보기로 사용
+  const previewIssue = keyIssues && keyIssues.length > 0 ? keyIssues[0] : null;
+
   return (
     <div
       className={cn(
@@ -104,18 +116,18 @@ export function CategoryRiskBar({
         !isLast && !isOpen && "border-b border-border/40",
       )}
     >
-      {/* 접힌 헤더 (항상 표시) */}
+      {/* 헤더 */}
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left"
+        className="flex w-full items-center gap-2 px-3 py-2.5 text-left"
       >
-        {/* Category icon */}
+        {/* Category icon — 카테고리 고유 색상 */}
         <HugeiconsIcon
           icon={categoryIcon}
           size={15}
           strokeWidth={2}
-          className="shrink-0 text-muted-foreground"
+          className={cn("shrink-0", CAT_ICON_COLOR_CLASS[categoryKey])}
         />
 
         {/* Label */}
@@ -133,16 +145,6 @@ export function CategoryRiskBar({
           {score}
         </span>
 
-        {/* Delta badge */}
-        {delta != null && (
-          <span className={cn(
-            "rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
-            delta > 0 ? "bg-danger/10 text-danger" : delta < 0 ? "bg-safe/10 text-safe" : "bg-muted text-muted-foreground",
-          )}>
-            {delta > 0 ? "+" : ""}{delta.toFixed(1)}
-          </span>
-        )}
-
         {/* Severity badge */}
         <span
           className={cn(
@@ -153,22 +155,23 @@ export function CategoryRiskBar({
           {severityLabel}
         </span>
 
-        {/* Trend icon */}
-        <HugeiconsIcon
-          icon={trendInfo.icon}
-          size={13}
-          strokeWidth={2}
-          className={cn(
-            "shrink-0",
-            trend === "rising" && "text-danger",
-            trend === "stable" && "text-muted-foreground",
-            trend === "falling" && "text-safe",
-          )}
-          aria-label={trendInfo.label}
-        />
+        {/* Article count */}
+        {articleCount != null && articleCount > 0 && (
+          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground tabular-nums">
+            <HugeiconsIcon icon={News01Icon} size={10} strokeWidth={2} className="shrink-0 opacity-60" />
+            {articleCount}
+          </span>
+        )}
 
-        {/* Spacer */}
-        <span className="flex-1" />
+        {/* Issue preview — 접힌 상태에서만 표시 */}
+        {!isOpen && previewIssue && (
+          <span className="min-w-0 flex-1 truncate text-[10px] text-muted-foreground/70">
+            {previewIssue}
+          </span>
+        )}
+
+        {/* Spacer (이슈 미리보기가 없을 때) */}
+        {(isOpen || !previewIssue) && <span className="flex-1" />}
 
         {/* Chevron */}
         <HugeiconsIcon
@@ -182,7 +185,7 @@ export function CategoryRiskBar({
         />
       </button>
 
-      {/* 펼친 상세 영역 — grid-rows 방식으로 실제 높이에 맞춘 부드러운 전환 */}
+      {/* 펼친 상세 영역 */}
       <div
         className={cn(
           "grid transition-[grid-template-rows,opacity] duration-300 ease-out",
@@ -223,7 +226,7 @@ export function CategoryRiskBar({
             </div>
           )}
 
-          {/* Key issues - 수치 위주 3줄 요약 */}
+          {/* Key issues */}
           {keyIssues && keyIssues.length > 0 && (
             <div className="space-y-0.5">
               {keyIssues.slice(0, 3).map((issue, i) => (

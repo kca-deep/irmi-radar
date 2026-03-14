@@ -67,6 +67,7 @@ export function CategoryRiskList({ categories, categoryDeltas }: CategoryRiskLis
               score={risk.score}
               trend={risk.trend}
               keyIssues={risk.keyIssues}
+              articleCount={risk.articleCount}
               index={index}
               isOpen={openCategory === cat.key}
               isLast={index === CATEGORIES.length - 1}
