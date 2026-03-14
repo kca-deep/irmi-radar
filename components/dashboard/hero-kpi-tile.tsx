@@ -350,27 +350,36 @@ function DumbbellDeltaChart({ data }: { data: DeltaChartItem[] }) {
               {row.category}
             </text>
 
-            {/* Hover: score labels near dots */}
-            {isActive && (
-              <>
-                <text
-                  x={xPrev} y={y - 12}
-                  textAnchor="middle" dominantBaseline="central"
-                  fontSize={7.5} fontWeight={600}
-                  fill="var(--muted-foreground)"
-                >
-                  {row.prev.toFixed(0)}
-                </text>
-                <text
-                  x={xCurr} y={y - 12}
-                  textAnchor="middle" dominantBaseline="central"
-                  fontSize={7.5} fontWeight={700}
-                  fill={row.catColor}
-                >
-                  {row.curr.toFixed(0)}
-                </text>
-              </>
-            )}
+            {/* Hover: score labels outside the leftmost/rightmost dots */}
+            {isActive && (() => {
+              const xLeft = Math.min(xPrev, xCurr);
+              const xRight = Math.max(xPrev, xCurr);
+              const prevIsLeft = xPrev <= xCurr;
+              return (
+                <>
+                  <text
+                    x={prevIsLeft ? xLeft - 7 : xRight + 7}
+                    y={y}
+                    textAnchor={prevIsLeft ? "end" : "start"}
+                    dominantBaseline="central"
+                    fontSize={7.5} fontWeight={600}
+                    fill="var(--muted-foreground)"
+                  >
+                    {row.prev.toFixed(0)}
+                  </text>
+                  <text
+                    x={prevIsLeft ? xRight + 7 : xLeft - 7}
+                    y={y}
+                    textAnchor={prevIsLeft ? "start" : "end"}
+                    dominantBaseline="central"
+                    fontSize={7.5} fontWeight={700}
+                    fill={row.catColor}
+                  >
+                    {row.curr.toFixed(0)}
+                  </text>
+                </>
+              );
+            })()}
 
             {/* Delta label */}
             <text

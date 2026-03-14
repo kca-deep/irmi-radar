@@ -182,13 +182,14 @@ export function CategoryRiskBar({
         />
       </button>
 
-      {/* 펼친 상세 영역 */}
+      {/* 펼친 상세 영역 — grid-rows 방식으로 실제 높이에 맞춘 부드러운 전환 */}
       <div
         className={cn(
-          "overflow-hidden transition-all duration-200",
-          isOpen ? "max-h-48 opacity-100" : "max-h-0 opacity-0",
+          "grid transition-[grid-template-rows,opacity] duration-300 ease-out",
+          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
       >
+        <div className="overflow-hidden">
         <div className="px-3 pb-3 pt-0">
           {/* Previous score comparison */}
           {previousScore != null && (
@@ -236,6 +237,7 @@ export function CategoryRiskBar({
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
