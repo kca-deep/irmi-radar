@@ -10,8 +10,6 @@ import {
   ArrowDown01Icon,
   Notification03Icon,
 } from "@hugeicons/core-free-icons";
-import { Bar, BarChart, XAxis, YAxis, Cell, LabelList, ReferenceLine } from "recharts";
-import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 import { getSeverityByScore, SEVERITY_LABEL_MAP, CATEGORY_LABEL_MAP } from "@/lib/constants";
 import { SEVERITY_COLOR_MAP } from "@/lib/icon-maps";
 import { useCountUp } from "@/hooks/useCountUp";
@@ -234,35 +232,159 @@ function CategoryDistBar({ dist, index }: { dist: CategorySeverityDist; index: n
   );
 }
 
-/* ── Delta chart config ── */
+/* ── Dumbbell Delta Chart ── */
 
-const deltaChartConfig = {
-  delta: { label: "전일대비" },
-} satisfies ChartConfig;
+const CAT_CSS_VAR: Record<CategoryKey, string> = {
+  prices: "var(--cat-prices)",
+  employment: "var(--cat-employment)",
+  selfEmployed: "var(--cat-self-employed)",
+  finance: "var(--cat-finance)",
+  realEstate: "var(--cat-real-estate)",
+};
 
 interface DeltaChartItem {
+  categoryKey: CategoryKey;
   category: string;
   delta: number;
-  fill: string;
+  catColor: string;
   prev: number;
   curr: number;
 }
 
-function DeltaTooltipContent({ active, payload }: { active?: boolean; payload?: Array<{ payload: DeltaChartItem }> }) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0].payload;
+const DB_ROW_H = 28;
+const DB_W = 320;
+const DB_CHART_L = 44;
+const DB_CHART_R = 268;
+
+function DumbbellDeltaChart({ data }: { data: DeltaChartItem[] }) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const chartH = data.length * DB_ROW_H + 16;
+  const scaleX = (v: number) =>
+    DB_CHART_L + (Math.min(Math.max(v, 0), 100) / 100) * (DB_CHART_R - DB_CHART_L);
+
   return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
-      <div className="text-[11px] font-bold text-foreground">{d.category}</div>
-      <div className="mt-0.5 flex items-center gap-2 text-[10px] tabular-nums">
-        <span className="text-muted-foreground">{d.prev.toFixed(1)}</span>
-        <span className="text-muted-foreground/40">{"→"}</span>
-        <span className="font-semibold text-foreground">{d.curr.toFixed(1)}</span>
-        <span className={cn("font-bold", d.delta > 0 ? "text-danger" : d.delta < 0 ? "text-safe" : "text-muted-foreground")}>
-          {d.delta > 0 ? "+" : ""}{d.delta.toFixed(1)}
-        </span>
-      </div>
-    </div>
+    <svg
+      viewBox={`0 0 ${DB_W} ${chartH}`}
+      className="w-full"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      {/* Grid lines */}
+      {[0, 25, 50, 75, 100].map((v) => {
+        const x = scaleX(v);
+        return (
+          <g key={v}>
+            <line
+              x1={x} x2={x}
+              y1={0} y2={data.length * DB_ROW_H}
+              stroke="var(--border)" strokeWidth={0.5}
+              opacity={v === 50 ? 0.6 : 0.3}
+            />
+            <text
+              x={x} y={data.length * DB_ROW_H + 10}
+              textAnchor="middle" dominantBaseline="central"
+              fontSize={7} fill="var(--muted-foreground)" opacity={0.5}
+            >
+              {v}
+            </text>
+          </g>
+        );
+      })}
+
+      {data.map((row, i) => {
+        const y = i * DB_ROW_H + DB_ROW_H / 2;
+        const xPrev = scaleX(row.prev);
+        const xCurr = scaleX(row.curr);
+        const dirColor =
+          row.delta > 0
+            ? "var(--danger)"
+            : row.delta < 0
+              ? "var(--safe)"
+              : "var(--muted-foreground)";
+        const isActive = hovered === i;
+
+        return (
+          <g
+            key={row.category}
+            onMouseEnter={() => setHovered(i)}
+            onMouseLeave={() => setHovered(null)}
+            className="cursor-pointer"
+            style={{
+              animation: `dumbbell-row-in 400ms ease-out ${i * 60}ms both`,
+            }}
+          >
+            {/* Track */}
+            <line
+              x1={DB_CHART_L} x2={DB_CHART_R}
+              y1={y} y2={y}
+              stroke="var(--border)" strokeWidth={1}
+              opacity={isActive ? 0.5 : 0.25}
+            />
+
+            {/* Connector */}
+            <line
+              x1={xPrev} x2={xCurr}
+              y1={y} y2={y}
+              stroke={row.catColor}
+              strokeWidth={isActive ? 3.5 : 2.5}
+              strokeLinecap="round"
+              opacity={isActive ? 1 : 0.8}
+            />
+
+            {/* Prev dot (hollow ring) */}
+            <circle
+              cx={xPrev} cy={y} r={3.5}
+              fill="var(--card)" stroke={row.catColor} strokeWidth={1.5}
+            />
+
+            {/* Curr dot (solid) */}
+            <circle cx={xCurr} cy={y} r={4.5} fill={row.catColor} />
+
+            {/* Category label */}
+            <text
+              x={2} y={y}
+              dominantBaseline="central"
+              fontSize={9.5}
+              fontWeight={isActive ? 700 : 600}
+              fill={isActive ? "var(--foreground)" : "var(--muted-foreground)"}
+            >
+              {row.category}
+            </text>
+
+            {/* Hover: score labels near dots */}
+            {isActive && (
+              <>
+                <text
+                  x={xPrev} y={y - 12}
+                  textAnchor="middle" dominantBaseline="central"
+                  fontSize={7.5} fontWeight={600}
+                  fill="var(--muted-foreground)"
+                >
+                  {row.prev.toFixed(0)}
+                </text>
+                <text
+                  x={xCurr} y={y - 12}
+                  textAnchor="middle" dominantBaseline="central"
+                  fontSize={7.5} fontWeight={700}
+                  fill={row.catColor}
+                >
+                  {row.curr.toFixed(0)}
+                </text>
+              </>
+            )}
+
+            {/* Delta label */}
+            <text
+              x={DB_W - 2} y={y}
+              textAnchor="end" dominantBaseline="central"
+              fontSize={10} fontWeight={700}
+              fill={dirColor}
+            >
+              {row.delta > 0 ? "+" : ""}{row.delta.toFixed(1)}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -318,22 +440,16 @@ export function HeroKpiTile({
         const cat = dailyDelta.categories[catKey];
         if (!cat || cat.delta == null || cat.previousScore == null) return null;
         return {
+          categoryKey: catKey,
           category: CATEGORY_LABEL_MAP[catKey],
           delta: cat.delta,
-          fill: cat.delta > 0 ? "var(--danger)" : cat.delta < 0 ? "var(--safe)" : "var(--muted-foreground)",
+          catColor: CAT_CSS_VAR[catKey],
           prev: cat.previousScore,
           curr: cat.previousScore + cat.delta,
         };
       })
       .filter((d): d is DeltaChartItem => d !== null);
   }, [dailyDelta]);
-
-  const deltaMax = useMemo(() => {
-    if (!deltaChartData.length) return 5;
-    const absMax = Math.max(...deltaChartData.map((d) => Math.abs(d.delta)));
-    return Math.ceil(absMax + 1);
-  }, [deltaChartData]);
-  const deltaMin = -deltaMax;
 
   const total = stats.critical + stats.warning + stats.caution;
 
@@ -347,8 +463,11 @@ export function HeroKpiTile({
           style={{ background: "linear-gradient(147deg, var(--brand) 0%, var(--brand-light) 100%)" }}
         >
           {/* Title label */}
-          <div className="text-[11px] font-bold tracking-wider text-white/90">
-            IRMI 종합지수
+          <div
+            className="text-white/90"
+            style={{ fontFamily: "var(--font-outfit)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.06em" }}
+          >
+            IRMI Index
           </div>
 
           <svg viewBox="0 0 120 120" className="size-32" aria-label={`종합 리스크 점수 ${score}점, ${label} 등급`}>
@@ -462,45 +581,7 @@ export function HeroKpiTile({
                   </span>
                 )}
               </div>
-              <ChartContainer config={deltaChartConfig} className="h-[120px] w-full">
-                <BarChart
-                  data={deltaChartData}
-                  layout="vertical"
-                  margin={{ top: 0, right: 42, bottom: 0, left: 0 }}
-                  barCategoryGap="18%"
-                >
-                  <XAxis type="number" hide domain={[deltaMin, deltaMax]} />
-                  <YAxis
-                    type="category"
-                    dataKey="category"
-                    axisLine={false}
-                    tickLine={false}
-                    width={36}
-                    tick={{ fontSize: 10, fontWeight: 600, fill: "var(--muted-foreground)" }}
-                  />
-                  <ReferenceLine
-                    x={0}
-                    stroke="var(--border)"
-                    strokeWidth={1}
-                    strokeDasharray="3 3"
-                  />
-                  <ChartTooltip
-                    cursor={{ fill: "var(--muted)", opacity: 0.3 }}
-                    content={<DeltaTooltipContent />}
-                  />
-                  <Bar dataKey="delta" radius={[3, 3, 3, 3]} maxBarSize={14}>
-                    {deltaChartData.map((item) => (
-                      <Cell key={item.category} fill={item.fill} />
-                    ))}
-                    <LabelList
-                      dataKey="delta"
-                      position="right"
-                      formatter={(v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`}
-                      style={{ fontSize: 10, fontWeight: 700, fill: "var(--foreground)" }}
-                    />
-                  </Bar>
-                </BarChart>
-              </ChartContainer>
+              <DumbbellDeltaChart data={deltaChartData} />
             </div>
           )}
 

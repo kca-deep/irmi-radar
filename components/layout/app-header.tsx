@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Radar01Icon,
   NotificationIcon,
   DashboardSquare01Icon,
   Alert02Icon,
@@ -54,23 +53,13 @@ export function AppHeader() {
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* Left: Brand */}
-        <div className="flex shrink-0 items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-brand">
-            <HugeiconsIcon
-              icon={Radar01Icon}
-              size={18}
-              strokeWidth={2}
-              className="text-brand-foreground"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base font-black tracking-tight text-foreground">
-              이르미<span className="text-xs font-medium text-muted-foreground">(IRMI-Radar)</span>
-            </span>
-            <span className="hidden text-[10px] leading-none text-muted-foreground sm:block">
-              민생위기 조기경보 레이더
-            </span>
-          </div>
+        <div
+          className="flex shrink-0 items-baseline"
+          style={{ fontFamily: "var(--font-outfit)", fontSize: "22px", letterSpacing: "0.06em", gap: "6px" }}
+        >
+          <span style={{ fontWeight: 900 }} className="text-foreground">IRMI</span>
+          <span className="inline-block size-1.5 rounded-full bg-brand" style={{ marginLeft: "-2px", marginRight: "2px", alignSelf: "center" }} />
+          <span style={{ fontWeight: 300 }} className="text-foreground/70">Radar</span>
         </div>
 
         {/* Center: Navigation */}
@@ -90,14 +79,18 @@ export function AppHeader() {
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "relative flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all duration-200",
+                    "relative flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all duration-200",
                     isActive
-                      ? "bg-brand-surface text-brand-muted font-semibold"
-                      : "text-muted-foreground hover:bg-brand-surface/50 hover:text-foreground"
+                      ? "text-brand-muted font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <HugeiconsIcon icon={tab.icon} size={15} strokeWidth={2} />
                   <span>{tab.label}</span>
+                  {/* Active underline bar */}
+                  {isActive && (
+                    <span className="absolute inset-x-1 -bottom-[9px] h-[2px] rounded-full bg-brand" />
+                  )}
                 </Link>
               );
             })}

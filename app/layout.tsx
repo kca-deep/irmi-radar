@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { Noto_Sans_KR, Geist_Mono, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 
 const notoSansKR = Noto_Sans_KR({
@@ -18,6 +18,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["300", "400", "700", "900"],
+  variable: "--font-outfit",
+});
+
+
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_APP_NAME ?? "이르미 민생위기 조기경보 레이더",
   description:
@@ -34,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={`${notoSansKR.variable}`} suppressHydrationWarning>
+    <html lang="ko" className={`${notoSansKR.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
