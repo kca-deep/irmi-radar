@@ -292,7 +292,7 @@ export function loadDashboard(): DashboardData {
           signalStats: {
             critical: data.signals?.critical ?? 0,
             warning: data.signals?.warning ?? 0,
-            caution: 0,
+            caution: data.signals?.caution ?? Math.max(0, (data.signals?.total ?? 0) - (data.signals?.critical ?? 0) - (data.signals?.warning ?? 0)),
             surging: 0,
           },
           recentSignals,

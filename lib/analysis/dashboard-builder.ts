@@ -203,20 +203,21 @@ export async function buildDashboard(
   const categories = aggregateCategories(options.categories);
 
   // 2. 신호 통계 (run_id 기반)
-  let signalStats: { total: number; critical_count: number; warning_count: number };
+  let signalStats: { total: number; critical_count: number; warning_count: number; caution_count: number };
   if (runId) {
     const stats = getSignalStatsByRunId(runId);
-    signalStats = { total: stats.total, critical_count: stats.critical_count, warning_count: stats.warning_count };
+    signalStats = { total: stats.total, critical_count: stats.critical_count, warning_count: stats.warning_count, caution_count: stats.caution_count };
   } else {
     signalStats = db
       .prepare(
         `SELECT
           COUNT(*) as total,
           COUNT(CASE WHEN severity = 'critical' THEN 1 END) as critical_count,
-          COUNT(CASE WHEN severity = 'warning' THEN 1 END) as warning_count
+          COUNT(CASE WHEN severity = 'warning' THEN 1 END) as warning_count,
+          COUNT(CASE WHEN severity = 'caution' THEN 1 END) as caution_count
         FROM signals`
       )
-      .get() as { total: number; critical_count: number; warning_count: number };
+      .get() as { total: number; critical_count: number; warning_count: number; caution_count: number };
   }
 
   // 3. 신호 요약 (AI 입력용)
@@ -298,6 +299,7 @@ export async function buildDashboard(
       total: signalStats.total,
       critical: signalStats.critical_count,
       warning: signalStats.warning_count,
+      caution: signalStats.caution_count,
     },
     updatedAt: new Date().toISOString(),
   };
