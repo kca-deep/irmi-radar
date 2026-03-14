@@ -6,13 +6,14 @@ import { AnalyticsUpIcon } from "@hugeicons/core-free-icons";
 import { CategoryRiskBar } from "@/components/dashboard/category-risk-bar";
 import { CATEGORIES } from "@/lib/constants";
 
-import type { CategoryKey, CategoryRisk } from "@/lib/types";
+import type { CategoryKey, CategoryRisk, DailyDelta } from "@/lib/types";
 
 interface CategoryRiskListProps {
   categories: Record<CategoryKey, CategoryRisk>;
+  categoryDeltas?: DailyDelta["categories"] | null;
 }
 
-export function CategoryRiskList({ categories }: CategoryRiskListProps) {
+export function CategoryRiskList({ categories, categoryDeltas }: CategoryRiskListProps) {
   // 초기값: 점수가 가장 높은 카테고리를 펼침
   const topCategory = useMemo(() => {
     let maxKey: CategoryKey = CATEGORIES[0].key;
@@ -70,6 +71,8 @@ export function CategoryRiskList({ categories }: CategoryRiskListProps) {
               isOpen={openCategory === cat.key}
               isLast={index === CATEGORIES.length - 1}
               onToggle={() => handleToggle(cat.key)}
+              delta={categoryDeltas?.[cat.key]?.delta}
+              previousScore={categoryDeltas?.[cat.key]?.previousScore}
             />
           );
         })}

@@ -32,12 +32,16 @@ export function DashboardPage({ dashboard, briefing, crisisChain, articles }: Da
             recentSignals={dashboard.recentSignals}
             categoryDist={dashboard.categoryDist}
             signalDelta={dashboard.signalDelta}
+            dailyDelta={dashboard.dailyDelta}
           />
         </div>
 
         {/* Category Risk Bars (5대 카테고리 위험도) */}
         <div className="lg:col-span-2 [&>div]:h-full">
-          <CategoryRiskList categories={dashboard.categories} />
+          <CategoryRiskList
+            categories={dashboard.categories}
+            categoryDeltas={dashboard.dailyDelta?.categories}
+          />
         </div>
       </div>
 

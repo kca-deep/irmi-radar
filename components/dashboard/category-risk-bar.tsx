@@ -20,6 +20,8 @@ interface CategoryRiskBarProps {
   isOpen?: boolean;
   isLast?: boolean;
   onToggle?: () => void;
+  delta?: number | null;
+  previousScore?: number | null;
 }
 
 // Tailwind purge 대응: 정적 클래스 매핑
@@ -68,6 +70,8 @@ export function CategoryRiskBar({
   isOpen = false,
   isLast = false,
   onToggle,
+  delta,
+  previousScore,
 }: CategoryRiskBarProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
 
@@ -122,6 +126,16 @@ export function CategoryRiskBar({
           {score}
         </span>
 
+        {/* Delta badge */}
+        {delta != null && (
+          <span className={cn(
+            "rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+            delta > 0 ? "bg-danger/10 text-danger" : delta < 0 ? "bg-safe/10 text-safe" : "bg-muted text-muted-foreground",
+          )}>
+            {delta > 0 ? "+" : ""}{delta.toFixed(1)}
+          </span>
+        )}
+
         {/* Severity badge */}
         <span
           className={cn(
@@ -169,16 +183,37 @@ export function CategoryRiskBar({
         )}
       >
         <div className="px-3 pb-3 pt-0">
-          {/* Progress bar */}
-          <div className="mb-2">
-            <Progress
-              value={animatedScore}
-              className={cn(
-                "h-1.5 [&_[data-slot=progress-indicator]]:transition-all [&_[data-slot=progress-indicator]]:duration-700 [&_[data-slot=progress-indicator]]:ease-out",
-                INDICATOR_CLASS[colorToken],
-              )}
-            />
-          </div>
+          {/* Previous score comparison */}
+          {previousScore != null && (
+            <div className="mb-2 rounded-md bg-muted/40 px-2.5 py-1.5">
+              <div className="mb-1 flex items-center justify-between text-[10px] tabular-nums">
+                <span className="text-muted-foreground">전일 {previousScore.toFixed(1)}</span>
+                <span className="font-bold text-foreground">금일 {score.toFixed(1)}</span>
+              </div>
+              <div className="relative h-1.5 overflow-hidden rounded-full bg-border/40">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full bg-muted-foreground/15"
+                  style={{ width: `${Math.min(previousScore, 100)}%` }}
+                />
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${Math.min(animatedScore, 100)}%`, backgroundColor: `var(--${colorToken})` }}
+                />
+              </div>
+            </div>
+          )}
+          {/* Progress bar (shown when no previous score) */}
+          {previousScore == null && (
+            <div className="mb-2">
+              <Progress
+                value={animatedScore}
+                className={cn(
+                  "h-1.5 [&_[data-slot=progress-indicator]]:transition-all [&_[data-slot=progress-indicator]]:duration-700 [&_[data-slot=progress-indicator]]:ease-out",
+                  INDICATOR_CLASS[colorToken],
+                )}
+              />
+            </div>
+          )}
 
           {/* Key issues - 수치 위주 3줄 요약 */}
           {keyIssues && keyIssues.length > 0 && (

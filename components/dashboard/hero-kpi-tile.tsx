@@ -10,6 +10,8 @@ import {
   ArrowDown01Icon,
   Notification03Icon,
 } from "@hugeicons/core-free-icons";
+import { Bar, BarChart, XAxis, YAxis, Cell, LabelList, ReferenceLine } from "recharts";
+import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 import { getSeverityByScore, SEVERITY_LABEL_MAP, CATEGORY_LABEL_MAP } from "@/lib/constants";
 import { SEVERITY_COLOR_MAP } from "@/lib/icon-maps";
 import { useCountUp } from "@/hooks/useCountUp";
@@ -22,6 +24,7 @@ import type {
   CategorySeverityDist,
   Severity,
   CategoryKey,
+  DailyDelta,
 } from "@/lib/types";
 
 interface HeroKpiTileProps {
@@ -32,6 +35,7 @@ interface HeroKpiTileProps {
   recentSignals: SignalPreview[];
   categoryDist: CategorySeverityDist[];
   signalDelta: number | null;
+  dailyDelta?: DailyDelta | null;
 }
 
 /* ── Static class maps (Tailwind purge safe) ── */
@@ -230,6 +234,38 @@ function CategoryDistBar({ dist, index }: { dist: CategorySeverityDist; index: n
   );
 }
 
+/* ── Delta chart config ── */
+
+const deltaChartConfig = {
+  delta: { label: "전일대비" },
+} satisfies ChartConfig;
+
+interface DeltaChartItem {
+  category: string;
+  delta: number;
+  fill: string;
+  prev: number;
+  curr: number;
+}
+
+function DeltaTooltipContent({ active, payload }: { active?: boolean; payload?: Array<{ payload: DeltaChartItem }> }) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
+      <div className="text-[11px] font-bold text-foreground">{d.category}</div>
+      <div className="mt-0.5 flex items-center gap-2 text-[10px] tabular-nums">
+        <span className="text-muted-foreground">{d.prev.toFixed(1)}</span>
+        <span className="text-muted-foreground/40">{"→"}</span>
+        <span className="font-semibold text-foreground">{d.curr.toFixed(1)}</span>
+        <span className={cn("font-bold", d.delta > 0 ? "text-danger" : d.delta < 0 ? "text-safe" : "text-muted-foreground")}>
+          {d.delta > 0 ? "+" : ""}{d.delta.toFixed(1)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* ── Format helpers ── */
 
 function formatSignalDate(dateStr: string): string {
@@ -257,6 +293,7 @@ export function HeroKpiTile({
   recentSignals,
   categoryDist,
   signalDelta,
+  dailyDelta,
 }: HeroKpiTileProps) {
   const severity = getSeverityByScore(score);
   const colorToken = SEVERITY_COLOR_MAP[severity];
@@ -266,12 +303,37 @@ export function HeroKpiTile({
   const offset = CIRCUMFERENCE * (1 - progress);
 
   const scoreDelta = useMemo(() => {
+    if (dailyDelta?.overall.delta != null) return dailyDelta.overall.delta;
     if (scoreHistory.length < 2) return null;
     return score - scoreHistory[scoreHistory.length - 2].score;
-  }, [scoreHistory, score]);
+  }, [dailyDelta, scoreHistory, score]);
 
   const recentHistory = useMemo(() => scoreHistory.slice(-7), [scoreHistory]);
   const sparkPath = useMemo(() => buildSparkPath(recentHistory), [recentHistory]);
+
+  const deltaChartData = useMemo<DeltaChartItem[]>(() => {
+    if (!dailyDelta) return [];
+    return (["prices", "employment", "selfEmployed", "finance", "realEstate"] as CategoryKey[])
+      .map((catKey) => {
+        const cat = dailyDelta.categories[catKey];
+        if (!cat || cat.delta == null || cat.previousScore == null) return null;
+        return {
+          category: CATEGORY_LABEL_MAP[catKey],
+          delta: cat.delta,
+          fill: cat.delta > 0 ? "var(--danger)" : cat.delta < 0 ? "var(--safe)" : "var(--muted-foreground)",
+          prev: cat.previousScore,
+          curr: cat.previousScore + cat.delta,
+        };
+      })
+      .filter((d): d is DeltaChartItem => d !== null);
+  }, [dailyDelta]);
+
+  const deltaMax = useMemo(() => {
+    if (!deltaChartData.length) return 5;
+    const absMax = Math.max(...deltaChartData.map((d) => Math.abs(d.delta)));
+    return Math.ceil(absMax + 1);
+  }, [deltaChartData]);
+  const deltaMin = -deltaMax;
 
   const total = stats.critical + stats.warning + stats.caution;
 
@@ -314,6 +376,17 @@ export function HeroKpiTile({
               <span className="text-[10px] font-medium text-white/70">전일대비</span>
             </div>
           )}
+          {dailyDelta?.overall.severityChanged && dailyDelta.overall.previousSeverity && (
+            <div className="flex items-center gap-1 text-[9px] font-extrabold">
+              <span className="rounded bg-white/15 px-1.5 py-0.5 text-white/70 backdrop-blur-sm">
+                {SEVERITY_LABEL_MAP[dailyDelta.overall.previousSeverity]}
+              </span>
+              <span className="text-white/40">{"→"}</span>
+              <span className="rounded bg-white/25 px-1.5 py-0.5 text-white backdrop-blur-sm">
+                {SEVERITY_LABEL_MAP[severity]}
+              </span>
+            </div>
+          )}
 
           <div className="text-[9px] font-medium text-white/50 tabular-nums tracking-wide">
             {formatLastUpdated(lastUpdated)}
@@ -351,6 +424,21 @@ export function HeroKpiTile({
               <span className="text-[10px] font-medium text-muted-foreground tabular-nums">
                 {total}건 감지
               </span>
+              {dailyDelta?.signals && (dailyDelta.signals.newCount > 0 || dailyDelta.signals.resolvedCount > 0) && (
+                <div className="flex items-center gap-1">
+                  <span className="rounded bg-danger/8 px-1.5 py-px text-[9px] font-bold text-danger tabular-nums">
+                    신규 {dailyDelta.signals.newCount}
+                  </span>
+                  <span className="rounded bg-safe/8 px-1.5 py-px text-[9px] font-bold text-safe tabular-nums">
+                    해소 {dailyDelta.signals.resolvedCount}
+                  </span>
+                  {dailyDelta.signals.upgradedCount > 0 && (
+                    <span className="rounded bg-warning/8 px-1.5 py-px text-[9px] font-bold text-warning tabular-nums">
+                      상향 {dailyDelta.signals.upgradedCount}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -361,30 +449,63 @@ export function HeroKpiTile({
             ))}
           </div>
 
-          {/* Category distribution mini chart */}
-          {categoryDist.length > 0 && (
-            <div className="mt-auto space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  카테고리 분포
+          {/* Daily delta category chart */}
+          {dailyDelta != null && deltaChartData.length > 0 && (
+            <div className="mt-auto rounded-lg bg-muted/40 p-2.5 animate-[delta-row-in_400ms_ease-out_both]">
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-[9px] font-bold text-foreground/60 uppercase tracking-wider">
+                  전일대비
                 </span>
-                <div className="flex items-center gap-2">
-                  {(["critical", "warning", "caution", "safe"] as Severity[]).map((sev) => (
-                    <span key={sev} className="flex items-center gap-0.5">
-                      <span className={cn("size-1.5 rounded-full", SEVERITY_DOT[sev])} />
-                      <span className="text-[8px] text-muted-foreground">{SEVERITY_LABEL_MAP[sev]}</span>
-                    </span>
-                  ))}
-                </div>
+                {dailyDelta.previousDate && (
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground tabular-nums">
+                    {dailyDelta.previousDate.slice(5).replace("-", ".")} 기준
+                  </span>
+                )}
               </div>
-              {categoryDist.map((dist, i) => (
-                <CategoryDistBar key={dist.category} dist={dist} index={i} />
-              ))}
+              <ChartContainer config={deltaChartConfig} className="h-[120px] w-full">
+                <BarChart
+                  data={deltaChartData}
+                  layout="vertical"
+                  margin={{ top: 0, right: 42, bottom: 0, left: 0 }}
+                  barCategoryGap="18%"
+                >
+                  <XAxis type="number" hide domain={[deltaMin, deltaMax]} />
+                  <YAxis
+                    type="category"
+                    dataKey="category"
+                    axisLine={false}
+                    tickLine={false}
+                    width={36}
+                    tick={{ fontSize: 10, fontWeight: 600, fill: "var(--muted-foreground)" }}
+                  />
+                  <ReferenceLine
+                    x={0}
+                    stroke="var(--border)"
+                    strokeWidth={1}
+                    strokeDasharray="3 3"
+                  />
+                  <ChartTooltip
+                    cursor={{ fill: "var(--muted)", opacity: 0.3 }}
+                    content={<DeltaTooltipContent />}
+                  />
+                  <Bar dataKey="delta" radius={[3, 3, 3, 3]} maxBarSize={14}>
+                    {deltaChartData.map((item) => (
+                      <Cell key={item.category} fill={item.fill} />
+                    ))}
+                    <LabelList
+                      dataKey="delta"
+                      position="right"
+                      formatter={(v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`}
+                      style={{ fontSize: 10, fontWeight: 700, fill: "var(--foreground)" }}
+                    />
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
             </div>
           )}
 
-          {/* Sparkline fallback when no categoryDist */}
-          {categoryDist.length === 0 && recentHistory.length >= 2 && (
+          {/* Sparkline fallback when no dailyDelta */}
+          {dailyDelta == null && recentHistory.length >= 2 && (
             <div className="mt-auto">
               <svg viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} className="h-7 w-full" preserveAspectRatio="none">
                 <path d={sparkPath} fill="none" className={STROKE_CLASS[colorToken]} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" opacity={0.5} />
