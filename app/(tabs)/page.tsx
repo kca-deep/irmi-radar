@@ -1,5 +1,5 @@
 import { DashboardPage } from "@/components/irumi/pages/dashboard-page";
-import { loadDashboard, loadBriefing } from "@/lib/api/data-source";
+import { loadDashboard, loadBriefing, loadArticleDailyStats, loadEmergingIssues } from "@/lib/api/data-source";
 import { transformDashboard } from "@/lib/irumi/transform";
 import type { DashboardData } from "@/lib/irumi/types";
 
@@ -45,7 +45,9 @@ export default function Page() {
   try {
     const dashboard = loadDashboard();
     const briefing = loadBriefing();
-    data = transformDashboard(dashboard, briefing);
+    const articleStats = loadArticleDailyStats(14);
+    const emergingIssues = loadEmergingIssues();
+    data = transformDashboard(dashboard, briefing, articleStats, emergingIssues);
   } catch {
     data = FALLBACK_DATA;
   }

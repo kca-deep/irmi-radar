@@ -1265,11 +1265,36 @@ export function getRegionsWithCategories(runId?: string): RegionWithCategoriesRo
 export function seedSignalDataIfEmpty(): string | null {
   const db = getDb();
 
-  // 이미 완료된 분석 회차가 있으면 스킵
+  // 이미 완료된 분석 회차가 있으면 데이터 무결성 확인
   const existingRun = db.prepare(
     "SELECT id FROM analysis_runs WHERE status = 'completed' LIMIT 1"
   ).get() as { id: string } | undefined;
-  if (existingRun) return existingRun.id;
+
+  if (existingRun) {
+    const signalCount = (db.prepare(
+      "SELECT COUNT(*) as c FROM signals WHERE run_id = ?"
+    ).get(existingRun.id) as { c: number }).c;
+    const regionCount = (db.prepare(
+      "SELECT COUNT(*) as c FROM regions WHERE run_id = ?"
+    ).get(existingRun.id) as { c: number }).c;
+
+    if (signalCount > 0 && regionCount > 0) {
+      return existingRun.id;
+    }
+
+    // 불완전 시드 감지: 관련 데이터 정리 후 재시드
+    console.log(
+      `[auto-seed] 불완전 시드 감지 (run: ${existingRun.id}, signals: ${signalCount}, regions: ${regionCount}). 정리 후 재시드...`,
+    );
+    db.prepare("DELETE FROM analysis_runs WHERE id = ?").run(existingRun.id);
+    db.prepare("DELETE FROM category_details WHERE run_id = ?").run(existingRun.id);
+    db.prepare("DELETE FROM dashboard_snapshots WHERE run_id = ?").run(existingRun.id);
+    db.prepare("DELETE FROM signals WHERE run_id = ?").run(existingRun.id);
+    db.prepare("DELETE FROM signal_articles WHERE run_id = ?").run(existingRun.id);
+    db.prepare("DELETE FROM regions WHERE run_id = ?").run(existingRun.id);
+    db.prepare("DELETE FROM score_history WHERE run_id = ?").run(existingRun.id);
+    db.prepare("DELETE FROM dashboard_cache WHERE key IN ('dashboard', 'crisis_chain')").run();
+  }
 
   // 기사가 없으면 시드 불가
   const articleCount = (db.prepare(
@@ -1714,4 +1739,181 @@ export function seedSignalDataIfEmpty(): string | null {
     console.error("[auto-seed] 실패:", err);
     return null;
   }
+}
+
+// ────────────────────────────────────
+// 이머징이슈 탐지 (7일 공백 후 재출현)
+// ────────────────────────────────────
+
+export interface EmergingIssueRow {
+  original_category_code: string;
+  original_category_name: string;
+  category: string;
+  article_count: number;
+  gap_days: number;
+  sample_title: string;
+  avg_risk_score: number | null;
+}
+
+interface EmergingSubcategoryParams {
+  /** 기준일 (미지정 시 데이터 최신일) */
+  baseDate?: string;
+  /** 공백 기간 (일) */
+  gapDays?: number;
+  /** 최소 관련도 점수 (데이터 자체 속성 기반 품질 필터) */
+  minRelevance?: number;
+  /** 소분류당 최소 기사 수 */
+  minArticles?: number;
+  /** 최대 반환 건수 */
+  limit?: number;
+}
+
+/**
+ * 기준일에 등장했지만 직전 N일간 없었던 소분류+카테고리 조합 탐지
+ *
+ * 노이즈 제거는 articles.relevance_score(기사-카테고리 관련도)로 처리.
+ * 제목 패턴 등 특정 데이터에 종속된 필터는 사용하지 않는다.
+ */
+export function getEmergingBySubcategory(
+  baseDateOrParams?: string | EmergingSubcategoryParams,
+  gapDaysArg = 7,
+  limitArg = 10,
+): EmergingIssueRow[] {
+  const db = getDb(true);
+
+  // 파라미터 정규화 (기존 호출 호환)
+  const params: Required<EmergingSubcategoryParams> = typeof baseDateOrParams === "object" && baseDateOrParams !== null
+    ? {
+        baseDate: baseDateOrParams.baseDate ?? "",
+        gapDays: baseDateOrParams.gapDays ?? 7,
+        minRelevance: baseDateOrParams.minRelevance ?? 3,
+        minArticles: baseDateOrParams.minArticles ?? 2,
+        limit: baseDateOrParams.limit ?? 10,
+      }
+    : {
+        baseDate: baseDateOrParams ?? "",
+        gapDays: gapDaysArg,
+        minRelevance: 3,
+        minArticles: 2,
+        limit: limitArg,
+      };
+
+  // 기준일 미지정 시 데이터 최신일 사용
+  const effectiveDate = params.baseDate || (
+    db.prepare("SELECT MAX(DATE(published_at)) as d FROM articles").get() as { d: string }
+  ).d;
+
+  const sql = `
+    WITH today_topics AS (
+      SELECT
+        a.original_category_code,
+        a.original_category_name,
+        a.category,
+        COUNT(*) as article_count,
+        (SELECT a2.title FROM articles a2
+         WHERE a2.original_category_code = a.original_category_code
+           AND a2.category = a.category
+           AND DATE(a2.published_at) = ?
+           AND a2.relevance_score >= ?
+         ORDER BY a2.relevance_score DESC LIMIT 1) as sample_title,
+        (SELECT AVG(an.risk_score) FROM analysis an
+         JOIN articles a3 ON a3.id = an.article_id
+         WHERE a3.original_category_code = a.original_category_code
+           AND a3.category = a.category
+           AND DATE(a3.published_at) = ?) as avg_risk_score
+      FROM articles a
+      WHERE DATE(a.published_at) = ?
+        AND a.category != 'other'
+        AND a.original_category_code IS NOT NULL
+        AND a.original_category_code != ''
+        AND a.relevance_score >= ?
+      GROUP BY a.original_category_code, a.original_category_name, a.category
+      HAVING COUNT(*) >= ?
+    ),
+    gap_topics AS (
+      SELECT DISTINCT original_category_code, category
+      FROM articles
+      WHERE DATE(published_at) BETWEEN date(?, '-' || ? || ' days') AND date(?, '-1 day')
+        AND category != 'other'
+        AND relevance_score >= ?
+    )
+    SELECT
+      t.original_category_code,
+      t.original_category_name,
+      t.category,
+      t.article_count,
+      ? as gap_days,
+      t.sample_title,
+      t.avg_risk_score
+    FROM today_topics t
+    LEFT JOIN gap_topics g
+      ON t.original_category_code = g.original_category_code
+      AND t.category = g.category
+    WHERE g.original_category_code IS NULL
+    ORDER BY t.article_count DESC
+    LIMIT ?
+  `;
+
+  return db.prepare(sql).all(
+    effectiveDate, params.minRelevance,
+    effectiveDate,
+    effectiveDate, params.minRelevance,
+    params.minArticles,
+    effectiveDate, params.gapDays, effectiveDate, params.minRelevance,
+    params.gapDays,
+    params.limit,
+  ) as EmergingIssueRow[];
+}
+
+/**
+ * 카테고리별 기사 볼륨 급등 탐지
+ * 기준일 기사 수가 직전 N일 일평균 대비 threshold배 이상인 카테고리
+ */
+export function getCategoryVolumeSpikes(
+  baseDate?: string,
+  gapDays = 7,
+  threshold = 2.0,
+): { category: string; today_count: number; daily_avg: number; spike_ratio: number }[] {
+  const db = getDb(true);
+
+  const effectiveDate = baseDate ?? (
+    db.prepare("SELECT MAX(DATE(published_at)) as d FROM articles").get() as { d: string }
+  ).d;
+
+  const sql = `
+    WITH recent AS (
+      SELECT category, COUNT(*) as cnt
+      FROM articles
+      WHERE DATE(published_at) = ?
+        AND category != 'other'
+      GROUP BY category
+    ),
+    baseline AS (
+      SELECT category, COUNT(*) * 1.0 / ? as daily_avg
+      FROM articles
+      WHERE DATE(published_at) BETWEEN date(?, '-' || ? || ' days') AND date(?, '-1 day')
+        AND category != 'other'
+      GROUP BY category
+    )
+    SELECT
+      r.category,
+      r.cnt as today_count,
+      COALESCE(b.daily_avg, 0) as daily_avg,
+      CASE WHEN COALESCE(b.daily_avg, 0) > 0
+        THEN r.cnt * 1.0 / b.daily_avg
+        ELSE 999.0
+      END as spike_ratio
+    FROM recent r
+    LEFT JOIN baseline b ON r.category = b.category
+    WHERE COALESCE(b.daily_avg, 0) < 1
+       OR (r.cnt * 1.0 / NULLIF(b.daily_avg, 0)) >= ?
+    ORDER BY spike_ratio DESC
+  `;
+
+  return db.prepare(sql).all(
+    effectiveDate,
+    gapDays,
+    effectiveDate, gapDays, effectiveDate,
+    threshold,
+  ) as { category: string; today_count: number; daily_avg: number; spike_ratio: number }[];
 }

@@ -36,18 +36,13 @@ export function IrumiSidebar({ navItems = DEFAULT_NAV_ITEMS }: IrumiSidebarProps
     <aside className="w-[220px] h-screen sticky top-0 bg-card border-r border-border pt-10 pb-8 px-4 flex flex-col justify-between shrink-0">
       <div className="flex flex-col gap-10">
         {/* 로고 */}
-        <div className="flex items-center gap-2 px-2">
-          <div className="w-[20px] h-[20px] rounded-full bg-irumi-brand flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[14px] font-[800] text-irumi-brand leading-none mb-1">
-              이르미
-            </span>
-            <span className="text-[10px] text-irumi-text-3 leading-none tracking-tight">
-              민생위기 조기경보 레이더
-            </span>
-          </div>
+        <div
+          className="flex shrink-0 items-baseline px-2"
+          style={{ fontFamily: "var(--font-outfit)", fontSize: "20px", letterSpacing: "0.06em", gap: "5px" }}
+        >
+          <span style={{ fontWeight: 900 }} className="text-foreground">IRMI</span>
+          <span className="inline-block size-1.5 rounded-full bg-irumi-brand" style={{ marginLeft: "-2px", marginRight: "2px", alignSelf: "center" }} />
+          <span style={{ fontWeight: 300 }} className="text-foreground/70">Radar</span>
         </div>
 
         {/* 네비게이션 */}

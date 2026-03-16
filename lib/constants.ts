@@ -193,3 +193,4 @@ export const CATEGORY_SEARCH_KEYWORDS: Record<CategoryKey, string[]> = {
 
 // -- 티커 캐러셀 공통 속도 --
 export const TICKER_PX_PER_SEC = 100;
+

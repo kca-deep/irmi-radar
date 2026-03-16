@@ -10,9 +10,12 @@ import type {
   Signal as SourceSignal,
   RegionScore as SourceRegionScore,
   NewsArticle as SourceNews,
+  ArticleDailyStat,
   CategoryKey,
   Severity,
 } from "@/lib/types";
+
+import type { EmergingIssueData } from "@/lib/api/data-source";
 
 import type {
   DashboardData as IrumiDashboard,
@@ -129,9 +132,97 @@ function toTime(dateStr: string): string {
 
 // ── Dashboard 변환 ─────────────────────────────────────────
 
+/** ArticleDailyStat[]를 날짜별 카테고리별 Map으로 구조화 */
+function buildDateCategoryMap(
+  stats: ArticleDailyStat[],
+): Map<string, Map<CategoryKey, number>> {
+  const dateMap = new Map<string, Map<CategoryKey, number>>();
+  for (const s of stats) {
+    if (!dateMap.has(s.date)) dateMap.set(s.date, new Map());
+    dateMap.get(s.date)!.set(s.category, s.count);
+  }
+  return dateMap;
+}
+
+/** 기사 집계 데이터에서 최신일 vs 전일 기사 수 변동 계산 */
+function computeArticleDiffs(
+  stats: ArticleDailyStat[],
+  keys: CategoryKey[],
+): Record<CategoryKey, { todayCount: number; diff: number }> | null {
+  if (!stats || stats.length === 0) return null;
+
+  const dateMap = buildDateCategoryMap(stats);
+  const sortedDates = [...dateMap.keys()].sort().reverse();
+  if (sortedDates.length === 0) return null;
+
+  const latestDate = sortedDates[0];
+  const prevDate = sortedDates.length >= 2 ? sortedDates[1] : null;
+
+  const result = {} as Record<CategoryKey, { todayCount: number; diff: number }>;
+  for (const key of keys) {
+    const todayCount = dateMap.get(latestDate)?.get(key) || 0;
+    const prevCount = prevDate ? (dateMap.get(prevDate)?.get(key) || 0) : 0;
+    result[key] = {
+      todayCount,
+      diff: prevDate ? todayCount - prevCount : 0,
+    };
+  }
+  return result;
+}
+
+/** 기사 집계 데이터에서 최근 N일간 히트맵 생성 (카테고리별 평균 대비 강도) */
+function buildHeatmapFromStats(
+  stats: ArticleDailyStat[],
+  keys: CategoryKey[],
+  days: number,
+): { dates: string[]; rows: HeatmapRow[] } | null {
+  if (!stats || stats.length === 0) return null;
+
+  const dateMap = buildDateCategoryMap(stats);
+  const sortedDates = [...dateMap.keys()].sort();
+  if (sortedDates.length === 0) return null;
+
+  // 최근 N일 선택
+  const recentDates = sortedDates.slice(-days);
+
+  // 카테고리별 전체 기간 평균 일일 기사 수 계산
+  const catAvg: Record<string, number> = {};
+  for (const key of keys) {
+    let total = 0;
+    for (const date of sortedDates) {
+      total += dateMap.get(date)?.get(key) || 0;
+    }
+    catAvg[key] = total / Math.max(1, sortedDates.length);
+  }
+
+  const dates = recentDates.map((d, i) =>
+    i === recentDates.length - 1 ? "오늘" : toShortDate(d),
+  );
+
+  const rows: HeatmapRow[] = keys.map((key) => {
+    const avg = catAvg[key] || 1;
+    const cells = recentDates.map((date) => {
+      const count = dateMap.get(date)?.get(key) || 0;
+      const ratio = count / avg;
+      // 평균 대비 비율로 강도 계산
+      if (ratio >= 1.6) return 4;
+      if (ratio >= 1.2) return 3;
+      if (ratio >= 0.8) return 2;
+      if (ratio >= 0.4) return 1;
+      return 0;
+    });
+    const todayCount = dateMap.get(recentDates[recentDates.length - 1])?.get(key) || 0;
+    return { label: catLabel(key), cells, today: todayCount };
+  });
+
+  return { dates, rows };
+}
+
 export function transformDashboard(
   src: SourceDashboard,
   briefing: SourceBriefing,
+  articleStats?: ArticleDailyStat[],
+  emergingIssueData?: EmergingIssueData[],
 ): IrumiDashboard {
   // カテゴリデータの正規化: 配列形式(0,1,2...)の場合はcategoryキーでマッピング
   const categoryKeys: CategoryKey[] = [
@@ -171,52 +262,71 @@ export function transformDashboard(
     return "#5DAA30";
   };
 
+  // 기사 원본 데이터 기반 카테고리별 변동 계산
+  const articleDiffs = computeArticleDiffs(articleStats || [], categoryKeys);
+
   const riskByCategory: RiskByCategory[] = categoryKeys.map((key) => {
     const cat = normalizedCategories[key] || { score: 0, trend: "stable", keyIssues: [] };
-    const trendSign = cat.trend === "rising" ? "+" : cat.trend === "falling" ? "-" : "";
+
+    let diffStr: string;
+    if (articleDiffs && articleDiffs[key]) {
+      const d = articleDiffs[key].diff;
+      diffStr = d > 0 ? `+${d}` : d < 0 ? `${d}` : "0";
+    } else {
+      // articles가 없으면 기존 fallback
+      const trendSign = cat.trend === "rising" ? "+" : cat.trend === "falling" ? "-" : "";
+      diffStr = `${trendSign}${cat.trend === "stable" ? "0" : Math.round(cat.score * 0.05)}`;
+    }
+
     return {
       name: catLabel(key),
       value: cat.score,
-      diff: `${trendSign}${cat.trend === "stable" ? "0" : Math.round(cat.score * 0.05)}`,
+      diff: diffStr,
       color: catBarColor(cat.score),
     };
   });
 
-  // 히트맵: categoryScoreHistory 기반 (비어있으면 현재 점수로 단일 행)
-  const categoryScoreHistory = src.categoryScoreHistory || [];
-  const recentHistory = categoryScoreHistory.length > 0
-    ? categoryScoreHistory.slice(-7)
-    : [];
-
+  // 히트맵: articleStats 기사 수 기반 우선, 없으면 categoryScoreHistory fallback
   let heatmapDates: string[];
   let heatmapData: HeatmapRow[];
 
-  if (recentHistory.length > 0) {
-    heatmapDates = recentHistory.map((h, i) =>
-      i === recentHistory.length - 1 ? "오늘" : toShortDate(h.date),
-    );
-    heatmapData = categoryKeys.map((key) => {
-      const label = catLabel(key);
-      const cells = recentHistory.map((h) => {
-        const score = h[key] ?? 0;
-        if (score >= 80) return 4;
-        if (score >= 60) return 3;
-        if (score >= 40) return 2;
-        if (score >= 20) return 1;
-        return 0;
-      });
-      const today = cells[cells.length - 1] ?? 0;
-      return { label, cells, today };
-    });
+  const heatmapFromArticles = buildHeatmapFromStats(articleStats || [], categoryKeys, 7);
+
+  if (heatmapFromArticles) {
+    heatmapDates = heatmapFromArticles.dates;
+    heatmapData = heatmapFromArticles.rows;
   } else {
-    // categoryScoreHistory가 비어있으면 현재 점수로 히트맵 생성
-    heatmapDates = ["오늘"];
-    heatmapData = categoryKeys.map((key) => {
-      const cat = normalizedCategories[key] || { score: 0 };
-      const score = cat.score;
-      const level = score >= 80 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : score >= 20 ? 1 : 0;
-      return { label: catLabel(key), cells: [level], today: level };
-    });
+    const categoryScoreHistory = src.categoryScoreHistory || [];
+    const recentHistory = categoryScoreHistory.length > 0
+      ? categoryScoreHistory.slice(-7)
+      : [];
+
+    if (recentHistory.length > 0) {
+      heatmapDates = recentHistory.map((h, i) =>
+        i === recentHistory.length - 1 ? "오늘" : toShortDate(h.date),
+      );
+      heatmapData = categoryKeys.map((key) => {
+        const label = catLabel(key);
+        const cells = recentHistory.map((h) => {
+          const score = h[key] ?? 0;
+          if (score >= 80) return 4;
+          if (score >= 60) return 3;
+          if (score >= 40) return 2;
+          if (score >= 20) return 1;
+          return 0;
+        });
+        const today = cells[cells.length - 1] ?? 0;
+        return { label, cells, today };
+      });
+    } else {
+      heatmapDates = ["오늘"];
+      heatmapData = categoryKeys.map((key) => {
+        const cat = normalizedCategories[key] || { score: 0 };
+        const score = cat.score;
+        const level = score >= 80 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : score >= 20 ? 1 : 0;
+        return { label: catLabel(key), cells: [level], today: level };
+      });
+    }
   }
 
   // 최근 신호 -> SignalTableItem
@@ -238,11 +348,28 @@ export function transformDashboard(
     : "민생위기 종합 분석";
   const aiSummaryBody = briefing.summary || "분석 데이터를 준비 중입니다.";
 
-  // 급부상 이슈: briefing highlights -> 카테고리 keyIssues -> 하드코딩 fallback
+  // 급부상 이슈: DB 이머징 데이터 -> briefing highlights -> keyIssues -> fallback
   let emergingIssues: EmergingIssue[] = [];
 
-  // 1차: briefing highlights
-  if (briefing.highlights && briefing.highlights.length > 0) {
+  // 1차: DB 기반 이머징이슈 (소분류 공백 재출현 + 볼륨 급등)
+  if (emergingIssueData && emergingIssueData.length > 0) {
+    emergingIssues = emergingIssueData.slice(0, 5).map((d, i) => {
+      const score = d.avgRiskScore ?? 0;
+      const grade: RiskGrade = score >= 80 ? "긴급" : score >= 60 ? "주의" : score >= 40 ? "관찰" : "안전";
+      return {
+        rank: i + 1,
+        name: d.name,
+        count: d.count,
+        category: catLabel(d.category as CategoryKey),
+        gapDays: d.gapDays,
+        severity: grade,
+        method: d.method,
+      };
+    });
+  }
+
+  // 2차: briefing highlights
+  if (emergingIssues.length === 0 && briefing.highlights && briefing.highlights.length > 0) {
     emergingIssues = briefing.highlights
       .filter((h) => h.message && h.message.trim().length > 0)
       .slice(0, 5)
@@ -253,7 +380,7 @@ export function transformDashboard(
       }));
   }
 
-  // 2차: 카테고리별 keyIssues
+  // 3차: 카테고리별 keyIssues
   if (emergingIssues.length === 0) {
     emergingIssues = categoryKeys
       .map((key) => {
@@ -270,7 +397,7 @@ export function transformDashboard(
       }));
   }
 
-  // 3차: 최종 fallback
+  // 4차: 최종 fallback
   if (emergingIssues.length === 0) {
     emergingIssues = [
       { rank: 1, name: "물가 상승 압력 지속", count: 10 },

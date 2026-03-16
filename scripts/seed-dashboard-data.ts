@@ -336,8 +336,8 @@ const seed = db.transaction(() => {
   }
   console.log(`[seed] analysis: ${analysisCount} rows`);
 
-  // 5. score_history (최근 30일)
-  db.prepare("DELETE FROM score_history").run();
+  // 5. score_history (최근 30일) - 시드 데이터만 삭제 (파이프라인 데이터 보존)
+  db.prepare("DELETE FROM score_history WHERE run_id = ?").run(RUN_ID);
 
   const daily30 = db.prepare(
     `SELECT DATE(published_at) as date, category, COUNT(*) as count
@@ -350,7 +350,7 @@ const seed = db.transaction(() => {
 
   const dates30 = [...new Set(daily30.map((r) => r.date))].sort();
   const insertHistory = db.prepare(
-    `INSERT OR REPLACE INTO score_history
+    `INSERT OR IGNORE INTO score_history
        (date, overall_score, prices, employment, self_employed, finance, real_estate, run_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
   );
@@ -466,9 +466,9 @@ const seed = db.transaction(() => {
     `INSERT INTO dashboard_snapshots (run_id, cache_key, data) VALUES (?, 'dashboard', ?)`
   ).run(RUN_ID, JSON.stringify(dashboardPayload));
 
-  // dashboard_cache도 동일 데이터 저장 (레거시 호환)
+  // dashboard_cache도 동일 데이터 저장 (레거시 호환 - 기존 데이터 있으면 보존)
   db.prepare(
-    `INSERT OR REPLACE INTO dashboard_cache (key, value, updated_at)
+    `INSERT OR IGNORE INTO dashboard_cache (key, value, updated_at)
      VALUES ('dashboard', ?, datetime('now'))`
   ).run(JSON.stringify(dashboardPayload));
 
@@ -510,7 +510,7 @@ const seed = db.transaction(() => {
   ).run(RUN_ID, JSON.stringify(crisisChainPayload));
 
   db.prepare(
-    `INSERT OR REPLACE INTO dashboard_cache (key, value, updated_at)
+    `INSERT OR IGNORE INTO dashboard_cache (key, value, updated_at)
      VALUES ('crisis_chain', ?, datetime('now'))`
   ).run(JSON.stringify(crisisChainPayload));
 
@@ -561,9 +561,9 @@ const seed = db.transaction(() => {
     `INSERT INTO dashboard_snapshots (run_id, cache_key, data) VALUES (?, 'daily_delta', ?)`
   ).run(RUN_ID, JSON.stringify(dailyDeltaPayload));
 
-  // API usage (시뮬레이션)
+  // API usage (시뮬레이션 - 기존 데이터 있으면 보존)
   db.prepare(
-    `INSERT OR REPLACE INTO dashboard_cache (key, value, updated_at)
+    `INSERT OR IGNORE INTO dashboard_cache (key, value, updated_at)
      VALUES ('api_usage', ?, datetime('now'))`
   ).run(JSON.stringify({
     totalCalls: analyzableArticles.length,

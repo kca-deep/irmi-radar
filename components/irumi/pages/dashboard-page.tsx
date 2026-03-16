@@ -50,22 +50,16 @@ export function DashboardPage({ data }: DashboardPageProps) {
           />
         </div>
 
-        {/* 하단: 위기 뉴스 테이블 + 이머징 이슈 */}
-        <div className="flex gap-[20px] w-full shrink-0 items-stretch">
-          <div
-            style={{ width: "calc((100% - 40px) * 2.2 / 3.2 + 20px)" }}
-            className="shrink-0 min-w-0"
-          >
+        {/* 하단: 위기 뉴스 테이블 + 이머징 이슈 (6:4) */}
+        <div className="flex gap-5 w-full shrink-0 items-stretch">
+          <div className="basis-3/5 min-w-0">
             <CrisisSignalsTable
               signals={data.signals}
               selectedDate={selectedChartDate}
             />
           </div>
 
-          <div
-            style={{ width: "calc((100% - 40px) * 1 / 3.2)" }}
-            className="shrink-0 min-w-[280px] flex"
-          >
+          <div className="basis-2/5 min-w-0 flex">
             <EmergingIssuesWidget issues={data.emergingIssues} />
           </div>
         </div>

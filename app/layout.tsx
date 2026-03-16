@@ -26,7 +26,7 @@ const outfit = Outfit({
 
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME ?? "이르미 민생위기 조기경보 레이더",
+  title: process.env.NEXT_PUBLIC_APP_NAME ?? "IRMI Radar",
   description:
     process.env.NEXT_PUBLIC_APP_DESCRIPTION ??
     "뉴스 기반 사회경제 리스크 조기 감지 및 대응 지원",

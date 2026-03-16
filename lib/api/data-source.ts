@@ -19,6 +19,7 @@ import type {
   ChatData,
   CategoryKey,
   Severity,
+  ArticleDailyStat,
 } from "@/lib/types";
 
 import { CATEGORIES } from "@/lib/constants";
@@ -336,8 +337,23 @@ let _cachedArticleBriefing: BriefingData | null = null;
 export function loadBriefing(): BriefingData {
   if (isDb()) {
     try {
-      const { getDashboardCache } = require("@/lib/db/queries");
-      const cached = getDashboardCache("dashboard") as string | null;
+      const {
+        getDashboardCache,
+        getLatestCompletedRun,
+        getLatestDashboardSnapshot,
+      } = require("@/lib/db/queries");
+
+      // 스냅샷 우선, 없으면 레거시 캐시 (loadDashboard와 동일한 조회 우선순위)
+      let cached: string | null = null;
+      const latestRun = getLatestCompletedRun();
+      if (latestRun?.id) {
+        const snapshot = getLatestDashboardSnapshot("dashboard");
+        if (snapshot) cached = snapshot.data;
+      }
+      if (!cached) {
+        cached = getDashboardCache("dashboard") as string | null;
+      }
+
       if (cached) {
         const data = JSON.parse(cached);
         // API 사용량 로드
@@ -552,6 +568,64 @@ export function loadRegionCategoryScores(): Record<string, Record<CategoryKey, n
   return {};
 }
 
+// ── Article Daily Stats (카테고리별 일별 기사 수 집계) ──
+
+export function loadArticleDailyStats(days = 14): ArticleDailyStat[] {
+  if (isDb()) {
+    try {
+      const {
+        getArticleDateRange,
+        getDailyArticleCountsByCategory,
+      } = require("@/lib/db/queries");
+
+      const range = getArticleDateRange() as { earliest: string; latest: string };
+      if (!range?.latest) return [];
+
+      // 데이터상 최신 날짜 기준으로 N일 범위 계산
+      const latestDate = new Date(range.latest);
+      const fromDate = new Date(latestDate);
+      fromDate.setDate(fromDate.getDate() - days);
+      const dateFrom = fromDate.toISOString().slice(0, 10);
+      // dateTo는 최신 날짜 다음날 (exclusive)
+      const toDate = new Date(latestDate);
+      toDate.setDate(toDate.getDate() + 1);
+      const dateTo = toDate.toISOString().slice(0, 10);
+
+      const rows = getDailyArticleCountsByCategory(dateFrom, dateTo) as {
+        date: string;
+        category: string;
+        count: number;
+      }[];
+
+      return rows.map((r) => ({
+        date: r.date,
+        category: r.category as CategoryKey,
+        count: r.count,
+      }));
+    } catch {
+      // DB 실패 시 mock fallback
+    }
+  }
+
+  // Mock: news.json에서 집계
+  const allNews = mock.loadNews();
+  const dateMap = new Map<string, Map<string, number>>();
+  for (const article of allNews) {
+    const dateKey = article.publishedAt.slice(0, 10);
+    if (!dateMap.has(dateKey)) dateMap.set(dateKey, new Map());
+    const catMap = dateMap.get(dateKey)!;
+    catMap.set(article.category, (catMap.get(article.category) || 0) + 1);
+  }
+
+  const result: ArticleDailyStat[] = [];
+  for (const [date, catMap] of dateMap) {
+    for (const [category, count] of catMap) {
+      result.push({ date, category: category as CategoryKey, count });
+    }
+  }
+  return result.sort((a, b) => a.date.localeCompare(b.date));
+}
+
 // ── News ──
 
 export function loadNews(filters?: {
@@ -695,6 +769,85 @@ export function loadPolicies(filters?: {
     } catch { /* mock fallback */ }
   }
   return mock.loadPolicies(filters);
+}
+
+// ── Emerging Issues ──
+
+export interface EmergingIssueData {
+  name: string;
+  count: number;
+  category: CategoryKey;
+  gapDays: number;
+  avgRiskScore: number | null;
+  method: "subcategory_gap" | "volume_spike";
+}
+
+export function loadEmergingIssues(baseDate?: string, gapDays = 7): EmergingIssueData[] {
+  if (isDb()) {
+    try {
+      const {
+        getEmergingBySubcategory,
+        getCategoryVolumeSpikes,
+      } = require("@/lib/db/queries");
+
+      const results: EmergingIssueData[] = [];
+
+      // 1) 소분류 공백 후 재출현 (relevance_score 기반 품질 필터)
+      const subcatEmerging = getEmergingBySubcategory({
+        baseDate,
+        gapDays,
+        minRelevance: 6,
+        minArticles: 2,
+        limit: 10,
+      }) as {
+        original_category_code: string;
+        original_category_name: string;
+        category: string;
+        article_count: number;
+        gap_days: number;
+        sample_title: string;
+        avg_risk_score: number | null;
+      }[];
+
+      for (const row of subcatEmerging) {
+        results.push({
+          name: row.sample_title || `[${row.original_category_name}] 이슈 재부상`,
+          count: row.article_count,
+          category: row.category as CategoryKey,
+          gapDays: row.gap_days,
+          avgRiskScore: row.avg_risk_score,
+          method: "subcategory_gap",
+        });
+      }
+
+      // 2) 카테고리 볼륨 급등 (소분류 결과에 없는 카테고리만 추가)
+      const spikes = getCategoryVolumeSpikes(baseDate, gapDays, 2.5) as {
+        category: string;
+        today_count: number;
+        daily_avg: number;
+        spike_ratio: number;
+      }[];
+
+      const existingCats = new Set(results.map((r) => r.category));
+      for (const spike of spikes) {
+        if (!existingCats.has(spike.category as CategoryKey)) {
+          results.push({
+            name: `${CATEGORIES.find((c) => c.key === spike.category)?.label ?? spike.category} 분야 기사 급증 (${spike.spike_ratio.toFixed(1)}배)`,
+            count: spike.today_count,
+            category: spike.category as CategoryKey,
+            gapDays: 0,
+            avgRiskScore: null,
+            method: "volume_spike",
+          });
+        }
+      }
+
+      if (results.length > 0) return results;
+    } catch (err) {
+      console.error("[loadEmergingIssues] DB 오류:", err);
+    }
+  }
+  return [];
 }
 
 // ── Chat ──

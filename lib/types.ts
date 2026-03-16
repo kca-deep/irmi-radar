@@ -40,6 +40,13 @@ export interface SignalPreview {
   date: string;
 }
 
+// -- 카테고리별 일별 기사 수 집계 --
+export interface ArticleDailyStat {
+  date: string;          // "2025-12-31"
+  category: CategoryKey;
+  count: number;
+}
+
 // -- 점수 이력 --
 export interface ScoreHistoryEntry {
   date: string;

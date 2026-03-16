@@ -39,6 +39,10 @@ export interface EmergingIssue {
   rank: number;
   name: string;
   count: number;
+  category?: string;
+  gapDays?: number;
+  severity?: RiskGrade;
+  method?: "volume_spike" | "keyword_emergence" | "ai_detected" | "subcategory_gap";
 }
 
 export interface DashboardData {
