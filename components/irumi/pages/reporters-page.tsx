@@ -5,7 +5,7 @@
  * 변환 포인트:
  *   - 하드코딩 mockData 제거 → ReporterData props
  *   - useEffect의 setTimeout(mock) 제거 — 데이터를 props로 수신하므로 불필요
- *   - figma:asset → /images/irumi-logo.png
+ *   - figma:asset → /images/irumi-logo.svg
  *   - lucide-react → @hugeicons/react (Loading01Icon 등)
  *   - recharts는 동일하게 사용
  */
@@ -359,7 +359,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
           교차취재{" "}<span className="font-extrabold text-[#3182F6]">{data.convergence.length}건</span> 감지.
         </p>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 w-[44px] h-[44px] pointer-events-none select-none">
-          <img src="/images/irumi-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
+          <img src="/images/irumi-logo.svg" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
         </div>
       </div>
 
@@ -437,7 +437,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
           {showAllConv && (
             <div className="absolute bottom-4 right-4 w-[96px] h-[96px] pointer-events-none select-none">
               <img
-                src="/images/irumi-logo.png"
+                src="/images/irumi-logo.svg"
                 alt=""
                 className="w-full h-full object-contain"
                 style={{ filter: "grayscale(1) brightness(0.6)", opacity: 0.13 }}

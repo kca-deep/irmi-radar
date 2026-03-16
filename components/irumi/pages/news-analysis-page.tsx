@@ -4,7 +4,7 @@
  * news-analysis-page.tsx
  * 변환 포인트:
  *   - lucide-react → @hugeicons/react (Search01Icon, PlayIcon 등)
- *   - figma:asset → /images/irumi-logo.png
+ *   - figma:asset → /images/irumi-logo.svg
  *   - 하드코딩 데이터 제거 → NewsAnalysisData props
  *   - POST /api/analyze (SSE 스트리밍) 연동 예시 포함
  *   - AnalysisProgressModal 연동 (설정 + SSE 진행 + 결과)
@@ -518,7 +518,7 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
           </div>
         </div>
         <div className="ml-auto shrink-0 w-[36px] h-[36px] pointer-events-none select-none">
-          <img src="/images/irumi-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
+          <img src="/images/irumi-logo.svg" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
         </div>
       </div>
 

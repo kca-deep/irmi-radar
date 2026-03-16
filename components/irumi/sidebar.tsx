@@ -23,7 +23,7 @@ export function IrumiSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-[220px] h-screen sticky top-0 bg-irumi-sidebar-bg border-r border-irumi-line pt-10 pb-8 px-4 flex flex-col justify-between shrink-0">
+    <aside className="w-[220px] h-screen sticky top-0 bg-card border-r border-border pt-10 pb-8 px-4 flex flex-col justify-between shrink-0">
       <div className="flex flex-col gap-10">
         {/* 로고 */}
         <div className="flex items-center gap-2 px-2">

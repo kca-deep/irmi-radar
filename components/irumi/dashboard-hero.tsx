@@ -4,7 +4,7 @@
  * dashboard-hero.tsx
  * 변환 포인트:
  *   - react-router의 useNavigate → next/navigation의 useRouter
- *   - figma:asset 이미지 → /images/irumi-logo.png (public 폴더에 로고를 배치하세요)
+ *   - figma:asset 이미지 → /images/irumi-logo.svg (public 폴더에 로고를 배치하세요)
  *   - WritingIllustration은 동일한 SVG 컴포넌트를 복사해서 사용
  */
 
@@ -42,7 +42,7 @@ export function DashboardHero({
       <div className="w-[280px] bg-gradient-to-br from-[#FF7A1F] to-[#E65500] rounded-[16px] text-white p-[24px] flex flex-col justify-between shadow-[0_4px_16px_rgba(255,102,0,0.25)] relative z-50 shrink-0">
         <div className="absolute inset-0 rounded-[16px] overflow-hidden pointer-events-none">
           <div className="absolute right-0 bottom-0 w-[180px] h-[180px] opacity-[0.16] pointer-events-none mix-blend-multiply translate-x-[15%] translate-y-[15%]">
-            <img src="/images/irumi-logo.png" alt="logo watermark" className="w-full h-full object-contain" />
+            <img src="/images/irumi-logo.svg" alt="logo watermark" className="w-full h-full object-contain" />
           </div>
         </div>
 
