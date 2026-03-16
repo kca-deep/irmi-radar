@@ -151,6 +151,8 @@ export const ANALYSIS_STEPS: Omit<AnalysisStep, "status">[] = [
   { id: "collect", label: "데이터 수집" },
   { id: "analysis", label: "뉴스 분석" },
   { id: "aggregate", label: "종합 리스크 산출" },
+  { id: "thumbnails", label: "썸네일 추출" },
+  { id: "compare", label: "전일대비 분석" },
 ];
 
 // -- 외부 API 분석 단계 --

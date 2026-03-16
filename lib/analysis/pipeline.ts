@@ -22,6 +22,7 @@ import { detectSignals } from "./signal-detector";
 import { buildDashboard, type DashboardBuildResult } from "./dashboard-builder";
 import { aggregateRegions } from "./region-aggregator";
 import { calculateDailyDelta } from "./daily-comparator";
+import { getArticlesWithoutThumbnail, fetchAndSaveThumbnails } from "./thumbnail-fetcher";
 import { fetchLegislationByKeywords, fetchBillsByKeywords, fetchNarsAnalysesByKeywords } from "@/lib/api/assembly";
 import { fetchGovServicesByCategory } from "@/lib/api/gov-service";
 import { getDb, initializeSchema } from "@/lib/db/index";
@@ -510,6 +511,26 @@ export async function runPipeline(
     callbacks.onStepError?.("aggregate", err as Error);
   }
 
+  // -- Step: thumbnails (og:image 썸네일 추출) --
+  checkCancelled();
+  callbacks.onStepStart?.("thumbnails", "썸네일 추출");
+  try {
+    const thumbArticles = getArticlesWithoutThumbnail(200);
+    if (thumbArticles.length > 0) {
+      console.log(`[Pipeline] 썸네일 추출 시작: ${thumbArticles.length}건`);
+      const thumbCount = await fetchAndSaveThumbnails(thumbArticles, 5);
+      console.log(`[Pipeline] 썸네일 추출 완료: ${thumbCount}/${thumbArticles.length}건`);
+      callbacks.onStepComplete?.("thumbnails", `${thumbCount}건 추출`);
+    } else {
+      console.log("[Pipeline] 썸네일 추출: 대상 없음");
+      callbacks.onStepComplete?.("thumbnails", "대상 없음");
+    }
+  } catch (err) {
+    if (err instanceof PipelineCancelledError) throw err;
+    console.error("[Pipeline] 썸네일 추출 에러:", (err as Error).message);
+    callbacks.onStepError?.("thumbnails", err as Error);
+  }
+
   // -- Step: compare (전일대비 비교) --
   if (dashboard) {
     checkCancelled();
@@ -566,7 +587,8 @@ export async function runPipeline(
     // 카테고리 점수를 dashboard_cache에서 추출
     const catScoresForRun: Record<string, number> = {};
     try {
-      const dashCached = db.prepare("SELECT value FROM dashboard_cache WHERE key = 'dashboard'").get() as { value: string } | undefined;
+      const dbInstance = getDb();
+      const dashCached = dbInstance.prepare("SELECT value FROM dashboard_cache WHERE key = 'dashboard'").get() as { value: string } | undefined;
       if (dashCached) {
         const dashData = JSON.parse(dashCached.value);
         for (const cat of (dashData.categories || [])) {

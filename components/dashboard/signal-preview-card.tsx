@@ -26,10 +26,10 @@ const BADGE_CLASS: Record<string, string> = {
 };
 
 const GLOW_CLASS: Record<string, string> = {
-  critical: "hover:shadow-[0_4px_16px_oklch(0.704_0.191_22.216/0.15)]",
-  warning: "hover:shadow-[0_4px_16px_oklch(0.795_0.184_60.0/0.15)]",
-  caution: "hover:shadow-[0_4px_16px_oklch(0.852_0.17_88.0/0.12)]",
-  safe: "hover:shadow-[0_4px_16px_oklch(0.696_0.17_152.0/0.15)]",
+  critical: "hover:shadow-[0_4px_16px_var(--danger-glow)]",
+  warning: "hover:shadow-[0_4px_16px_var(--warning-glow)]",
+  caution: "hover:shadow-[0_4px_16px_var(--caution-glow)]",
+  safe: "hover:shadow-[0_4px_16px_var(--safe-glow)]",
 };
 
 export function SignalPreviewCard({ signal }: SignalPreviewCardProps) {

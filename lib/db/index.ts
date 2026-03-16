@@ -40,6 +40,16 @@ export function getDb(readonly = false): Database.Database {
   return _db;
 }
 
+/** articles 테이블에 thumbnail_url 컬럼 추가 (없으면) */
+function migrateThumbnailColumn(db: Database.Database): void {
+  const cols = db.pragma("table_info(articles)") as { name: string }[];
+  const hasCol = cols.some((c) => c.name === "thumbnail_url");
+  if (!hasCol) {
+    db.exec("ALTER TABLE articles ADD COLUMN thumbnail_url TEXT");
+    console.log("[DB] articles.thumbnail_url 컬럼 추가");
+  }
+}
+
 /**
  * 분석 결과 테이블을 run_id 기반 새 스키마로 재생성
  *
@@ -108,6 +118,9 @@ export function initializeSchema(db: Database.Database): void {
   db.exec(INDEX_SQL);
   db.exec(FTS_SQL);
   db.exec(FTS_TRIGGERS_SQL);
+
+  // 3. thumbnail_url 컬럼 마이그레이션
+  migrateThumbnailColumn(db);
 }
 
 /** DB 연결 해제 */

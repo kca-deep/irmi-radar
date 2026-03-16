@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS articles (
   region                 TEXT,
   url                    TEXT,
   writer                 TEXT,
-  relevance_score        REAL DEFAULT 0
+  relevance_score        REAL DEFAULT 0,
+  thumbnail_url          TEXT
 );
 
 -- AI 분석 결과 (기사 1:1)

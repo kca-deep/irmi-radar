@@ -308,17 +308,14 @@ export function getLatestCompletedRun() {
 /** 특정 회차 직전의 완료된 분석 회차 */
 export function getPreviousCompletedRun(currentRunId: string) {
   const db = getDb(true);
-  const current = db.prepare(
-    "SELECT completed_at FROM analysis_runs WHERE id = ?"
-  ).get(currentRunId) as { completed_at: string } | undefined;
 
-  if (!current) return undefined;
-
+  // compare 단계에서 호출 시 현재 run은 아직 completed_at이 null이므로,
+  // id 제외 방식으로 최신 completed run을 찾는다.
   return db.prepare(
     `SELECT * FROM analysis_runs
-     WHERE status = 'completed' AND completed_at < ?
+     WHERE status = 'completed' AND id != ?
      ORDER BY completed_at DESC LIMIT 1`
-  ).get(current.completed_at) as AnalysisRunRow | undefined;
+  ).get(currentRunId) as AnalysisRunRow | undefined;
 }
 
 /** 최근 N개 완료된 분석 회차 */

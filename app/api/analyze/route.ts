@@ -99,9 +99,9 @@ export async function POST(request: Request) {
         }
       }
 
-      // 전체 단계 수 계산 (collect + analysis + 외부데이터 + aggregate)
+      // 전체 단계 수 계산 (collect + analysis + 외부데이터 + aggregate + thumbnails + compare)
       const externalStepCount = (includeAssembly ? 1 : 0) + (includeGovServices ? 1 : 0);
-      const totalSteps = 1 + 1 + externalStepCount + 1; // collect + analysis + external + aggregate
+      const totalSteps = 1 + 1 + externalStepCount + 1 + 1 + 1; // collect + analysis + external + aggregate + thumbnails + compare
       let completedSteps = 0;
 
       // 토큰 사용량 추적 초기화

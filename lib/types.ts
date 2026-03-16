@@ -173,6 +173,7 @@ export interface NewsArticle {
   source?: string;
   region?: string;
   url?: string;
+  thumbnailUrl?: string;
   analysis?: NewsArticleAnalysis;
 }
 

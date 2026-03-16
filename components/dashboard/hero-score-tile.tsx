@@ -29,10 +29,10 @@ const FILL_CLASS: Record<string, string> = {
 };
 
 const GLOW_CLASS: Record<string, string> = {
-  danger: "drop-shadow-[0_0_24px_oklch(0.704_0.191_22.216/0.3)]",
-  warning: "drop-shadow-[0_0_24px_oklch(0.795_0.184_60.0/0.3)]",
-  caution: "drop-shadow-[0_0_24px_oklch(0.852_0.17_88.0/0.25)]",
-  safe: "drop-shadow-[0_0_24px_oklch(0.696_0.17_152.0/0.3)]",
+  danger: "drop-shadow-[0_0_24px_var(--danger-glow)]",
+  warning: "drop-shadow-[0_0_24px_var(--warning-glow)]",
+  caution: "drop-shadow-[0_0_24px_var(--caution-glow)]",
+  safe: "drop-shadow-[0_0_24px_var(--safe-glow)]",
 };
 
 const TRACK_CLASS: Record<string, string> = {

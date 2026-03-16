@@ -55,6 +55,7 @@ interface ArticleRow {
   url: string | null;
   writer: string | null;
   relevance_score: number | null;
+  thumbnail_url: string | null;
   risk_score?: number | null;
   analysis_severity?: string | null;
   ai_summary?: string | null;
@@ -85,6 +86,7 @@ function toNewsArticle(row: ArticleRow): NewsArticle {
     source: row.writer || undefined,
     region: row.region || undefined,
     url: row.url || undefined,
+    thumbnailUrl: row.thumbnail_url || undefined,
     analysis: row.risk_score != null
       ? {
           riskScore: row.risk_score,

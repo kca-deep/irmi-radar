@@ -39,7 +39,7 @@ export function NewsList({ articles, onArticleClick }: NewsListProps) {
       {articles.map((article, index) => (
         <div
           key={article.id}
-          className={cn(index === 0 && "sm:col-span-2 sm:row-span-2")}
+          className={cn(index === 0 && "sm:col-span-2 lg:col-span-3")}
         >
           <NewsCard
             article={article}
