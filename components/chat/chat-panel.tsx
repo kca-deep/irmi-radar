@@ -166,7 +166,7 @@ export function ChatPanel({ isOpen, onClose, chatData }: ChatPanelProps) {
   return (
     <div
       className={cn(
-        "fixed bottom-20 right-4 z-50 flex flex-col",
+        "fixed bottom-24 right-12 z-50 flex flex-col",
         "w-[440px] h-[600px] max-h-[80vh]",
         "rounded-xl border border-border/50 bg-card shadow-xl",
         "transition-all duration-300 ease-out",

@@ -1,7 +1,7 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AiBrain01Icon, Cancel01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { Message01Icon, Cancel01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
 interface ChatHeaderProps {
@@ -14,9 +14,9 @@ export function ChatHeader({ onClose, onReset, hasMessages }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between p-4 border-b border-border/50">
       <div className="flex items-center gap-2">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-[#FF6600]">
           <HugeiconsIcon
-            icon={AiBrain01Icon}
+            icon={Message01Icon}
             size={16}
             strokeWidth={2}
             className="text-primary-foreground"

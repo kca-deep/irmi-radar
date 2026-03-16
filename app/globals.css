@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -80,6 +82,36 @@
   --color-brand-border: var(--brand-border);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-muted: var(--brand-muted);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+
+  /* irumi design tokens */
+  --color-irumi-brand: var(--irumi-brand);
+  --color-irumi-brand-hover: var(--irumi-brand-hover);
+  --color-irumi-brand-muted: var(--irumi-brand-muted);
+  --color-irumi-brand-border: var(--irumi-brand-border);
+  --color-irumi-urgent: var(--irumi-urgent);
+  --color-irumi-urgent-muted: var(--irumi-urgent-muted);
+  --color-irumi-urgent-border: var(--irumi-urgent-border);
+  --color-irumi-caution: var(--irumi-caution);
+  --color-irumi-caution-muted: var(--irumi-caution-muted);
+  --color-irumi-caution-border: var(--irumi-caution-border);
+  --color-irumi-watch: var(--irumi-watch);
+  --color-irumi-watch-muted: var(--irumi-watch-muted);
+  --color-irumi-watch-border: var(--irumi-watch-border);
+  --color-irumi-safe: var(--irumi-safe);
+  --color-irumi-safe-muted: var(--irumi-safe-muted);
+  --color-irumi-page: var(--irumi-page-bg);
+  --color-irumi-text-1: var(--irumi-text-1);
+  --color-irumi-text-2: var(--irumi-text-2);
+  --color-irumi-text-3: var(--irumi-text-3);
+  --color-irumi-line: var(--irumi-line);
+  --color-irumi-line-md: var(--irumi-line-md);
+  --color-irumi-nav-active-bg: var(--irumi-nav-active-bg);
+  --color-irumi-text-title: var(--irumi-text-title);
+  --color-irumi-text-dropdown: var(--irumi-text-dropdown);
+  --color-irumi-text-4: var(--irumi-text-4);
+  --color-irumi-sidebar-bg: var(--irumi-sidebar-bg);
 }
 
 :root {
@@ -106,7 +138,13 @@
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.875rem;
+  --radius: 0.625rem;
+  --font-size: 16px;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --destructive-foreground: #ffffff;
   --brand: oklch(0.65 0.22 45);
   --brand-light: oklch(0.72 0.18 50);
   --brand-surface: oklch(0.970 0.025 75);
@@ -154,6 +192,38 @@
   --cat-self-employed: oklch(0.65 0.20 45);
   --cat-finance: oklch(0.55 0.20 300);
   --cat-real-estate: oklch(0.58 0.17 145);
+
+  /* irumi design tokens */
+  --irumi-brand: #FF6600;
+  --irumi-brand-hover: #E65C00;
+  --irumi-brand-muted: #FFF8F3;
+  --irumi-brand-border: #F0C8A0;
+  --irumi-urgent: #E24B4A;
+  --irumi-urgent-muted: #FEF0F0;
+  --irumi-urgent-border: #FEE2E2;
+  --irumi-caution: #E8521A;
+  --irumi-caution-muted: #FFF3EC;
+  --irumi-caution-border: #FFEDD5;
+  --irumi-watch: #FFAA00;
+  --irumi-watch-muted: #FFF8E0;
+  --irumi-watch-border: #FFE88A;
+  --irumi-safe: #5DAA30;
+  --irumi-safe-muted: #EDF7ED;
+  --irumi-page-bg: #F5F5F5;
+  --irumi-sidebar-bg: #FFFFFF;
+  --irumi-sidebar-width: 220px;
+  --irumi-text-1: #1A1A1A;
+  --irumi-text-2: #666666;
+  --irumi-text-3: #A0A0A0;
+  --irumi-text-4: #8A8A8A;
+  --irumi-nav-active-bg: #FFF0E8;
+  --irumi-text-title: #111111;
+  --irumi-text-dropdown: #4A4A4A;
+  --irumi-line: #F0F0F0;
+  --irumi-line-md: #E0E0E0;
+  --irumi-shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --irumi-shadow-card-lg: 0 6px 20px rgba(0, 0, 0, 0.10);
+  --irumi-shadow-brand: 0 4px 16px rgba(255, 102, 0, 0.25);
 }
 
 .dark {
@@ -230,11 +300,30 @@
 }
 
 @layer base {
+  html {
+    font-size: var(--font-size, 16px);
+  }
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+  h1 {
+    font-size: 1.875rem;
+    font-weight: 800;
+  }
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
   }
 }
 
@@ -335,6 +424,14 @@
     transform: scaleX(1);
     transform-origin: left;
   }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
 }
 
 @keyframes ticker {

@@ -1,0 +1,70 @@
+/**
+ * 이르미 대시보드 디자인 토큰
+ * globals.css의 :root { } 안에 붙여넣으세요.
+ * Tailwind v4 @theme 블록에도 추가하면 bg-irumi-brand 형태의 유틸리티 클래스를 사용할 수 있습니다.
+ */
+
+/* ── :root 에 추가 ─────────────────────────────────────── */
+:root {
+  /* 브랜드 */
+  --irumi-brand:           #FF6600;
+  --irumi-brand-hover:     #E65C00;
+  --irumi-brand-muted:     #FFF0E8;
+  --irumi-brand-border:    #F0C8A0;
+
+  /* 위험도 */
+  --irumi-urgent:          #E24B4A;
+  --irumi-urgent-muted:    #FEF0F0;
+  --irumi-urgent-border:   #FEE2E2;
+  --irumi-caution:         #E8521A;
+  --irumi-caution-muted:   #FFF3EC;
+  --irumi-caution-border:  #FFEDD5;
+  --irumi-watch:           #FFAA00;
+  --irumi-watch-muted:     #FFF8E0;
+  --irumi-watch-border:    #FFE88A;
+  --irumi-safe:            #5DAA30;
+  --irumi-safe-muted:      #EDF7ED;
+
+  /* 레이아웃 */
+  --irumi-page-bg:         #F5F5F5;
+  --irumi-sidebar-bg:      #FFFFFF;
+  --irumi-sidebar-width:   220px;
+
+  /* 텍스트 */
+  --irumi-text-1:          #1A1A1A;
+  --irumi-text-2:          #666666;
+  --irumi-text-3:          #AAAAAA;
+  --irumi-text-4:          #8A8A8A;
+
+  /* 선/구분선 */
+  --irumi-line:            #F0F0F0;
+  --irumi-line-md:         #E0E0E0;
+
+  /* 그림자 */
+  --irumi-shadow-card:     0 2px 12px rgba(0, 0, 0, 0.06);
+  --irumi-shadow-card-lg:  0 6px 20px rgba(0, 0, 0, 0.10);
+  --irumi-shadow-brand:    0 4px 16px rgba(255, 102, 0, 0.25);
+}
+
+/* ── @theme 에 추가 (Tailwind v4 유틸리티 활성화) ─────── */
+@theme inline {
+  --color-irumi-brand:          var(--irumi-brand);
+  --color-irumi-brand-hover:    var(--irumi-brand-hover);
+  --color-irumi-brand-muted:    var(--irumi-brand-muted);
+  --color-irumi-brand-border:   var(--irumi-brand-border);
+
+  --color-irumi-urgent:         var(--irumi-urgent);
+  --color-irumi-urgent-muted:   var(--irumi-urgent-muted);
+  --color-irumi-caution:        var(--irumi-caution);
+  --color-irumi-caution-muted:  var(--irumi-caution-muted);
+  --color-irumi-watch:          var(--irumi-watch);
+  --color-irumi-watch-muted:    var(--irumi-watch-muted);
+  --color-irumi-safe:           var(--irumi-safe);
+  --color-irumi-safe-muted:     var(--irumi-safe-muted);
+
+  --color-irumi-page:           var(--irumi-page-bg);
+  --color-irumi-text-1:         var(--irumi-text-1);
+  --color-irumi-text-2:         var(--irumi-text-2);
+  --color-irumi-text-3:         var(--irumi-text-3);
+  --color-irumi-line:           var(--irumi-line);
+}

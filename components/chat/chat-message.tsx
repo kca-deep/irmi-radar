@@ -1,7 +1,7 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AiBrain01Icon, UserCircleIcon } from "@hugeicons/core-free-icons";
+import { Message01Icon, UserCircleIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 import type { ChatMessage as ChatMessageType } from "@/lib/types";
@@ -25,11 +25,11 @@ export function ChatMessage({ message, isTyping }: ChatMessageProps) {
       <div
         className={cn(
           "flex size-7 shrink-0 items-center justify-center rounded-full",
-          isUser ? "bg-primary" : "bg-secondary"
+          isUser ? "bg-[#FF6600]" : "bg-secondary"
         )}
       >
         <HugeiconsIcon
-          icon={isUser ? UserCircleIcon : AiBrain01Icon}
+          icon={isUser ? UserCircleIcon : Message01Icon}
           size={14}
           strokeWidth={2}
           className={isUser ? "text-primary-foreground" : "text-secondary-foreground"}
@@ -41,7 +41,7 @@ export function ChatMessage({ message, isTyping }: ChatMessageProps) {
         className={cn(
           "max-w-[80%] rounded-xl px-3 py-2",
           isUser
-            ? "bg-primary text-primary-foreground"
+            ? "bg-[#FF6600] text-white"
             : "bg-secondary text-secondary-foreground"
         )}
       >

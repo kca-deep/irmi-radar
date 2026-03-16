@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AiBrain01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Message01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { ChatPanel } from "./chat-panel";
 import { cn } from "@/lib/utils";
@@ -25,14 +25,15 @@ export function ChatFab({ chatData }: ChatFabProps) {
       <Button
         onClick={toggleChat}
         className={cn(
-          "fixed bottom-4 right-4 z-50",
+          "fixed bottom-8 right-12 z-50",
           "size-12 rounded-full shadow-lg",
+          "bg-[#FF6600] hover:bg-[#E65C00] text-white",
           "transition-all duration-300 ease-out",
           isOpen && "rotate-90"
         )}
       >
         <HugeiconsIcon
-          icon={isOpen ? Cancel01Icon : AiBrain01Icon}
+          icon={isOpen ? Cancel01Icon : Message01Icon}
           size={20}
           strokeWidth={2}
         />
