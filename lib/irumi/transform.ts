@@ -302,25 +302,24 @@ export function transformDashboard(
 
 // ── Signals 변환 ───────────────────────────────────────────
 
-/** 지역 좌표 (한국 지도상 대략적 % 위치) */
+/** 지역 좌표 (한국 지도 SVG 상 % 위치, Figma 기준) */
 const REGION_COORDS: Record<string, { x: number; y: number }> = {
-  "서울": { x: 38, y: 28 },
-  "경기": { x: 42, y: 32 },
-  "인천": { x: 32, y: 30 },
-  "부산": { x: 68, y: 72 },
-  "대구": { x: 62, y: 58 },
-  "광주": { x: 32, y: 68 },
-  "대전": { x: 45, y: 48 },
-  "울산": { x: 72, y: 62 },
-  "세종": { x: 42, y: 44 },
-  "강원": { x: 58, y: 22 },
-  "충북": { x: 50, y: 38 },
-  "충남": { x: 35, y: 45 },
-  "전북": { x: 35, y: 58 },
-  "전남": { x: 30, y: 75 },
-  "경북": { x: 65, y: 42 },
-  "경남": { x: 58, y: 70 },
-  "제주": { x: 30, y: 92 },
+  "서울": { x: 34, y: 25 },
+  "인천": { x: 20, y: 29 },
+  "경기": { x: 29, y: 33 },
+  "강원": { x: 63, y: 21 },
+  "충북": { x: 49, y: 38 },
+  "충남": { x: 24, y: 42 },
+  "대전": { x: 39, y: 44 },
+  "전북": { x: 31, y: 54 },
+  "광주": { x: 31, y: 66 },
+  "전남": { x: 28, y: 70 },
+  "경북": { x: 62, y: 42 },
+  "대구": { x: 58, y: 53 },
+  "울산": { x: 70, y: 58 },
+  "부산": { x: 64, y: 64 },
+  "경남": { x: 53, y: 65 },
+  "제주": { x: 33, y: 92 },
 };
 
 function severityColor(severity: Severity): string {
@@ -337,6 +336,7 @@ export function transformSignals(
   signals: SourceSignal[],
   regionScores: SourceRegionScore[],
   overallScore: number,
+  regionCategories?: Record<string, Record<CategoryKey, number>>,
 ): CrisisSignalData {
   const items: CrisisSignalItem[] = signals.map((s) => {
     const grade = toRiskGrade(s.severity);
@@ -361,15 +361,31 @@ export function transformSignals(
     "prices", "selfEmployed", "realEstate", "employment", "finance",
   ];
 
-  const regions: RegionItem[] = regionScores.map((r) => {
-    const coords = REGION_COORDS[r.name] ?? { x: 50, y: 50 };
+  // bars 순서: [물가, 자영업, 부동산, 고용, 금융]
+  const barCategoryKeys: CategoryKey[] = [
+    "prices", "selfEmployed", "realEstate", "employment", "finance",
+  ];
+
+  const regions: RegionItem[] = regionScores
+    .filter((r) => r.name in REGION_COORDS)
+    .map((r) => {
+    const coords = REGION_COORDS[r.name];
+    const cats = regionCategories?.[r.name];
+    const bars = cats
+      ? barCategoryKeys.map((key) => cats[key] ?? r.score)
+      : barCategoryKeys.map((_, i) => {
+          const offsets = [-5, 8, -3, -10, 2];
+          return Math.max(0, Math.min(100, r.score + offsets[i]));
+        });
+
     return {
       id: r.id,
       name: r.name,
       x: coords.x,
       y: coords.y,
       color: severityColor(r.severity),
-      bars: categoryKeys.map(() => Math.round(r.score * (0.7 + Math.random() * 0.6))),
+      score: r.score,
+      bars,
     };
   });
 
@@ -399,6 +415,7 @@ export function transformNews(
       title: a.title,
       body: a.summary || a.content || "",
       keywords: a.keywords,
+      thumbnailUrl: a.thumbnailUrl,
     };
   });
 

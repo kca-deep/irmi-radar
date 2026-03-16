@@ -125,6 +125,7 @@ export const IRMI_KEYWORDS: Record<CategoryKey, string[]> = {
     "분양", "재건축", "전월세", "매매가", "전세사기",
     "주택가격", "부동산", "청약", "임대차", "전세보증",
   ],
+  other: [],
 };
 
 /** 모든 민생 키워드를 하나의 Set으로 (빠른 검색) */
@@ -145,6 +146,7 @@ export function inferCategoryFromText(
     selfEmployed: 0,
     finance: 0,
     realEstate: 0,
+    other: 0,
   };
 
   for (const [cat, kws] of Object.entries(IRMI_KEYWORDS)) {

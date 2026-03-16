@@ -22,6 +22,7 @@ const NODE_POSITIONS: Record<CategoryKey, { x: number; y: number }> = {
   selfEmployed: { x: 197, y: 175 },  // Bottom-right
   finance: { x: 103, y: 175 },       // Bottom-left
   realEstate: { x: 74, y: 91 },      // Top-left
+  other: { x: 0, y: 0 },
 };
 
 const NODE_RADIUS = 22;

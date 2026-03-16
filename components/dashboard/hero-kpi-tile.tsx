@@ -240,6 +240,7 @@ const CAT_CSS_VAR: Record<CategoryKey, string> = {
   selfEmployed: "var(--cat-self-employed)",
   finance: "var(--cat-finance)",
   realEstate: "var(--cat-real-estate)",
+  other: "var(--muted)",
 };
 
 interface DeltaChartItem {
@@ -472,15 +473,28 @@ export function HeroKpiTile({
           className="relative flex flex-col items-center justify-center px-6 py-4 gap-1"
           style={{ background: "linear-gradient(147deg, var(--brand) 0%, var(--brand-light) 100%)" }}
         >
+          {/* M logo watermark */}
+          <div className="absolute right-0 bottom-0 w-[180px] h-[135px] translate-x-[15%] translate-y-[15%] opacity-[0.16] pointer-events-none mix-blend-multiply">
+            <svg viewBox="0 0 120 90" className="size-full" aria-hidden="true">
+              <defs>
+                <linearGradient id="m-watermark-grad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="38%" stopColor="var(--brand)" />
+                  <stop offset="62%" stopColor="var(--brand-light)" />
+                </linearGradient>
+              </defs>
+              <path d="M0,0 L36,0 L60,42 L84,0 L120,0 L120,90 L0,90 Z" fill="url(#m-watermark-grad)" />
+            </svg>
+          </div>
+
           {/* Title label */}
           <div
-            className="text-white/90"
+            className="text-white/90 relative z-10"
             style={{ fontFamily: "var(--font-outfit)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.06em" }}
           >
             IRMI Index
           </div>
 
-          <svg viewBox="0 0 120 120" className="size-32" aria-label={`종합 리스크 점수 ${score}점, ${label} 등급`}>
+          <svg viewBox="0 0 120 120" className="relative z-10 size-32" aria-label={`종합 리스크 점수 ${score}점, ${label} 등급`}>
             <circle cx="60" cy="60" r={RADIUS} fill="none" strokeWidth="8" stroke="rgba(255,255,255,0.15)" />
             <circle
               cx="60" cy="60" r={RADIUS} fill="none"
@@ -500,13 +514,13 @@ export function HeroKpiTile({
           </svg>
 
           {scoreDelta !== null && (
-            <div className="flex items-center gap-1.5 text-xs font-bold text-white/90">
+            <div className="relative z-10 flex items-center gap-1.5 text-xs font-bold text-white/90">
               <span className="tabular-nums">{scoreDelta > 0 ? "+" : ""}{scoreDelta}</span>
               <span className="text-[10px] font-medium text-white/70">전일대비</span>
             </div>
           )}
           {dailyDelta?.overall.severityChanged && dailyDelta.overall.previousSeverity && (
-            <div className="flex items-center gap-1 text-[9px] font-extrabold">
+            <div className="relative z-10 flex items-center gap-1 text-[9px] font-extrabold">
               <span className="rounded bg-white/15 px-1.5 py-0.5 text-white/70 backdrop-blur-sm">
                 {SEVERITY_LABEL_MAP[dailyDelta.overall.previousSeverity]}
               </span>
@@ -517,7 +531,7 @@ export function HeroKpiTile({
             </div>
           )}
 
-          <div className="text-[9px] font-medium text-white/50 tabular-nums tracking-wide">
+          <div className="relative z-10 text-[9px] font-medium text-white/50 tabular-nums tracking-wide">
             {formatLastUpdated(lastUpdated)}
           </div>
         </div>

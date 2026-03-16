@@ -9,12 +9,14 @@ import { CrisisSignalPage } from "@/components/irumi/pages/crisis-signal-page";
 import {
   loadSignals,
   loadRegionScores,
+  loadRegionCategoryScores,
   loadDashboard,
+  getDataSource,
 } from "@/lib/api/data-source";
 import { getSeverityByScore } from "@/lib/constants";
 import { transformSignals } from "@/lib/irumi/transform";
 import type { CrisisSignalData } from "@/lib/irumi/types";
-import type { Signal, RegionScore } from "@/lib/types";
+import type { Signal, RegionScore, CategoryKey } from "@/lib/types";
 
 import regionsData from "@/data/mock/regions.json";
 
@@ -32,6 +34,7 @@ export default function SignalsRoute() {
   try {
     const signals = loadSignals();
     const dashboard = loadDashboard();
+    const isDbMode = getDataSource() === "db";
 
     // DB 기반 지역 데이터 우선, 없으면 mock fallback
     let regionScores: RegionScore[] = loadRegionScores();
@@ -54,7 +57,23 @@ export default function SignalsRoute() {
       }));
     }
 
-    data = transformSignals(signals, regionScores, dashboard.overallScore);
+    // DB 모드면 DB에서 카테고리 점수 로드, 아니면 mock JSON
+    let regionCategories: Record<string, Record<CategoryKey, number>> = {};
+    if (isDbMode) {
+      regionCategories = loadRegionCategoryScores();
+    }
+    // DB에서 카테고리 점수가 비어있으면 mock fallback
+    if (Object.keys(regionCategories).length === 0) {
+      for (const r of regionsData.regions) {
+        if (r.id !== "nationwide") {
+          regionCategories[r.name] = r.categories as Record<CategoryKey, number>;
+        }
+      }
+    }
+
+    data = transformSignals(signals, regionScores, dashboard.overallScore, regionCategories);
+
+    return <CrisisSignalPage data={data} originalSignals={signals} />;
   } catch {
     data = FALLBACK_DATA;
   }

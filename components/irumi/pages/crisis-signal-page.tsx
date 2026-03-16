@@ -96,9 +96,10 @@ function getBarColor(score: number): string {
 // ── 컴포넌트 ───────────────────────────────────────────────
 interface CrisisSignalPageProps {
   data: CrisisSignalData;
+  originalSignals?: Signal[];
 }
 
-export function CrisisSignalPage({ data }: CrisisSignalPageProps) {
+export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProps) {
   const { signals, regions, nationalCompositeScore } = data;
 
   const [mapSvg, setMapSvg] = useState<string>("");
@@ -172,8 +173,7 @@ export function CrisisSignalPage({ data }: CrisisSignalPageProps) {
     if (!mapSvg) return "";
     const styleRules = regions
       .map((region) => {
-        const avg = Math.round(region.bars.reduce((a, b) => a + b, 0) / region.bars.length);
-        const color = getBarColor(avg).replace("var(--irumi-urgent)", "#E24B4A")
+        const color = getBarColor(region.score).replace("var(--irumi-urgent)", "#E24B4A")
           .replace("var(--irumi-brand)", "#FF6600")
           .replace("var(--irumi-watch)", "#FFAA00")
           .replace("var(--irumi-safe)", "#5DAA30");
@@ -186,7 +186,7 @@ export function CrisisSignalPage({ data }: CrisisSignalPageProps) {
   }, [mapSvg, regions, selectedRegion]);
 
   const avgScore = selectedRegion
-    ? Math.round(currentScores.reduce((a, b) => a + b, 0) / currentScores.length)
+    ? (regions.find((r) => r.id === selectedRegion)?.score ?? nationalCompositeScore)
     : nationalCompositeScore;
 
   const cardGradient =
@@ -460,12 +460,11 @@ export function CrisisSignalPage({ data }: CrisisSignalPageProps) {
               </div>
               <div className="flex flex-col gap-[12px]">
                 {[...regions]
-                  .map((r) => ({ ...r, avg: Math.round(r.bars.reduce((a, b) => a + b, 0) / r.bars.length) }))
-                  .sort((a, b) => b.avg - a.avg)
+                  .sort((a, b) => b.score - a.score)
                   .slice(0, 5)
                   .map((region, idx) => {
-                    const color = getBarColor(region.avg).replace("var(--irumi-urgent)", "#E24B4A").replace("var(--irumi-brand)", "#FF6600").replace("var(--irumi-watch)", "#FFAA00").replace("var(--irumi-safe)", "#5DAA30");
-                    const riskLabel = region.avg >= 80 ? "긴급" : region.avg >= 60 ? "주의" : region.avg >= 40 ? "관찰" : "안전";
+                    const color = getBarColor(region.score).replace("var(--irumi-urgent)", "#E24B4A").replace("var(--irumi-brand)", "#FF6600").replace("var(--irumi-watch)", "#FFAA00").replace("var(--irumi-safe)", "#5DAA30");
+                    const riskLabel = region.score >= 80 ? "긴급" : region.score >= 60 ? "주의" : region.score >= 40 ? "관찰" : "안전";
                     return (
                       <div
                         key={region.id}
@@ -478,10 +477,10 @@ export function CrisisSignalPage({ data }: CrisisSignalPageProps) {
                           <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0">
                             <circle cx="12" cy="12" r="9.5" fill="none" stroke="#F0F0F0" strokeWidth="3" />
                             <circle cx="12" cy="12" r="9.5" fill="none" stroke={color} strokeWidth="3"
-                              strokeDasharray={`${(2 * Math.PI * 9.5) * region.avg / 100} ${2 * Math.PI * 9.5}`}
+                              strokeDasharray={`${(2 * Math.PI * 9.5) * region.score / 100} ${2 * Math.PI * 9.5}`}
                               strokeLinecap="round" transform="rotate(-90 12 12)" />
                           </svg>
-                          <span className="text-[14px] font-[800] w-[24px]" style={{ color }}>{region.avg}</span>
+                          <span className="text-[14px] font-[800] w-[24px]" style={{ color }}>{region.score}</span>
                         </div>
                         <span className="text-[11px] font-[700] px-[8px] py-[3px] rounded-[5px] shrink-0" style={{ backgroundColor: color + "18", color }}>{riskLabel}</span>
                       </div>
@@ -510,7 +509,8 @@ export function CrisisSignalPage({ data }: CrisisSignalPageProps) {
                       <CrisisSignalCard
                         signal={signal}
                         onClick={() => {
-                          setSelectedSignal(convertToSignal(signal));
+                          const original = originalSignals?.find((s) => s.id === String(signal.id));
+                          setSelectedSignal(original ?? convertToSignal(signal));
                           setDialogOpen(true);
                         }}
                       />

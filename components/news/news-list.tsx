@@ -34,20 +34,27 @@ export function NewsList({ articles, onArticleClick }: NewsListProps) {
     );
   }
 
+  const [featured, ...rest] = articles;
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[minmax(160px,auto)]">
-      {articles.map((article, index) => (
-        <div
-          key={article.id}
-          className={cn(index === 0 && "sm:col-span-2 lg:col-span-3")}
-        >
-          <NewsCard
-            article={article}
-            featured={index === 0}
-            onClick={onArticleClick}
-          />
+    <div className="space-y-3">
+      {/* 메인 기사 1건 */}
+      <NewsCard
+        article={featured}
+        featured
+        onClick={onArticleClick}
+      />
+
+      {/* 나머지 기사 그리드 */}
+      {rest.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rest.map((article) => (
+            <div key={article.id}>
+              <NewsCard article={article} onClick={onArticleClick} />
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }

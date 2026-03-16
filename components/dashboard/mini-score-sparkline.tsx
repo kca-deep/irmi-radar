@@ -16,6 +16,7 @@ const LINE_COLORS: Record<CategoryKey, string> = {
   selfEmployed: "var(--warning)",
   finance: "var(--chart-3)",
   realEstate: "var(--chart-4)",
+  other: "var(--muted)",
 };
 
 const LEGEND_CLASS: Record<CategoryKey, string> = {
@@ -24,6 +25,7 @@ const LEGEND_CLASS: Record<CategoryKey, string> = {
   selfEmployed: "bg-warning",
   finance: "bg-chart-3",
   realEstate: "bg-chart-4",
+  other: "bg-muted",
 };
 
 const WIDTH = 200;

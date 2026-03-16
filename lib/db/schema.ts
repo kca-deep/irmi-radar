@@ -22,7 +22,10 @@ CREATE TABLE IF NOT EXISTS articles (
   url                    TEXT,
   writer                 TEXT,
   relevance_score        REAL DEFAULT 0,
-  thumbnail_url          TEXT
+  thumbnail_url          TEXT,
+  thumbnail_caption      TEXT,
+  like_count             INTEGER DEFAULT 0,
+  reply_count            INTEGER DEFAULT 0
 );
 
 -- AI 분석 결과 (기사 1:1)
@@ -220,6 +223,18 @@ CREATE TABLE IF NOT EXISTS score_history (
   run_id         TEXT,
   created_at     TEXT DEFAULT (datetime('now'))
 );
+
+-- 기사 댓글 (원본 매경 댓글 데이터)
+CREATE TABLE IF NOT EXISTS article_comments (
+  comment_id  INTEGER PRIMARY KEY,
+  article_id  TEXT NOT NULL REFERENCES articles(id),
+  parent_id   INTEGER DEFAULT 0,
+  author      TEXT,
+  content     TEXT,
+  like_count  INTEGER DEFAULT 0,
+  hate_count  INTEGER DEFAULT 0,
+  created_at  TEXT
+);
 `;
 
 export const INDEX_SQL = `
@@ -243,6 +258,9 @@ CREATE INDEX IF NOT EXISTS idx_analysis_runs_date   ON analysis_runs(run_date);
 CREATE INDEX IF NOT EXISTS idx_analysis_runs_status ON analysis_runs(status);
 CREATE INDEX IF NOT EXISTS idx_dashboard_snapshots_run ON dashboard_snapshots(run_id);
 CREATE INDEX IF NOT EXISTS idx_category_details_run ON category_details(run_id);
+CREATE INDEX IF NOT EXISTS idx_comments_article     ON article_comments(article_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent      ON article_comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created     ON article_comments(created_at);
 `;
 
 export const FTS_SQL = `

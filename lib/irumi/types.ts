@@ -78,6 +78,7 @@ export interface RegionItem {
   x: number;  // % on map
   y: number;  // % on map
   color: string;
+  score: number; // DB 종합 위험도 점수 0-100
   bars: number[]; // [물가, 자영업, 부동산, 고용, 금융] 점수 0-100
 }
 
@@ -99,6 +100,7 @@ export interface NewsArticle {
   title: string;
   body: string;
   keywords: string[];
+  thumbnailUrl?: string;
 }
 
 export interface NewsAnalysisStats {

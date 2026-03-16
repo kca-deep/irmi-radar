@@ -4,7 +4,8 @@ export type CategoryKey =
   | "employment"
   | "selfEmployed"
   | "finance"
-  | "realEstate";
+  | "realEstate"
+  | "other";
 
 // -- 위기 등급 --
 export type Severity = "critical" | "warning" | "caution" | "safe";
@@ -52,6 +53,7 @@ export interface CategoryScoreHistoryEntry {
   employment: number;
   selfEmployed: number;
   finance: number;
+  other: number;
   realEstate: number;
 }
 
@@ -159,6 +161,18 @@ export interface NewsArticleAnalysis {
   summary: string;
 }
 
+// -- 기사 댓글 --
+export interface ArticleComment {
+  commentId: number;
+  articleId: string;
+  parentId: number;
+  author: string;
+  content: string;
+  likeCount: number;
+  hateCount: number;
+  createdAt: string;
+}
+
 // -- 뉴스 기사 --
 export interface NewsArticle {
   id: string;
@@ -174,6 +188,9 @@ export interface NewsArticle {
   region?: string;
   url?: string;
   thumbnailUrl?: string;
+  thumbnailCaption?: string;
+  likeCount?: number;
+  replyCount?: number;
   analysis?: NewsArticleAnalysis;
 }
 

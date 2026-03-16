@@ -74,6 +74,7 @@ const CAT_ICON_COLOR_CLASS: Record<CategoryKey, string> = {
   selfEmployed: "text-cat-self-employed",
   finance: "text-cat-finance",
   realEstate: "text-cat-real-estate",
+  other: "text-muted-foreground",
 };
 
 export function CategoryRiskBar({

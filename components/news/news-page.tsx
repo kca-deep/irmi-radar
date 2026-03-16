@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { News01Icon, Loading03Icon, AiBrain01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import { News01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { NewsFilterBar } from "./news-filter-bar";
 import { NewsList } from "./news-list";
@@ -27,11 +27,20 @@ import type {
   ExternalDataOptions,
 } from "@/lib/types";
 
+interface SeverityStats {
+  total: number;
+  critical: number;
+  warning: number;
+  caution: number;
+  safe: number;
+}
+
 interface NewsPageProps {
   initialArticles: NewsArticle[];
   totalCount: number;
   pageSize: number;
   initialAnalyzedOnly?: boolean;
+  severityStats?: SeverityStats;
 }
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -79,7 +88,7 @@ function getFilteredByPeriod(
   });
 }
 
-export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyzedOnly = false }: NewsPageProps) {
+export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyzedOnly = false, severityStats }: NewsPageProps) {
   const router = useRouter();
 
   // 페이지네이션 상태
@@ -732,75 +741,76 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     hasMore && autoLoadCount >= NEWS_AUTO_LOAD_MAX;
 
   return (
-    <div className="space-y-6">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground">
-            <HugeiconsIcon
-              icon={News01Icon}
-              size={20}
-              strokeWidth={2}
-              className="text-brand"
-            />
-            뉴스 분석
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
-            AI가 뉴스 데이터를 분석하여 민생 위기 신호를 감지합니다.
-          </p>
+    <div className="space-y-0">
+      {/* 1행: 액션 헤더 */}
+      <div className="flex items-center justify-between mt-[12px] mb-[12px]">
+        <div className="text-[#AAAAAA] text-[14px]">
+          뉴스 기사를 AI로 분석하고 위험도를 확인하세요
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center gap-[8px]">
+          <button
             onClick={handleReset}
             disabled={analysisState === "running" || isResetting}
-            className="gap-1.5 shrink-0 text-muted-foreground"
+            className="bg-card border-none rounded-[8px] shadow-[0_1px_6px_rgba(0,0,0,0.08)] px-[14px] py-[7px] text-[#888888] cursor-pointer hover:bg-muted transition-colors text-[14px] disabled:opacity-50"
           >
-            {isResetting ? (
-              <>
-                <HugeiconsIcon
-                  icon={Loading03Icon}
-                  size={14}
-                  strokeWidth={2}
-                  className="animate-spin"
-                />
-                초기화 중...
-              </>
-            ) : (
-              <>
-                <HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={2} />
-                분석 초기화
-              </>
-            )}
-          </Button>
-          <Button
+            {isResetting ? "초기화 중..." : "분석 초기화"}
+          </button>
+          <button
             onClick={handleOpenModal}
             disabled={analysisState === "running"}
-            className="gap-2 shrink-0"
-            size="sm"
+            className="flex items-center gap-[5px] bg-[#FF6600] border-none rounded-[8px] px-[16px] py-[7px] text-white font-[700] cursor-pointer hover:bg-[#E65C00] transition-colors text-[14px] disabled:opacity-50"
           >
             {analysisState === "running" ? (
               <>
-                <HugeiconsIcon
-                  icon={Loading03Icon}
-                  size={14}
-                  strokeWidth={2}
-                  className="animate-spin"
-                />
-                분석 진행 중...
+                <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                분석 중...
               </>
             ) : (
               <>
-                <HugeiconsIcon icon={AiBrain01Icon} size={14} strokeWidth={2} />
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 AI 분석 시작하기
               </>
             )}
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* 필터 바 */}
+      {/* 2행: 분석 결과 요약 스트립 */}
+      <div className="rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)] flex items-center gap-[24px] mb-[12px] relative overflow-hidden px-[20px] py-[6px] bg-[#fff8f2c9]">
+        <div className="flex items-baseline gap-[5px]">
+          <span className="text-[13px] text-[#888888]">분석 완료</span>
+          <span className="font-[700] text-foreground text-[16px]">{severityStats?.total ?? serverTotal}건</span>
+        </div>
+        <div className="w-[0.5px] h-[18px] bg-[#66666666]" />
+        <div className="flex items-center gap-[6px]">
+          <div className="w-[7px] h-[7px] rounded-full bg-[#E24B4A] shrink-0" />
+          <div className="flex items-baseline gap-[5px]">
+            <span className="text-[13px] text-[#888888]">긴급</span>
+            <span className="font-[700] text-[#5e5a5a] text-[16px]">{severityStats?.critical ?? 0}건</span>
+          </div>
+        </div>
+        <div className="w-[0.5px] h-[18px] bg-[#66666633]" />
+        <div className="flex items-center gap-[6px]">
+          <div className="w-[7px] h-[7px] rounded-full bg-[#FF6600] shrink-0" />
+          <div className="flex items-baseline gap-[5px]">
+            <span className="text-[13px] text-[#888888]">주의</span>
+            <span className="font-[700] text-[#5e5a5a] text-[16px]">{severityStats?.warning ?? 0}건</span>
+          </div>
+        </div>
+        <div className="w-[0.5px] h-[18px] bg-[#66666633]" />
+        <div className="flex items-center gap-[6px]">
+          <div className="w-[7px] h-[7px] rounded-full bg-[#FFAA00] shrink-0" />
+          <div className="flex items-baseline gap-[5px]">
+            <span className="text-[13px] text-[#888888]">관찰</span>
+            <span className="font-[700] text-[#5e5a5a] text-[16px]">{severityStats?.caution ?? 0}건</span>
+          </div>
+        </div>
+        <div className="ml-auto shrink-0 w-[36px] h-[36px] pointer-events-none select-none">
+          <img src="/images/mk-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
+        </div>
+      </div>
+
+      {/* 3행: 필터 바 */}
       <NewsFilterBar
         searchQuery={searchQuery}
         category={category}

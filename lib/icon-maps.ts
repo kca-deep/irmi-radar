@@ -8,6 +8,7 @@ import {
   ArrowUp01Icon,
   MinusSignIcon,
   ArrowDown01Icon,
+  News01Icon,
 } from "@hugeicons/core-free-icons";
 
 import type { CategoryKey, Severity, Trend } from "@/lib/types";
@@ -19,6 +20,7 @@ export const CATEGORY_ICON_MAP: Record<CategoryKey, IconSvgElement> = {
   selfEmployed: Store04Icon,
   finance: BankIcon,
   realEstate: Building01Icon,
+  other: News01Icon,
 };
 
 // -- 카테고리별 배지 색상 --
@@ -28,6 +30,7 @@ export const CATEGORY_BADGE_MAP: Record<CategoryKey, string> = {
   selfEmployed: "bg-cat-self-employed/10 text-cat-self-employed border-cat-self-employed/30",
   finance: "bg-cat-finance/10 text-cat-finance border-cat-finance/30",
   realEstate: "bg-cat-real-estate/10 text-cat-real-estate border-cat-real-estate/30",
+  other: "bg-muted text-muted-foreground border-border",
 };
 
 // -- 카테고리별 보더 색상 (카드용) --
@@ -37,6 +40,7 @@ export const CATEGORY_BORDER_MAP: Record<CategoryKey, string> = {
   selfEmployed: "border-cat-self-employed/30",
   finance: "border-cat-finance/30",
   realEstate: "border-cat-real-estate/30",
+  other: "border-border",
 };
 
 // -- 카테고리별 도트 색상 (범례용) --
@@ -46,6 +50,7 @@ export const CATEGORY_DOT_MAP: Record<CategoryKey, string> = {
   selfEmployed: "bg-cat-self-employed",
   finance: "bg-cat-finance",
   realEstate: "bg-cat-real-estate",
+  other: "bg-muted-foreground",
 };
 
 // -- 등급별 CSS 색상 토큰 --

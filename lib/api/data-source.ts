@@ -248,6 +248,7 @@ export function loadDashboard(): DashboardData {
             selfEmployed: h.self_employed,
             finance: h.finance,
             realEstate: h.real_estate,
+            other: 0,
           }));
         } catch { /* skip */ }
 
@@ -308,11 +309,27 @@ export function loadDashboard(): DashboardData {
         };
       }
     } catch {
-      // DB 실패 시 mock fallback
+      // DB 분석 결과 로드 실패 시 기사 기반 계산 시도
+    }
+
+    // 분석 테이블이 비어있을 때: 기사 데이터에서 직접 지표 계산
+    try {
+      const { computeDashboardFromArticles } = require("@/lib/db/queries");
+      const computed = computeDashboardFromArticles();
+      if (computed) {
+        // briefing도 캐싱 (loadBriefing에서 재사용)
+        _cachedArticleBriefing = computed.briefing;
+        return computed.dashboard;
+      }
+    } catch {
+      // 기사 기반 계산도 실패 시 mock fallback
     }
   }
   return mock.loadDashboard();
 }
+
+/** 기사 기반 계산 결과의 briefing 캐시 (같은 렌더 사이클 재사용) */
+let _cachedArticleBriefing: BriefingData | null = null;
 
 // ── Briefing ──
 
@@ -346,6 +363,20 @@ export function loadBriefing(): BriefingData {
           apiUsage,
         };
       }
+    } catch { /* mock fallback */ }
+
+    // 기사 기반 계산 결과 재사용
+    if (_cachedArticleBriefing) {
+      const result = _cachedArticleBriefing;
+      _cachedArticleBriefing = null;
+      return result;
+    }
+
+    // briefing만 단독 호출된 경우
+    try {
+      const { computeDashboardFromArticles } = require("@/lib/db/queries");
+      const computed = computeDashboardFromArticles();
+      if (computed) return computed.briefing;
     } catch { /* mock fallback */ }
   }
   return mock.loadBriefing();
@@ -401,7 +432,11 @@ export function loadSignals(filters?: {
 }): Signal[] {
   if (isDb()) {
     try {
-      const { getSignals: dbGetSignals } = require("@/lib/db/queries");
+      const { getSignals: dbGetSignals, seedSignalDataIfEmpty } = require("@/lib/db/queries");
+
+      // DB에 분석 데이터가 없으면 자동 시드
+      seedSignalDataIfEmpty();
+
       const rows = dbGetSignals({
         category: filters?.category,
         severity: filters?.severity,
@@ -461,8 +496,12 @@ export function loadSignalArticles(signalId: string): NewsArticle[] {
 export function loadRegionScores(): import("@/lib/types").RegionScore[] {
   if (isDb()) {
     try {
-      const { getRegions } = require("@/lib/db/queries");
+      const { getRegions, seedSignalDataIfEmpty } = require("@/lib/db/queries");
       const { getSeverityByScore } = require("@/lib/constants");
+
+      // DB에 분석 데이터가 없으면 자동 시드
+      seedSignalDataIfEmpty();
+
       const rows = getRegions() as {
         id: string;
         name: string;
@@ -480,6 +519,37 @@ export function loadRegionScores(): import("@/lib/types").RegionScore[] {
     } catch { /* mock fallback */ }
   }
   return [];
+}
+
+/** DB 지역별 카테고리 점수 (Record<지역명, Record<CategoryKey, number>>) */
+export function loadRegionCategoryScores(): Record<string, Record<CategoryKey, number>> {
+  if (isDb()) {
+    try {
+      const { getRegionsWithCategories } = require("@/lib/db/queries");
+      const rows = getRegionsWithCategories() as {
+        name: string;
+        category_prices: number;
+        category_employment: number;
+        category_self_employed: number;
+        category_finance: number;
+        category_real_estate: number;
+      }[];
+
+      const result: Record<string, Record<CategoryKey, number>> = {};
+      for (const r of rows) {
+        result[r.name] = {
+          prices: r.category_prices ?? 0,
+          employment: r.category_employment ?? 0,
+          selfEmployed: r.category_self_employed ?? 0,
+          finance: r.category_finance ?? 0,
+          realEstate: r.category_real_estate ?? 0,
+          other: 0,
+        };
+      }
+      return result;
+    } catch { /* fallback */ }
+  }
+  return {};
 }
 
 // ── News ──
@@ -544,6 +614,26 @@ export function loadNewsCount(filters?: {
     }
   }
   return mock.loadNews(filters).length;
+}
+
+export interface AnalysisSeverityStats {
+  total: number;
+  critical: number;
+  warning: number;
+  caution: number;
+  safe: number;
+}
+
+export function loadAnalysisSeverityStats(): AnalysisSeverityStats {
+  if (isDb()) {
+    try {
+      const { getAnalysisSeverityStats } = require("@/lib/db/queries");
+      return getAnalysisSeverityStats() as AnalysisSeverityStats;
+    } catch {
+      return { total: 0, critical: 0, warning: 0, caution: 0, safe: 0 };
+    }
+  }
+  return { total: 0, critical: 0, warning: 0, caution: 0, safe: 0 };
 }
 
 // ── Policies ──

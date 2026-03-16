@@ -1,5 +1,5 @@
 import { NewsPage } from "@/components/news/news-page";
-import { loadNews, loadNewsCount } from "@/lib/api/data-source";
+import { loadNews, loadNewsCount, loadAnalysisSeverityStats } from "@/lib/api/data-source";
 import { NEWS_PAGE_SIZE } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,7 @@ export default function NewsRoute() {
     sort: hasAnalyzed ? "riskScore" : undefined,
   });
   const totalCount = hasAnalyzed ? analyzedCount : loadNewsCount();
+  const severityStats = loadAnalysisSeverityStats();
 
   return (
     <NewsPage
@@ -23,6 +24,7 @@ export default function NewsRoute() {
       totalCount={totalCount}
       pageSize={NEWS_PAGE_SIZE}
       initialAnalyzedOnly={hasAnalyzed}
+      severityStats={severityStats}
     />
   );
 }

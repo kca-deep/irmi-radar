@@ -10,7 +10,7 @@
  *   - AnalysisProgressModal 연동 (설정 + SSE 진행 + 결과)
  */
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo, type SyntheticEvent } from "react";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -71,6 +71,7 @@ function convertToModalArticle(article: NewsArticle): ModalNewsArticle {
     section: article.category,
     content: article.body,
     source: article.reporter || undefined,
+    thumbnailUrl: article.thumbnailUrl,
     analysis: {
       riskScore: article.score,
       severity,
@@ -101,6 +102,92 @@ const RISK_DOT_COLOR: Record<string, string> = {
   관찰: "#FFAA00",
   안전: "#5DAA30",
 };
+
+function NewsArticleCard({
+  card,
+  cat,
+  isUrgent,
+  dotColor,
+  onClick,
+}: {
+  card: NewsArticle;
+  cat: { icon: IconData; iconBg: string; iconColor: string };
+  isUrgent: boolean;
+  dotColor: string;
+  onClick: () => void;
+}) {
+  const [imgError, setImgError] = useState(false);
+  const thumbnailUrl = !imgError ? card.thumbnailUrl : undefined;
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex flex-col cursor-pointer hover:shadow-[0_6px_20px_rgba(0,0,0,0.10)] hover:-translate-y-[2px] transition-all duration-200 overflow-hidden"
+    >
+      {/* 썸네일 */}
+      {thumbnailUrl && (
+        <div className="w-full aspect-[16/9] bg-[#F0F0F0] overflow-hidden shrink-0">
+          <img
+            src={thumbnailUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e: SyntheticEvent<HTMLImageElement>) => {
+              setImgError(true);
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        </div>
+      )}
+
+      <div className="p-[16px] flex flex-col flex-1" style={{ gap: "9px" }}>
+        {/* 카테고리 + 위험도 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0" style={{ backgroundColor: cat.iconBg }}>
+              <HugeiconsIcon icon={cat.icon} size={16} color={cat.iconColor} strokeWidth={1.5} />
+            </div>
+            <span className="text-[11px] font-[600] text-[#555555] ml-[7px]">{card.category}</span>
+          </div>
+          <div className="flex items-center gap-[5px]">
+            <div className="flex flex-col items-center gap-[2px]">
+              <div className="relative flex items-center justify-center w-[7px] h-[7px]">
+                {isUrgent && <div className="absolute w-[7px] h-[7px] rounded-full bg-[#E24B4A] animate-ping" style={{ animationDuration: "1.5s", opacity: 0.6 }} />}
+                <div className="relative z-10 w-[7px] h-[7px] rounded-full" style={{ backgroundColor: dotColor }} />
+              </div>
+              <span className="text-[8.5px] font-[600] text-[#AAAAAA]">{card.risk}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 제목 */}
+        <h3 className="font-[700] text-[#1A1A1A] leading-[1.5] line-clamp-2 text-[15px]">{card.title}</h3>
+
+        {/* 본문 */}
+        <p className="text-[#888888] leading-[1.6] text-[12px]"
+          style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}
+        >
+          {card.body}
+        </p>
+
+        {/* 키워드 태그 */}
+        <div className="mt-auto flex gap-[5px] flex-wrap">
+          {card.keywords.map((kw) => (
+            <span key={kw} className="text-[10px] text-[#888888] bg-[#F5F5F5] px-[9px] py-[3px] rounded-[20px]">
+              {kw}
+            </span>
+          ))}
+        </div>
+
+        {/* 하단 */}
+        <div className="pt-[8px] border-t-[0.5px] border-[#F5F5F5] flex items-center justify-between">
+          <span className="text-[10px] text-[#BBBBBB]">{card.date}</span>
+          <span className="text-[10px] font-[700] text-[#FF6600]">상세 →</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface NewsAnalysisPageProps {
   data: NewsAnalysisData;
@@ -449,7 +536,7 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
 
   return (
     <div className="pb-10">
-      {/* 페이지 액션 헤더 */}
+      {/* 1행: 액션 헤더 */}
       <div className="flex items-center justify-between mt-[12px] mb-[12px]">
         <div className="text-[#AAAAAA] text-[14px]">
           뉴스 기사를 AI로 분석하고 위험도를 확인하세요
@@ -458,14 +545,9 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
           <button
             onClick={handleReset}
             disabled={isResetting || analysisState === "running"}
-            className="bg-white border-none rounded-[8px] shadow-[0_1px_6px_rgba(0,0,0,0.08)] px-[14px] py-[7px] text-[#888888] cursor-pointer hover:bg-gray-50 transition-colors text-[14px]"
+            className="bg-card border-none rounded-[8px] shadow-[0_1px_6px_rgba(0,0,0,0.08)] px-[14px] py-[7px] text-[#888888] cursor-pointer hover:bg-muted transition-colors text-[14px]"
           >
-            {isResetting ? (
-              <span className="flex items-center gap-[5px]">
-                <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                초기화 중...
-              </span>
-            ) : "분석 초기화"}
+            {isResetting ? "초기화 중..." : "분석 초기화"}
           </button>
           <button
             onClick={handleOpenModal}
@@ -475,7 +557,7 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
             {analysisState === "running" ? (
               <>
                 <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                분석 진행 중...
+                분석 중...
               </>
             ) : (
               <>
@@ -487,11 +569,11 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
         </div>
       </div>
 
-      {/* 분석 결과 요약 스트립 */}
+      {/* 2행: 분석 결과 요약 스트립 */}
       <div className="rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)] flex items-center gap-[24px] mb-[12px] relative overflow-hidden px-[20px] py-[6px] bg-[#fff8f2c9]">
         <div className="flex items-baseline gap-[5px]">
           <span className="text-[13px] text-[#888888]">분석 완료</span>
-          <span className="font-[700] text-[#1A1A1A] text-[16px]">{data.stats.total}건</span>
+          <span className="font-[700] text-foreground text-[16px]">{data.stats.total}건</span>
         </div>
         <div className="w-[0.5px] h-[18px] bg-[#66666666]" />
         <div className="flex items-center gap-[6px]">
@@ -518,12 +600,12 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
           </div>
         </div>
         <div className="ml-auto shrink-0 w-[36px] h-[36px] pointer-events-none select-none">
-          <img src="/images/irumi-logo.svg" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
+          <img src="/images/mk-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
         </div>
       </div>
 
-      {/* 검색/필터 바 */}
-      <div className="h-[44px] bg-white rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)] px-[16px] flex items-center gap-[8px] mb-[14px]">
+      {/* 3행: 검색/필터 바 */}
+      <div className="h-[44px] bg-card rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)] px-[16px] flex items-center gap-[8px] mb-[14px]">
         <div className="flex items-center gap-[8px]">
           <HugeiconsIcon icon={Search01Icon} size={14} color="#CCCCCC" />
           <input
@@ -542,8 +624,8 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
               onClick={() => setActiveCategory(cat)}
               className={`text-[11px] px-[11px] py-[5px] rounded-[8px] border-none cursor-pointer transition-colors ${
                 activeCategory === cat
-                  ? "bg-[#F5F5F5] text-[#1A1A1A] font-[700]"
-                  : "bg-transparent text-[#BBBBBB] hover:text-[#1A1A1A]"
+                  ? "bg-[#F5F5F5] text-foreground font-[700]"
+                  : "bg-transparent text-[#BBBBBB] hover:text-foreground"
               }`}
             >
               {cat}
@@ -570,59 +652,17 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
           const dotColor  = RISK_DOT_COLOR[card.risk] ?? "#AAAAAA";
 
           return (
-            <div
+            <NewsArticleCard
               key={card.id}
+              card={card}
+              cat={cat}
+              isUrgent={isUrgent}
+              dotColor={dotColor}
               onClick={() => {
                 setSelectedArticle(convertToModalArticle(card));
                 setDetailOpen(true);
               }}
-              className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-[16px] flex flex-col h-[250px] cursor-pointer hover:shadow-[0_6px_20px_rgba(0,0,0,0.10)] hover:-translate-y-[2px] transition-all duration-200"
-              style={{ gap: "9px" }}
-            >
-              {/* 카테고리 + 위험도 */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0" style={{ backgroundColor: cat.iconBg }}>
-                    <HugeiconsIcon icon={cat.icon} size={16} color={cat.iconColor} strokeWidth={1.5} />
-                  </div>
-                  <span className="text-[11px] font-[600] text-[#555555] ml-[7px]">{card.category}</span>
-                </div>
-                <div className="flex items-center gap-[5px]">
-                  <div className="flex flex-col items-center gap-[2px]">
-                    <div className="relative flex items-center justify-center w-[7px] h-[7px]">
-                      {isUrgent && <div className="absolute w-[7px] h-[7px] rounded-full bg-[#E24B4A] animate-ping" style={{ animationDuration: "1.5s", opacity: 0.6 }} />}
-                      <div className="relative z-10 w-[7px] h-[7px] rounded-full" style={{ backgroundColor: dotColor }} />
-                    </div>
-                    <span className="text-[8.5px] font-[600] text-[#AAAAAA]">{card.risk}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 제목 */}
-              <h3 className="font-[700] text-[#1A1A1A] leading-[1.5] line-clamp-2 text-[15px]">{card.title}</h3>
-
-              {/* 본문 */}
-              <p className="text-[#888888] leading-[1.6] text-[12px]"
-                style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}
-              >
-                {card.body}
-              </p>
-
-              {/* 키워드 태그 */}
-              <div className="mt-auto flex gap-[5px] flex-wrap">
-                {card.keywords.map((kw) => (
-                  <span key={kw} className="text-[10px] text-[#888888] bg-[#F5F5F5] px-[9px] py-[3px] rounded-[20px]">
-                    {kw}
-                  </span>
-                ))}
-              </div>
-
-              {/* 하단 */}
-              <div className="pt-[8px] border-t-[0.5px] border-[#F5F5F5] flex items-center justify-between">
-                <span className="text-[10px] text-[#BBBBBB]">{card.date}</span>
-                <span className="text-[10px] font-[700] text-[#FF6600]">상세 →</span>
-              </div>
-            </div>
+            />
           );
         })}
       </div>

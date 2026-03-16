@@ -45,6 +45,7 @@ export const CATEGORY_LABEL_MAP: Record<CategoryKey, string> = {
   selfEmployed: "자영업",
   finance: "금융",
   realEstate: "부동산",
+  other: "기타",
 };
 
 // -- 등급 정의 --
@@ -177,6 +178,7 @@ export const GOV_SERVICE_KEYWORDS: Record<CategoryKey, string[]> = {
   selfEmployed: ["소상공인", "자영업", "창업", "폐업", "상가"],
   finance: ["금융", "대출", "서민금융", "장려금", "채무"],
   realEstate: ["주거", "전세", "임대", "주택", "월세"],
+  other: [],
 };
 
 // -- 카테고리별 국회 API 검색 키워드 --
@@ -186,6 +188,7 @@ export const CATEGORY_SEARCH_KEYWORDS: Record<CategoryKey, string[]> = {
   selfEmployed: ["자영업", "소상공인", "폐업", "배달", "임대료", "창업", "상가"],
   finance: ["금리", "가계부채", "연체", "서민금융", "대출", "금융", "이자"],
   realEstate: ["부동산", "집값", "전세", "월세", "주거", "임대차", "아파트"],
+  other: [],
 };
 
 // -- 티커 캐러셀 공통 속도 --

@@ -50,6 +50,25 @@ function migrateThumbnailColumn(db: Database.Database): void {
   }
 }
 
+/** articles 테이블에 댓글/썸네일 관련 컬럼 추가 (없으면) */
+function migrateCommentsColumns(db: Database.Database): void {
+  const cols = db.pragma("table_info(articles)") as { name: string }[];
+  const colNames = new Set(cols.map((c) => c.name));
+
+  if (!colNames.has("thumbnail_caption")) {
+    db.exec("ALTER TABLE articles ADD COLUMN thumbnail_caption TEXT");
+    console.log("[DB] articles.thumbnail_caption 컬럼 추가");
+  }
+  if (!colNames.has("like_count")) {
+    db.exec("ALTER TABLE articles ADD COLUMN like_count INTEGER DEFAULT 0");
+    console.log("[DB] articles.like_count 컬럼 추가");
+  }
+  if (!colNames.has("reply_count")) {
+    db.exec("ALTER TABLE articles ADD COLUMN reply_count INTEGER DEFAULT 0");
+    console.log("[DB] articles.reply_count 컬럼 추가");
+  }
+}
+
 /**
  * 분석 결과 테이블을 run_id 기반 새 스키마로 재생성
  *
@@ -121,6 +140,9 @@ export function initializeSchema(db: Database.Database): void {
 
   // 3. thumbnail_url 컬럼 마이그레이션
   migrateThumbnailColumn(db);
+
+  // 4. 댓글/썸네일 캡션/반응 통계 컬럼 마이그레이션
+  migrateCommentsColumns(db);
 }
 
 /** DB 연결 해제 */

@@ -41,7 +41,8 @@ type CategoryKey =
   | "employment"
   | "selfEmployed"
   | "finance"
-  | "realEstate";
+  | "realEstate"
+  | "other";
 
 const CATEGORY_LABELS: Record<CategoryKey, string> = {
   prices: "물가",
@@ -49,6 +50,7 @@ const CATEGORY_LABELS: Record<CategoryKey, string> = {
   selfEmployed: "자영업",
   finance: "금융",
   realEstate: "부동산",
+  other: "기타",
 };
 
 const SMALL_CODE_TO_IRMI: Record<string, CategoryKey> = {
@@ -139,6 +141,7 @@ const IRMI_KEYWORDS: Record<CategoryKey, string[]> = {
     "분양", "재건축", "전월세", "매매가", "전세사기",
     "주택가격", "부동산", "청약", "임대차", "전세보증",
   ],
+  other: [],
 };
 
 const ALL_KEYWORDS = new Set(Object.values(IRMI_KEYWORDS).flat());
@@ -186,7 +189,7 @@ function inferCategory(
   keywords: string[]
 ): CategoryKey | null {
   const scores: Record<CategoryKey, number> = {
-    prices: 0, employment: 0, selfEmployed: 0, finance: 0, realEstate: 0,
+    prices: 0, employment: 0, selfEmployed: 0, finance: 0, realEstate: 0, other: 0,
   };
 
   for (const [cat, kws] of Object.entries(IRMI_KEYWORDS)) {
@@ -220,6 +223,16 @@ function calcRelevanceScore(
 
 // ── 원본 JSON 파싱 ──
 
+interface RawComment {
+  comment_id: number;
+  parent_id: number;
+  author: string;
+  content: string;
+  like_count: number;
+  hate_count: number;
+  created_at: string;
+}
+
 interface RawArticle {
   article: {
     article_id: number;
@@ -247,6 +260,7 @@ interface RawArticle {
   keyword_list: string[];
   images: { image_url: string; image_caption: string }[];
   share: { like_count: number; reply_count: number };
+  comments: RawComment[];
 }
 
 interface ProcessedArticle {
@@ -266,10 +280,15 @@ interface ProcessedArticle {
   url: string;
   writer: string;
   relevanceScore: number;
+  thumbnailUrl: string | null;
+  thumbnailCaption: string | null;
+  likeCount: number;
+  replyCount: number;
+  comments: RawComment[];
 }
 
 function processArticle(raw: RawArticle): ProcessedArticle | null {
-  // 영문 기사 제외
+  // 영문 기사만 제외
   if (raw.article.lang !== "KR") return null;
 
   const mainCat = raw.article.main_category || "";
@@ -278,14 +297,8 @@ function processArticle(raw: RawArticle): ProcessedArticle | null {
     mainCat,
     ...cats.map((c) => c.small_code_id || c.code_id),
   ].filter(Boolean);
-  const middleCodes = cats.map((c) => c.middle_code_id).filter(Boolean);
 
-  // 확실히 제외할 중분류
-  const isExcluded = middleCodes.some((mc) => EXCLUDED_MIDDLE_CODES.has(mc));
-  // 대분류 "6" (스타투데이) 제외
-  const isStar = cats.some((c) => c.large_code_id === "6");
-
-  // 1차: 카테고리 코드 기반 매핑
+  // 1차: 카테고리 코드 기반 IRMI 매핑
   let irmiCategory: CategoryKey | null = null;
   for (const code of allSmallCodes) {
     if (SMALL_CODE_TO_IRMI[code]) {
@@ -294,7 +307,7 @@ function processArticle(raw: RawArticle): ProcessedArticle | null {
     }
   }
 
-  // 복합 코드 (경제일반/정책 등) → 키워드로 카테고리 추론
+  // 2차: 복합 코드 → 키워드로 추론
   if (!irmiCategory && allSmallCodes.some((c) => MIXED_CODES.has(c))) {
     irmiCategory = inferCategory(
       raw.article.title,
@@ -303,30 +316,32 @@ function processArticle(raw: RawArticle): ProcessedArticle | null {
     );
   }
 
-  // 1차에서 매핑 안됨 + 확실 제외 대상 → 2차 키워드 필터
+  // 3차: 키워드 기반 보완
   if (!irmiCategory) {
-    if (isExcluded || isStar) return null;
-    // 2차: 키워드 기반 보완 필터
     irmiCategory = inferCategory(
       raw.article.title,
       raw.article_summary?.summary || "",
       raw.keyword_list || []
     );
-    if (!irmiCategory) return null;
   }
+
+  // IRMI 매핑 안 되면 "other"로 적재 (필터링하지 않음)
+  const finalCategory: CategoryKey = irmiCategory || "other";
 
   const title = raw.article.title || "";
   const summary = stripHtml(raw.article_summary?.summary || "");
   const keywordList = raw.keyword_list || [];
   const content = stripHtml(raw.article_body?.body || "");
+  const images = raw.images || [];
+  const share = raw.share || { like_count: 0, reply_count: 0 };
 
   return {
     id: String(raw.article.article_id),
     title,
     summary,
     content,
-    category: irmiCategory,
-    categoryLabel: CATEGORY_LABELS[irmiCategory],
+    category: finalCategory,
+    categoryLabel: CATEGORY_LABELS[finalCategory],
     originalCategoryCode: mainCat,
     originalCategoryName: cats[0]?.code_nm || "",
     middleCategoryCode: cats[0]?.middle_code_id || "",
@@ -337,6 +352,11 @@ function processArticle(raw: RawArticle): ProcessedArticle | null {
     url: raw.article_url || "",
     writer: raw.article.writers || "",
     relevanceScore: calcRelevanceScore(title, summary, keywordList),
+    thumbnailUrl: images.length > 0 ? images[0].image_url : null,
+    thumbnailCaption: images.length > 0 ? images[0].image_caption : null,
+    likeCount: share.like_count || 0,
+    replyCount: share.reply_count || 0,
+    comments: raw.comments || [],
   };
 }
 
@@ -418,16 +438,24 @@ function main() {
   db.exec(FTS_SQL);
   db.exec(FTS_TRIGGERS_SQL);
 
-  // INSERT prepared statement
+  // INSERT prepared statements
   const insertStmt = db.prepare(`
     INSERT OR IGNORE INTO articles
     (id, title, summary, content, category, category_label,
      original_category_code, original_category_name, middle_category_code,
-     middle_category_name, keywords, published_at, region, url, writer, relevance_score)
+     middle_category_name, keywords, published_at, region, url, writer, relevance_score,
+     thumbnail_url, thumbnail_caption, like_count, reply_count)
     VALUES
     (@id, @title, @summary, @content, @category, @categoryLabel,
      @originalCategoryCode, @originalCategoryName, @middleCategoryCode,
-     @middleCategoryName, @keywords, @publishedAt, @region, @url, @writer, @relevanceScore)
+     @middleCategoryName, @keywords, @publishedAt, @region, @url, @writer, @relevanceScore,
+     @thumbnailUrl, @thumbnailCaption, @likeCount, @replyCount)
+  `);
+
+  const insertCommentStmt = db.prepare(`
+    INSERT OR IGNORE INTO article_comments
+    (comment_id, article_id, parent_id, author, content, like_count, hate_count, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   // 트랜잭션 배치 INSERT
@@ -437,6 +465,9 @@ function main() {
   let totalPassed = 0;
   let totalSkipped = 0;
   let totalErrors = 0;
+  let totalComments = 0;
+  let totalThumbnails = 0;
+  let totalWithLikes = 0;
   const categoryStats: Record<string, number> = {};
 
   const startTime = Date.now();
@@ -460,7 +491,22 @@ function main() {
       if (batch.length === 0) return;
       const tx = db.transaction(() => {
         for (const a of batch) {
-          insertStmt.run(a);
+          insertStmt.run({
+            id: a.id, title: a.title, summary: a.summary, content: a.content,
+            category: a.category, categoryLabel: a.categoryLabel,
+            originalCategoryCode: a.originalCategoryCode, originalCategoryName: a.originalCategoryName,
+            middleCategoryCode: a.middleCategoryCode, middleCategoryName: a.middleCategoryName,
+            keywords: a.keywords, publishedAt: a.publishedAt, region: a.region,
+            url: a.url, writer: a.writer, relevanceScore: a.relevanceScore,
+            thumbnailUrl: a.thumbnailUrl, thumbnailCaption: a.thumbnailCaption,
+            likeCount: a.likeCount, replyCount: a.replyCount,
+          });
+          for (const c of a.comments) {
+            insertCommentStmt.run(
+              c.comment_id, a.id, c.parent_id, c.author,
+              c.content, c.like_count, c.hate_count, c.created_at,
+            );
+          }
         }
       });
       tx();
@@ -481,6 +527,9 @@ function main() {
           monthPassed++;
           categoryStats[processed.category] =
             (categoryStats[processed.category] || 0) + 1;
+          totalComments += processed.comments.length;
+          if (processed.thumbnailUrl) totalThumbnails++;
+          if (processed.likeCount > 0) totalWithLikes++;
 
           if (batch.length >= BATCH_SIZE) {
             flushBatch();
@@ -522,6 +571,9 @@ function main() {
   console.log(`Pass rate:     ${((totalPassed / totalFiles) * 100).toFixed(1)}%`);
   console.log(`Time:          ${elapsed}s`);
   console.log(`DB size:       ${(fs.statSync(DB_PATH).size / 1024 / 1024).toFixed(1)} MB`);
+  console.log(`\nThumbnails:    ${totalThumbnails}`);
+  console.log(`Comments:      ${totalComments}`);
+  console.log(`With likes:    ${totalWithLikes}`);
   console.log("\nCategory distribution:");
   for (const [cat, count] of Object.entries(categoryStats).sort(
     ([, a], [, b]) => b - a

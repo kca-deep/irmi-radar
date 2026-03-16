@@ -20,8 +20,10 @@ function getLatestDate(): string {
 
 const ROOT_NAV_ITEMS = [
   { label: "대시보드",  href: "/" },
+  { label: "맞춤 분석", href: "/analysis" },
   { label: "위기 신호", href: "/signals" },
   { label: "뉴스 분석", href: "/news" },
+  { label: "기자의 시선", href: "/reporters" },
 ];
 
 export default function TabsLayout({

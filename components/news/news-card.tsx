@@ -78,7 +78,7 @@ export function NewsCard({ article, featured = false, onClick }: NewsCardProps) 
     </div>
   );
 
-  // --- Featured (큰 카드): 좌측 이미지 + 우측 텍스트 (mk.co.kr 히어로 스타일) ---
+  // --- Featured (메인 카드): 좌측 썸네일 + 우측 텍스트 ---
   if (featured) {
     return (
       <article
@@ -87,27 +87,25 @@ export function NewsCard({ article, featured = false, onClick }: NewsCardProps) 
           "rounded-lg border border-border bg-card shadow-sm cursor-pointer h-full",
           "transition-all duration-200 ease-out",
           "hover:-translate-y-0.5 hover:shadow-md",
-          "overflow-hidden",
-          thumbnailUrl ? "flex flex-col sm:flex-row" : "flex flex-col"
+          "overflow-hidden flex flex-row"
         )}
       >
-        {/* 썸네일 (좌측 절반) */}
         {thumbnailUrl && (
-          <div className="relative sm:w-1/2 shrink-0 aspect-video sm:aspect-auto bg-muted overflow-hidden">
+          <div className="shrink-0 w-1/2 h-78 bg-muted overflow-hidden">
             <img
               src={thumbnailUrl}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
               loading="lazy"
               onError={() => setImgError(true)}
             />
           </div>
         )}
 
-        <div className="p-5 flex flex-col flex-1 min-w-0">
+        <div className="p-4 flex flex-col flex-1 min-w-0">
           {metaRow}
 
-          <h3 className="font-semibold leading-snug text-foreground mb-2 text-base line-clamp-3">
+          <h3 className="font-semibold leading-snug text-foreground mb-1.5 text-base line-clamp-2">
             {article.title}
           </h3>
           <p className="text-xs leading-relaxed text-muted-foreground mb-3 flex-1 line-clamp-4">
@@ -150,7 +148,7 @@ export function NewsCard({ article, featured = false, onClick }: NewsCardProps) 
             <img
               src={thumbnailUrl}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
               loading="lazy"
               onError={() => setImgError(true)}
             />
