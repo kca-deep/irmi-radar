@@ -11,16 +11,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
-const NAV_ITEMS = [
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: "대시보드",  href: "/irumi" },
   { label: "맞춤 분석", href: "/irumi/analysis" },
   { label: "위기 신호", href: "/irumi/signals" },
   { label: "뉴스 분석", href: "/irumi/news" },
   { label: "기자의 시선", href: "/irumi/reporters" },
-] as const;
+];
 
-export function IrumiSidebar() {
+interface IrumiSidebarProps {
+  navItems?: NavItem[];
+}
+
+export function IrumiSidebar({ navItems = DEFAULT_NAV_ITEMS }: IrumiSidebarProps) {
   const pathname = usePathname();
+  const basePath = navItems[0]?.href ?? "/";
 
   return (
     <aside className="w-[220px] h-screen sticky top-0 bg-card border-r border-border pt-10 pb-8 px-4 flex flex-col justify-between shrink-0">
@@ -42,10 +52,10 @@ export function IrumiSidebar() {
 
         {/* 네비게이션 */}
         <nav className="flex flex-col gap-[2px]">
-          {NAV_ITEMS.map(({ label, href }) => {
+          {navItems.map(({ label, href }) => {
             const isActive =
-              href === "/irumi"
-                ? pathname === "/irumi"
+              href === basePath
+                ? pathname === basePath
                 : pathname.startsWith(href);
 
             return (

@@ -33,10 +33,10 @@ function DashboardHeader({ referenceDate }: { referenceDate?: string }) {
   }, []);
 
   const getPageTitle = () => {
-    if (pathname === "/irumi/analysis")  return "맞춤분석";
-    if (pathname === "/irumi/news")      return "뉴스 분석";
-    if (pathname === "/irumi/signals")   return "위기 신호";
-    if (pathname === "/irumi/reporters") return "기자의 시선";
+    if (pathname === "/irumi/analysis" || pathname === "/analysis")  return "맞춤분석";
+    if (pathname === "/irumi/news" || pathname.startsWith("/news"))  return "뉴스 분석";
+    if (pathname === "/irumi/signals" || pathname.startsWith("/signals")) return "위기 신호";
+    if (pathname === "/irumi/reporters" || pathname === "/reporters") return "기자의 시선";
     return "Dashboard";
   };
 
@@ -118,16 +118,22 @@ function DashboardHeader({ referenceDate }: { referenceDate?: string }) {
 }
 
 /* -- 레이아웃 래퍼 -- */
+interface NavItem {
+  label: string;
+  href: string;
+}
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
   referenceDate?: string;
+  navItems?: NavItem[];
 }
 
-export function DashboardLayout({ children, referenceDate }: DashboardLayoutProps) {
+export function DashboardLayout({ children, referenceDate, navItems }: DashboardLayoutProps) {
   return (
     <PeriodProvider>
       <div className="min-h-screen bg-irumi-page font-sans text-irumi-text-1 flex w-full">
-        <IrumiSidebar />
+        <IrumiSidebar navItems={navItems} />
 
         <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
           <DashboardHeader referenceDate={referenceDate} />
