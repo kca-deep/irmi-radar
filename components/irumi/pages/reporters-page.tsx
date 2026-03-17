@@ -10,17 +10,36 @@
  *   - recharts는 동일하게 사용
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState } from "react";
 
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { BloggingIllustration } from "@/components/irumi/blogging-illustration";
-import type { ReporterData, Reporter, BeatSummary } from "@/lib/irumi/types";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+import type { ReporterData, Reporter, BeatSummary, BeatItem } from "@/lib/irumi/types";
 
 // ── 색상 팔레트 ────────────────────────────────────────────
 const TOSS_BLUE   = "#3182F6";
 const SLATE_PALETTE = ["#334155", "#475569", "#64748b", TOSS_BLUE, "#94a3b8"];
 
-function getSlateColor(i: number) { return SLATE_PALETTE[i % SLATE_PALETTE.length]; }
+function getSlateColor(i: number, isEtc = false) {
+  if (isEtc) return "#D1D5DB";
+  return SLATE_PALETTE[i % SLATE_PALETTE.length];
+}
+
+/** beatBreakdown을 상위 max개 + "기타" 합산으로 축소 */
+function truncateBeats(breakdown: BeatItem[], max = 5): BeatItem[] {
+  if (breakdown.length <= max) return breakdown;
+  const top = breakdown.slice(0, max);
+  const rest = breakdown.slice(max);
+  const etcCount = rest.reduce((s, b) => s + b.count, 0);
+  return [...top, { beat: `기타 ${rest.length}개`, count: etcCount }];
+}
 
 const BEAT_BADGE: Record<string, { bg: string; text: string }> = {
   경제:    { bg: "#DBEAFE", text: "#1D4ED8" },
@@ -162,28 +181,34 @@ function DefaultProfile({ reporter }: { reporter: Reporter | undefined }) {
       </div>
 
       {/* Beat breakdown as horizontal bar */}
-      <div>
-        <p className="mb-2 text-xs font-semibold text-gray-400">분야별 비중</p>
-        <div className="flex h-3 w-full overflow-hidden rounded-full">
-          {reporter.beatBreakdown.map((b, idx) => (
-            <div
-              key={`${b.beat}-${idx}`}
-              style={{
-                width: `${(b.count / total) * 100}%`,
-                backgroundColor: getSlateColor(idx),
-              }}
-            />
-          ))}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-          {reporter.beatBreakdown.map((b, idx) => (
-            <div key={`${b.beat}-${idx}`} className="flex items-center gap-1.5 text-xs text-gray-400">
-              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: getSlateColor(idx) }} />
-              {b.beat} {Math.round((b.count / total) * 100)}%
+      {(() => {
+        const displayBeats = truncateBeats(reporter.beatBreakdown);
+        const displayTotal = displayBeats.reduce((s, b) => s + b.count, 0) || 1;
+        return (
+          <div>
+            <p className="mb-2 text-xs font-semibold text-gray-400">분야별 비중</p>
+            <div className="flex h-3 w-full overflow-hidden rounded-full">
+              {displayBeats.map((b, idx) => (
+                <div
+                  key={`${b.beat}-${idx}`}
+                  style={{
+                    width: `${(b.count / displayTotal) * 100}%`,
+                    backgroundColor: getSlateColor(idx, b.beat.startsWith("기타")),
+                  }}
+                />
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              {displayBeats.map((b, idx) => (
+                <div key={`${b.beat}-${idx}`} className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: getSlateColor(idx, b.beat.startsWith("기타")) }} />
+                  {b.beat} {Math.round((b.count / displayTotal) * 100)}%
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       <p className="text-center text-xs text-gray-400">좌측 리더보드에서 기자를 클릭하면<br />상세 프로파일을 확인할 수 있습니다</p>
     </div>
@@ -191,7 +216,8 @@ function DefaultProfile({ reporter }: { reporter: Reporter | undefined }) {
 }
 
 function ReporterProfile({ reporter }: { reporter: Reporter }) {
-  const total = reporter.beatBreakdown.reduce((s, b) => s + b.count, 0) || 1;
+  const displayBeats = truncateBeats(reporter.beatBreakdown);
+  const total = displayBeats.reduce((s, b) => s + b.count, 0) || 1;
   const dept = reporter.name.includes("(")
     ? reporter.name.slice(reporter.name.indexOf("(") + 1, reporter.name.indexOf(")"))
     : "";
@@ -249,7 +275,7 @@ function ReporterProfile({ reporter }: { reporter: Reporter }) {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={reporter.beatBreakdown}
+                  data={displayBeats}
                   cx="50%"
                   cy="50%"
                   innerRadius={32}
@@ -258,8 +284,8 @@ function ReporterProfile({ reporter }: { reporter: Reporter }) {
                   nameKey="beat"
                   strokeWidth={0}
                 >
-                  {reporter.beatBreakdown.map((entry, idx) => (
-                    <Cell key={entry.beat} fill={getSlateColor(idx)} opacity={0.85} />
+                  {displayBeats.map((entry, idx) => (
+                    <Cell key={entry.beat} fill={getSlateColor(idx, entry.beat.startsWith("기타"))} opacity={0.85} />
                   ))}
                 </Pie>
               </PieChart>
@@ -267,11 +293,11 @@ function ReporterProfile({ reporter }: { reporter: Reporter }) {
           </div>
           {/* Legend */}
           <div className="flex-1 space-y-2">
-            {reporter.beatBreakdown.map((b, idx) => (
+            {displayBeats.map((b, idx) => (
               <div key={b.beat} className="flex items-center gap-2 text-xs">
                 <span
                   className="inline-block h-2 w-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: getSlateColor(idx) }}
+                  style={{ backgroundColor: getSlateColor(idx, b.beat.startsWith("기타")) }}
                 />
                 <span className="flex-1 text-gray-500">{b.beat}</span>
                 <span className="font-medium text-gray-700">
@@ -347,83 +373,11 @@ export function ReportersPage({ data }: ReportersPageProps) {
   const [showAllSurging, setShowAllSurging] = useState(false);
   const [showAllLeaderboard, setShowAllLeaderboard] = useState(false);
 
-  // AI 인사이트 상태
-  const [aiState, setAiState] = useState<"idle" | "running" | "completed">(
-    data.aiSummary ? "completed" : "idle"
-  );
-  const [aiProgress, setAiProgress] = useState("");
-  const [enrichedData, setEnrichedData] = useState<ReporterData>(data);
-  const abortRef = useRef<AbortController | null>(null);
-
-  const handleAiAnalysis = useCallback(async () => {
-    if (aiState === "running") return;
-    setAiState("running");
-    setAiProgress("AI 인사이트 생성 준비 중...");
-
-    abortRef.current = new AbortController();
-
-    try {
-      const res = await fetch("/api/reporters/insights", {
-        method: "POST",
-        signal: abortRef.current.signal,
-      });
-
-      if (!res.ok || !res.body) {
-        setAiState("idle");
-        setAiProgress("");
-        return;
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        let eventType = "";
-        for (const line of lines) {
-          if (line.startsWith("event: ")) {
-            eventType = line.slice(7).trim();
-          } else if (line.startsWith("data: ") && eventType) {
-            try {
-              const payload = JSON.parse(line.slice(6));
-              if (eventType === "step-start") {
-                setAiProgress(payload.label);
-              } else if (eventType === "step-complete") {
-                setAiProgress(`${payload.stepId} 완료 (${payload.percent}%)`);
-              } else if (eventType === "complete" && payload.enrichedData) {
-                setEnrichedData(payload.enrichedData);
-                setAiState("completed");
-                setAiProgress("");
-              } else if (eventType === "error") {
-                setAiState("idle");
-                setAiProgress("");
-              }
-            } catch {
-              // JSON 파싱 실패 무시
-            }
-            eventType = "";
-          }
-        }
-      }
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      setAiState("idle");
-      setAiProgress("");
-    }
-  }, [aiState]);
-
-  const d = enrichedData;
+  const d = data;
   const surging      = d.leaderboard.filter((r) => r.surgeRatio >= 2);
   const selected     = selectedIdx !== null ? d.leaderboard[selectedIdx] : null;
   const topBeat      = d.beatSummary.reduce((a, b) => (a.articles > b.articles ? a : b), d.beatSummary[0]);
-  const restBeats    = d.beatSummary.filter((bs) => bs.beat !== topBeat.beat);
+  const restBeats    = d.beatSummary.filter((bs) => bs.beat !== topBeat.beat && bs.beat && bs.articles >= 1000);
   const visibleConv  = showAllConv ? d.convergence : d.convergence.slice(0, 2);
   const visibleSurging = showAllSurging ? surging : surging.slice(0, 3);
   const topReporter  = d.leaderboard[0];
@@ -431,31 +385,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
   return (
     <div className="space-y-4 pb-10">
       <div className="flex items-center justify-between mt-[12px] mb-[12px]">
-        <div className="text-[#AAAAAA] text-[14px]">
-          {aiState === "running" ? aiProgress : "기자 활동 패턴으로 읽는 위기 신호를 확인해 보세요"}
-        </div>
-        <button
-          onClick={handleAiAnalysis}
-          disabled={aiState === "running"}
-          className="flex items-center gap-[5px] bg-[#FF6600] border-none rounded-[8px] px-[16px] py-[7px] text-white font-[700] cursor-pointer hover:bg-[#E65C00] transition-colors text-[14px] disabled:opacity-50"
-        >
-          {aiState === "running" ? (
-            <>
-              <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-              분석 중...
-            </>
-          ) : aiState === "completed" ? (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              AI 인사이트 재분석
-            </>
-          ) : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              AI 인사이트 분석
-            </>
-          )}
-        </button>
+        <div className="text-[#AAAAAA] text-[14px]">기자 활동 패턴으로 읽는 위기 신호를 확인해 보세요</div>
       </div>
 
       {/* 인사이트 배너 */}
@@ -502,26 +432,31 @@ export function ReportersPage({ data }: ReportersPageProps) {
           </div>
         </div>
 
-        <div className="flex items-stretch divide-x divide-gray-200">
-          {restBeats.map((bs) => {
-            const pct = d.beatSummary.reduce((s, b) => s + b.articles, 0) > 0
-              ? Math.round((bs.articles / d.beatSummary.reduce((s, b) => s + b.articles, 0)) * 100) : 0;
-            return (
-              <div key={bs.beat} className="flex-1 flex flex-col justify-center px-5 py-3"
-                style={{ animationDelay: `${(restBeats.indexOf(bs) + 1) * 80}ms`, animationFillMode: "both" }}>
-                <p className="text-xs text-gray-400">{bs.beat}</p>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-gray-900">{fmt(bs.articles)}</span>
-                  <span className="text-xs text-gray-400">건</span>
-                </div>
-                <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400 whitespace-nowrap">
-                  <span>기자 <span className="font-bold text-gray-600">{fmt(bs.writers)}명</span></span>
-                  <span className="h-3 w-px bg-gray-300" />
-                  <span>1인당 <span className="font-bold text-gray-600">{bs.writers > 0 ? (bs.articles / bs.writers).toFixed(1) : "0"}건</span></span>
-                </div>
-              </div>
-            );
-          })}
+        <div className="min-w-0 overflow-hidden">
+          <Carousel opts={{ align: "start", loop: false }} className="w-full">
+            <div className="flex items-center justify-end gap-1 px-3 pb-1">
+              <CarouselPrevious className="static h-6 w-6 translate-x-0 translate-y-0 shadow-none border-gray-200" />
+              <CarouselNext className="static h-6 w-6 translate-x-0 translate-y-0 shadow-none border-gray-200" />
+            </div>
+            <CarouselContent className="-ml-2">
+              {restBeats.map((bs, idx) => (
+                <CarouselItem key={bs.beat} className="basis-1/4 pl-2">
+                  <div className={`flex flex-col justify-center px-4 py-3 h-full ${idx < restBeats.length - 1 ? "border-r border-gray-200" : ""}`}>
+                    <p className="text-xs text-gray-400">{bs.beat}</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-gray-900">{fmt(bs.articles)}</span>
+                      <span className="text-xs text-gray-400">건</span>
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400 whitespace-nowrap">
+                      <span>기자 <span className="font-bold text-gray-600">{fmt(bs.writers)}명</span></span>
+                      <span className="h-3 w-px bg-gray-300" />
+                      <span>1인당 <span className="font-bold text-gray-600">{bs.writers > 0 ? (bs.articles / bs.writers).toFixed(1) : "0"}건</span></span>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
         </div>
       </div>
 
