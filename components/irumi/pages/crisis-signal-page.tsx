@@ -145,28 +145,43 @@ export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProp
   const cautionCount   = signals.filter((s) => s.risk === "주의").length;
   const watchCount     = signals.filter((s) => s.risk === "관찰").length;
 
-  // ── 동적 헤드라인 ─────────────────────────────────────────
-  const riskOrder = ["긴급", "주의", "관찰", "안전"];
+  // ── 동적 헤드라인 (DB regions 기반) ──────────────────────
   const riskColorMap: Record<string, string> = {
     긴급: "#E24B4A",
     주의: "#FF6600",
     관찰: "#FFAA00",
   };
-  const parseDate = (d: string) => {
-    const [m, day] = d.replace("일", "").split("월 ").map(Number);
-    return m * 100 + day;
-  };
-  const latestDate = signals.reduce(
-    (max, s) => (parseDate(s.date) > parseDate(max) ? s.date : max),
-    signals[0]?.date ?? ""
-  );
-  const latestSignals   = signals.filter((s) => s.date === latestDate);
-  const topRisk         = riskOrder.find((r) => latestSignals.some((s) => s.risk === r)) ?? "관찰";
-  const topSignals      = latestSignals.filter((s) => s.risk === topRisk);
-  const headlineRegions = [...new Set(topSignals.map((s) => s.region).filter(Boolean))].join("·");
-  const headlineCategories = [...new Set(topSignals.map((s) => s.category.replace(/^\S+\s*/, "")))].join("·");
-  const headlineLabel   = [headlineRegions, headlineCategories].filter(Boolean).join(" ");
-  const headlineColor   = riskColorMap[topRisk] ?? "#E8521A";
+  const barLabels = ["물가", "자영업", "부동산", "고용", "금융"];
+
+  let headlineLabel = "";
+  let headlineColor = "#E8521A";
+
+  const topRegion = regions.length > 0
+    ? regions.reduce((a, b) => (a.score >= b.score ? a : b))
+    : null;
+
+  if (topRegion) {
+    const grade =
+      topRegion.score >= 80 ? "긴급" :
+      topRegion.score >= 60 ? "주의" :
+      topRegion.score >= 40 ? "관찰" : "안전";
+    headlineColor = riskColorMap[grade] ?? "#E8521A";
+    const maxBarIdx = topRegion.bars.reduce(
+      (mi, v, i, arr) => (v > arr[mi] ? i : mi), 0,
+    );
+    headlineLabel = `${topRegion.name} ${barLabels[maxBarIdx]}`;
+  } else if (signals.length > 0) {
+    // fallback: signals 기반
+    const riskOrder = ["긴급", "주의", "관찰", "안전"];
+    const topRisk = riskOrder.find((r) => signals.some((s) => s.risk === r)) ?? "관찰";
+    const topSignals = signals.filter((s) => s.risk === topRisk);
+    const region = topSignals.find((s) => s.region)?.region ?? "";
+    const category = topSignals[0]?.category.replace(/^\S+\s*/, "") ?? "";
+    headlineLabel = [region, category].filter(Boolean).join(" ");
+    headlineColor = riskColorMap[topRisk] ?? "#E8521A";
+  } else {
+    headlineLabel = "전국 민생";
+  }
 
   // ── 지도 SVG 색상 주입 ────────────────────────────────────
   const coloredMapSvg = useMemo(() => {
