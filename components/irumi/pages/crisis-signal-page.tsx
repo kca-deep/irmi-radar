@@ -6,7 +6,7 @@
  *   - import mapSvg from "...?raw" (Vite 전용) 제거
  *     → useEffect로 public/korea-map.svg 를 fetch()
  *     → 한국 지도 SVG를 public/ 폴더에 복사해두세요: public/korea-map.svg
- *   - figma:asset 이미지 → /images/irumi-logo.svg
+ *   - figma:asset 이미지 → /images/irumi-logo.png
  *   - lucide-react → @hugeicons/react
  *   - 하드코딩 데이터 제거 → CrisisSignalData props
  */
@@ -309,7 +309,7 @@ export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProp
 
         {/* 로고 워터마크 */}
         <div className="ml-auto pointer-events-none select-none w-[36px] h-[36px] shrink-0">
-          <img src="/images/irumi-logo.svg" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
+          <img src="/images/irumi-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
         </div>
       </div>
 
@@ -434,7 +434,7 @@ export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProp
             <div className="rounded-[14px] p-[16px_18px] relative overflow-hidden" style={{ background: cardGradient }}>
               <div className="absolute inset-0 rounded-[14px] overflow-hidden pointer-events-none">
                 <div className="absolute right-0 bottom-0 w-[130px] h-[130px] opacity-[0.12] pointer-events-none translate-x-[20%] translate-y-[20%]">
-                  <img src="/images/irumi-logo.svg" alt="logo watermark" className="w-full h-full object-contain" style={{ filter: "brightness(0) invert(1)" }} />
+                  <img src="/images/irumi-logo.png" alt="logo watermark" className="w-full h-full object-contain" style={{ filter: "brightness(0) invert(1)" }} />
                 </div>
               </div>
 

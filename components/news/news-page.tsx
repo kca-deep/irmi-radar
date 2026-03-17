@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { NewsFilterBar } from "./news-filter-bar";
 import { NewsList } from "./news-list";
 import { AnalysisProgressModal } from "./analysis-progress-modal";
+import { usePeriod, type Period } from "@/lib/irumi/period-context";
 import { NewsDetailModal } from "./news-detail-modal";
 import {
   ANALYSIS_STEPS,
@@ -88,8 +89,15 @@ function getFilteredByPeriod(
   });
 }
 
+const PERIOD_TO_PRESET: Record<Period, AnalysisPeriodPreset> = {
+  "최근 1주": "1w",
+  "최근 1개월": "1m",
+  "최근 3개월": "3m",
+};
+
 export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyzedOnly = false, severityStats }: NewsPageProps) {
   const router = useRouter();
+  const { period } = usePeriod();
 
   // 페이지네이션 상태
   const [articles, setArticles] = useState<NewsArticle[]>(initialArticles);
@@ -108,9 +116,9 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
   const [category, setCategory] = useState<CategoryKey | "all">("all");
   const [analyzedOnly, setAnalyzedOnly] = useState(initialAnalyzedOnly);
 
-  // 분석 설정 상태
+  // 분석 설정 상태 (헤더 드롭다운과 동기화)
   const [analysisPeriod, setAnalysisPeriod] =
-    useState<AnalysisPeriodPreset>("all");
+    useState<AnalysisPeriodPreset>(PERIOD_TO_PRESET[period] ?? "1m");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [analysisCategories, setAnalysisCategories] = useState<CategoryKey[]>(
@@ -135,6 +143,12 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
   const cancelledRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // 헤더 기간 드롭다운 변경 시 분석 기간 동기화
+  useEffect(() => {
+    const preset = PERIOD_TO_PRESET[period];
+    if (preset) setAnalysisPeriod(preset);
+  }, [period]);
 
   // 타이머 정리
   useEffect(() => {
@@ -806,7 +820,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
           </div>
         </div>
         <div className="ml-auto shrink-0 w-[36px] h-[36px] pointer-events-none select-none">
-          <img src="/images/mk-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
+          <img src="/images/irumi-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
         </div>
       </div>
 

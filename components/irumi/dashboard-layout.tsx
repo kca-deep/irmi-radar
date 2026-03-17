@@ -22,6 +22,11 @@ function DashboardHeader({ referenceDate }: { referenceDate?: string }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // 뉴스 분석 / 위기 신호 페이지에서만 드롭다운 표시
+  const showPeriodDropdown =
+    pathname === "/irumi/news" || pathname.startsWith("/news") ||
+    pathname === "/irumi/signals" || pathname.startsWith("/signals");
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -62,7 +67,8 @@ function DashboardHeader({ referenceDate }: { referenceDate?: string }) {
             })()}
           </div>
 
-          {/* 기간 드롭다운 */}
+          {/* 기간 드롭다운 — 뉴스 분석 / 위기 신호 페이지에서만 표시 */}
+          {showPeriodDropdown && (
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -101,6 +107,7 @@ function DashboardHeader({ referenceDate }: { referenceDate?: string }) {
               </div>
             )}
           </div>
+          )}
 
           {/* 리포트 다운로드 */}
           <button onClick={() => window.print()} className="flex items-center gap-2 bg-transparent hover:bg-[#EBEBEB] text-irumi-text-2 text-[13px] font-[600] px-4 py-2 rounded-[8px] transition-colors cursor-pointer ml-1">

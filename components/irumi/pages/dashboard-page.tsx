@@ -12,7 +12,6 @@ import { DashboardHero } from "@/components/irumi/dashboard-hero";
 import { DashboardCharts } from "@/components/irumi/dashboard-charts";
 import { CrisisSignalsTable } from "@/components/irumi/crisis-signals-table";
 import { EmergingIssuesWidget } from "@/components/irumi/emerging-issues-widget";
-import { usePeriod } from "@/lib/irumi/period-context";
 import type { DashboardData } from "@/lib/irumi/types";
 
 interface DashboardPageProps {
@@ -20,7 +19,6 @@ interface DashboardPageProps {
 }
 
 export function DashboardPage({ data }: DashboardPageProps) {
-  const { period } = usePeriod();
   const [selectedChartDate, setSelectedChartDate] = useState<string | null>(null);
 
   return (
@@ -46,7 +44,6 @@ export function DashboardPage({ data }: DashboardPageProps) {
             heatmapDates={data.heatmapDates}
             onDateSelect={setSelectedChartDate}
             selectedDate={selectedChartDate}
-            period={period}
           />
         </div>
 

@@ -5,7 +5,7 @@
  * 변환 포인트:
  *   - 하드코딩 mockData 제거 → ReporterData props
  *   - useEffect의 setTimeout(mock) 제거 — 데이터를 props로 수신하므로 불필요
- *   - figma:asset → /images/irumi-logo.svg
+ *   - figma:asset → /images/irumi-logo.png
  *   - lucide-react → @hugeicons/react (Loading01Icon 등)
  *   - recharts는 동일하게 사용
  */
@@ -35,6 +35,11 @@ const BEAT_BADGE: Record<string, { bg: string; text: string }> = {
 
 function getBeatBadge(beat: string) {
   return BEAT_BADGE[beat] ?? { bg: "#F3F4F6", text: "#374151" };
+}
+
+/** 천 단위 쉼표 포맷 */
+function fmt(n: number): string {
+  return n.toLocaleString("ko-KR");
 }
 
 // ── SVG arc ───────────────────────────────────────────────
@@ -123,7 +128,7 @@ function DefaultProfile({ reporter }: { reporter: Reporter | undefined }) {
 
       <div className="rounded-2xl bg-gray-100 px-5 py-4">
         <p className="text-gray-500 text-[14px]">
-          총 <span className="font-bold text-gray-900">{reporter.total}건</span>의 기사를 출고한{" "}
+          총 <span className="font-bold text-gray-900">{fmt(reporter.total)}건</span>의 기사를 출고한{" "}
           {reporter.isSpecialist ? (
             <>
               <span className="font-semibold text-[#3182F6]">{reporter.primaryBeat}</span>{" "}
@@ -141,11 +146,11 @@ function DefaultProfile({ reporter }: { reporter: Reporter | undefined }) {
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
-          <p className="font-bold text-gray-900 text-[24px]">{reporter.avgWeekly}</p>
+          <p className="font-bold text-gray-900 text-[24px]">{fmt(reporter.avgWeekly)}</p>
           <p className="text-xs text-gray-400">주평균</p>
         </div>
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
-          <p className="font-bold text-gray-900 text-[24px]">{reporter.recentCount}</p>
+          <p className="font-bold text-gray-900 text-[24px]">{fmt(reporter.recentCount)}</p>
           <p className="text-xs text-gray-400">이번주</p>
         </div>
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
@@ -212,19 +217,19 @@ function ReporterProfile({ reporter }: { reporter: Reporter }) {
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
           <p className="text-xs text-gray-400">총 기사</p>
           <p className="mt-0.5 text-2xl font-bold text-gray-900">
-            {reporter.total}<span className="text-sm font-medium text-gray-500">건</span>
+            {fmt(reporter.total)}<span className="text-sm font-medium text-gray-500">건</span>
           </p>
         </div>
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
           <p className="text-xs text-gray-400">분야 수</p>
           <p className="mt-0.5 text-2xl font-bold text-gray-900">
-            {reporter.beatCount}<span className="text-sm font-medium text-gray-500">개</span>
+            {fmt(reporter.beatCount)}<span className="text-sm font-medium text-gray-500">개</span>
           </p>
         </div>
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
           <p className="text-xs text-gray-400">이번주</p>
           <p className="mt-0.5 text-2xl font-bold text-gray-900">
-            {reporter.recentCount}<span className="text-sm font-medium text-gray-500">건</span>
+            {fmt(reporter.recentCount)}<span className="text-sm font-medium text-gray-500">건</span>
           </p>
         </div>
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
@@ -321,7 +326,7 @@ function ReporterProfile({ reporter }: { reporter: Reporter }) {
                   borderRadius: "12px",
                   fontSize: "12px",
                 }}
-                formatter={(value) => [`${value}건`, "출고량"]}
+                formatter={(value) => [`${Number(value).toLocaleString("ko-KR")}건`, "출고량"]}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -464,15 +469,15 @@ export function ReportersPage({ data }: ReportersPageProps) {
           ) : (
             <>
               <span className="font-extrabold text-gray-900">{topBeat.beat}</span>{" "}분야{" "}
-              <span className="font-extrabold text-gray-900">{topBeat.writers}명</span>의 기자가{" "}
-              <span className="font-extrabold text-gray-900">{topBeat.articles}건</span> 출고하며 전 분야 최다 활동.{" "}
+              <span className="font-extrabold text-gray-900">{fmt(topBeat.writers)}명</span>의 기자가{" "}
+              <span className="font-extrabold text-gray-900">{fmt(topBeat.articles)}건</span> 출고하며 전 분야 최다 활동.{" "}
               기사 출고 급증 기자{" "}<span className="font-extrabold text-[#3182F6]">{surging.length}명</span>,{" "}
               교차취재{" "}<span className="font-extrabold text-[#3182F6]">{d.convergence.length}건</span> 감지.
             </>
           )}
         </p>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 w-[44px] h-[44px] pointer-events-none select-none">
-          <img src="/images/irumi-logo.svg" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
+          <img src="/images/irumi-logo.png" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
         </div>
       </div>
 
@@ -484,11 +489,11 @@ export function ReportersPage({ data }: ReportersPageProps) {
               <span className="rounded-md bg-white/20 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-white">전 분야 최다</span>
               <p className="mt-2 text-sm font-medium text-white/60">{topBeat.beat}</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black leading-none tracking-tighter text-white">{topBeat.articles}</span>
+                <span className="text-4xl font-black leading-none tracking-tighter text-white">{fmt(topBeat.articles)}</span>
                 <span className="text-sm font-medium text-white/50">건</span>
               </div>
               <div className="mt-2 flex items-center gap-2 text-[11px] text-white/50">
-                <span>기자 <span className="font-bold text-white/90">{topBeat.writers}명</span></span>
+                <span>기자 <span className="font-bold text-white/90">{fmt(topBeat.writers)}명</span></span>
                 <span className="h-3 w-px bg-white/30" />
                 <span>1인당 <span className="font-bold text-white/90">{(topBeat.articles / topBeat.writers).toFixed(1)}건</span></span>
               </div>
@@ -506,11 +511,11 @@ export function ReportersPage({ data }: ReportersPageProps) {
                 style={{ animationDelay: `${(restBeats.indexOf(bs) + 1) * 80}ms`, animationFillMode: "both" }}>
                 <p className="text-xs text-gray-400">{bs.beat}</p>
                 <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-gray-900">{bs.articles}</span>
+                  <span className="text-3xl font-extrabold text-gray-900">{fmt(bs.articles)}</span>
                   <span className="text-xs text-gray-400">건</span>
                 </div>
                 <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400 whitespace-nowrap">
-                  <span>기자 <span className="font-bold text-gray-600">{bs.writers}명</span></span>
+                  <span>기자 <span className="font-bold text-gray-600">{fmt(bs.writers)}명</span></span>
                   <span className="h-3 w-px bg-gray-300" />
                   <span>1인당 <span className="font-bold text-gray-600">{bs.writers > 0 ? (bs.articles / bs.writers).toFixed(1) : "0"}건</span></span>
                 </div>
@@ -537,7 +542,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
               <div key={r.name} className="rounded-xl bg-gray-100 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-900 text-[14px] flex-1">{r.name.split("(")[0].trim()}</span>
-                  <span className="text-xs text-gray-500">이번주 {r.recentCount}건</span>
+                  <span className="text-xs text-gray-500">이번주 {fmt(r.recentCount)}건</span>
                   <span className="rounded-md bg-[#3182F6]/15 px-2 py-0.5 text-sm font-bold text-[#3182F6]">x{r.surgeRatio}</span>
                 </div>
                 {r.surgeReason && (
@@ -555,7 +560,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
           {showAllConv && (
             <div className="absolute bottom-4 right-4 w-[96px] h-[96px] pointer-events-none select-none">
               <img
-                src="/images/irumi-logo.svg"
+                src="/images/irumi-logo.png"
                 alt=""
                 className="w-full h-full object-contain"
                 style={{ filter: "grayscale(1) brightness(0.6)", opacity: 0.13 }}
@@ -651,7 +656,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
                     <td className={`py-2.5 pr-3 text-xs font-bold align-middle ${i < 3 ? "text-[#3182F6]" : "text-gray-300"}`}>{i + 1}</td>
                     <td className="py-2.5 pr-4 align-middle"><span className="text-sm font-medium text-gray-900 whitespace-nowrap">{r.name.split("(")[0].trim()} 기자</span></td>
                     <td className="py-2.5 pr-4 align-middle"><span className="text-xs text-gray-400 whitespace-nowrap">{r.primaryBeat}{r.isSpecialist ? " 전문" : ""}</span></td>
-                    <td className="py-2.5 pr-4 text-right text-sm font-bold text-gray-900 align-middle whitespace-nowrap">{r.total}건</td>
+                    <td className="py-2.5 pr-4 text-right text-sm font-bold text-gray-900 align-middle whitespace-nowrap">{fmt(r.total)}건</td>
                     <td className="py-2.5 pr-4 text-right align-middle">
                       <span className={`text-sm font-bold ${r.surgeRatio >= 2 ? "text-[#3182F6]" : r.surgeRatio >= 1.5 ? "text-gray-700" : "text-gray-400"}`}>x{r.surgeRatio}</span>
                     </td>

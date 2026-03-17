@@ -10,6 +10,7 @@ import { PolicyCarousel } from "@/components/signals/policy-carousel";
 import { RegionMap } from "@/components/signals/region-map";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_LABEL_MAP } from "@/lib/constants";
+import { usePeriod } from "@/lib/irumi/period-context";
 
 import type { Signal, Policy, CategoryKey, Severity, RegionScore } from "@/lib/types";
 
@@ -19,7 +20,15 @@ interface SignalsPageProps {
   regionScores: RegionScore[];
 }
 
+const PERIOD_DAYS_MAP: Record<string, number> = {
+  "최근 1주": 7,
+  "최근 1개월": 30,
+  "최근 3개월": 90,
+};
+
 export function SignalsPage({ signals, policies, regionScores }: SignalsPageProps) {
+  const { period } = usePeriod();
+
   // 필터 상태
   const [category, setCategory] = useState<CategoryKey | "all">("all");
   const [region, setRegion] = useState<string>("all");
@@ -29,33 +38,46 @@ export function SignalsPage({ signals, policies, regionScores }: SignalsPageProp
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  // 기간 필터링된 신호
+  const periodFilteredSignals = useMemo(() => {
+    const days = PERIOD_DAYS_MAP[period];
+    if (!days) return signals;
+
+    const latestDate = signals.reduce((latest, s) => {
+      const d = new Date(s.detectedAt);
+      return d > latest ? d : latest;
+    }, new Date(0));
+
+    const startDate = new Date(latestDate);
+    startDate.setDate(startDate.getDate() - days);
+
+    return signals.filter((s) => new Date(s.detectedAt) >= startDate);
+  }, [signals, period]);
+
   // 필터링된 신호 목록
   const filteredSignals = useMemo(() => {
-    return signals.filter((signal) => {
-      // 카테고리 필터
+    return periodFilteredSignals.filter((signal) => {
       if (category !== "all" && signal.category !== category) {
         return false;
       }
-      // 지역 필터
       if (region !== "all" && signal.region !== region) {
         return false;
       }
-      // 등급 필터
       if (severity !== "all" && signal.severity !== severity) {
         return false;
       }
       return true;
     });
-  }, [signals, category, region, severity]);
+  }, [periodFilteredSignals, category, region, severity]);
 
-  // 등급별 카운트
+  // 등급별 카운트 (기간 필터 적용 후)
   const severityCounts = useMemo(() => {
     const counts = { critical: 0, warning: 0, caution: 0, safe: 0 };
-    signals.forEach((signal) => {
+    periodFilteredSignals.forEach((signal) => {
       counts[signal.severity]++;
     });
     return counts;
-  }, [signals]);
+  }, [periodFilteredSignals]);
 
   // 상세 보기 핸들러
   const handleViewDetail = (signal: Signal) => {

@@ -4,10 +4,11 @@
  * dashboard-hero.tsx
  * 변환 포인트:
  *   - react-router의 useNavigate → next/navigation의 useRouter
- *   - figma:asset 이미지 → /images/irumi-logo.svg (public 폴더에 로고를 배치하세요)
+ *   - figma:asset 이미지 → /images/irumi-logo.png (public 폴더에 로고를 배치하세요)
  *   - WritingIllustration은 동일한 SVG 컴포넌트를 복사해서 사용
  */
 
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { WritingIllustration } from "@/components/irumi/writing-illustration";
@@ -35,6 +36,27 @@ export function DashboardHero({
   aiSummaryTime,
 }: DashboardHeroProps) {
   const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const bodyRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    // line-clamp 적용 시 scrollHeight > clientHeight이면 잘린 것
+    const check = () => {
+      if (expanded) {
+        setIsClamped(true); // 펼친 상태면 접기 버튼 항상 표시
+      } else {
+        setIsClamped(el.scrollHeight > el.clientHeight + 1);
+      }
+    };
+    // 폰트 로드 후에도 체크
+    requestAnimationFrame(() => requestAnimationFrame(check));
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [aiSummaryBody, expanded]);
 
   return (
     <div className="flex gap-[20px] w-full min-h-[160px]">
@@ -42,7 +64,7 @@ export function DashboardHero({
       <div className="w-[280px] bg-gradient-to-br from-[#FF7A1F] to-[#E65500] rounded-[16px] text-white p-[24px] flex flex-col justify-between shadow-[0_4px_16px_rgba(255,102,0,0.25)] relative z-50 shrink-0">
         <div className="absolute inset-0 rounded-[16px] overflow-hidden pointer-events-none">
           <div className="absolute right-0 bottom-0 w-[180px] h-[180px] opacity-[0.16] pointer-events-none mix-blend-multiply translate-x-[15%] translate-y-[15%]">
-            <img src="/images/irumi-logo.svg" alt="logo watermark" className="w-full h-full object-contain" />
+            <img src="/images/irumi-logo.png" alt="logo watermark" className="w-full h-full object-contain" />
           </div>
         </div>
 
@@ -69,19 +91,22 @@ export function DashboardHero({
       </div>
 
       {/* AI 브리핑 카드 */}
-      <div className="flex-[2.5] bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-[28px_32px] flex items-center justify-between relative overflow-hidden">
+      <div className="flex-[2.5] bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-[28px_32px] flex items-center justify-between relative overflow-hidden self-stretch">
         <div className="absolute right-[-20px] bottom-[-40px] w-[200px] h-[200px] bg-[#FFF3EC] rounded-full opacity-60" />
 
         <div className="flex-1 pr-6 relative z-10 h-full flex flex-col justify-between">
-          <div>
+          <div className="overflow-hidden flex-1 min-h-0">
             <h2 className="text-[18px] font-[800] text-[#1A1A1A] leading-snug mb-6">
               &ldquo;{aiSummaryTitle.replace(/\*\*==.*?==\*\*/g, (m) => m.replace(/\*\*==/g, "").replace(/==\*\*/g, "")).replace(/\*\*/g, "")}&rdquo;
             </h2>
-            <p className="text-[13px] text-[#666666] leading-relaxed mb-6">
+            <p
+              ref={bodyRef}
+              className={`text-[13px] text-[#666666] leading-relaxed ${expanded ? "" : "line-clamp-3"}`}
+            >
               {aiSummaryBody.replace(/\*\*==.*?==\*\*/g, (m) => m.replace(/\*\*==/g, "").replace(/==\*\*/g, "")).replace(/\*\*/g, "")}
             </p>
           </div>
-          <div className="mt-auto">
+          <div className="mt-2 mb-[-10px] shrink-0 flex items-end justify-between">
             <div className="inline-flex items-center gap-1.5 bg-[#F9F9F9] text-[#AAAAAA] text-[11px] font-[600] px-[12px] py-[6px] rounded-[6px] w-fit">
               <div className="w-1.5 h-1.5 rounded-full bg-[#AAAAAA]" />
               Claude AI · {aiSummaryTime} 실시간 분석
@@ -89,9 +114,34 @@ export function DashboardHero({
           </div>
         </div>
 
-        <div className="w-[140px] h-[140px] relative z-10 flex-shrink-0 flex items-center justify-center">
+        <div className="relative z-10 flex-shrink-0 w-[140px] h-[140px] flex items-center justify-center">
           <WritingIllustration className="w-full h-full object-contain drop-shadow-sm" />
         </div>
+
+        {/* 꺽쇠: 본문 레이아웃에 영향 없이 절대 위치 */}
+        {isClamped && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="absolute z-20 text-[#555555] hover:text-[#333333] transition-colors cursor-pointer bg-transparent border-none p-0"
+            style={{ bottom: "25px", right: "202px" }}
+            aria-label={expanded ? "접기" : "펼치기"}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* 맞춤 분석 진입 카드 */}

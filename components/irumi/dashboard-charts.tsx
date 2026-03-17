@@ -26,7 +26,6 @@ interface DashboardChartsProps {
   heatmapDates: string[];
   onDateSelect?: (date: string | null) => void;
   selectedDate?: string | null;
-  period?: string;
 }
 
 export function DashboardCharts({
@@ -36,7 +35,6 @@ export function DashboardCharts({
   heatmapDates,
   onDateSelect,
   selectedDate,
-  period,
 }: DashboardChartsProps) {
   return (
     <div className="flex gap-[20px] w-full h-[280px]">
@@ -46,7 +44,7 @@ export function DashboardCharts({
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-[#FF6600]" />
             <span className="text-[14px] font-[700] text-[#1A1A1A]">
-              종합 지수 추이 {period && <span className="text-[12px] text-[#FF6600] font-medium ml-1">({period})</span>}
+              종합 지수 추이
             </span>
             {selectedDate && (
               <button
@@ -100,14 +98,28 @@ export function DashboardCharts({
               <XAxis
                 dataKey="id"
                 tickFormatter={(value) => {
+                  const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                   const day = trendData[value as number]?.day || "";
-                  if (day === "Oct" || day === "Nov" || day === "Dec") return day;
-                  return "";
+                  const m = parseInt(day.split("-")[0]);
+                  return monthNames[m] || "";
                 }}
-                ticks={trendData.map((_, i) => i).filter(i => {
-                  const day = trendData[i]?.day;
-                  return day === "Oct" || day === "Nov" || day === "Dec";
-                })}
+                ticks={(() => {
+                  const seen = new Map<string, number[]>();
+                  trendData.forEach((d, i) => {
+                    const m = d.day.split("-")[0];
+                    if (!seen.has(m)) seen.set(m, []);
+                    seen.get(m)!.push(i);
+                  });
+                  const months = [...seen.entries()];
+                  if (months.length === 1) {
+                    // 1개 월: 가운데 배치
+                    const indices = months[0][1];
+                    return [indices[Math.floor(indices.length / 2)]];
+                  }
+                  // 2개 이상: 각 월의 첫 데이터 위치
+                  return months.map(([, indices]) => indices[0]);
+                })()}
+                interval={0}
                 axisLine={{ stroke: "#EEEEEE" }}
                 tickLine={false}
                 tick={{ fontSize: 11, fill: "#AAAAAA" }}
@@ -120,9 +132,12 @@ export function DashboardCharts({
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 itemStyle={{ color: "#FF6600", fontWeight: "bold" }}
-                labelFormatter={(label) =>
-                  trendData[label as number]?.day?.replace(/-\d+$/, "") ?? ""
-                }
+                labelFormatter={(label) => {
+                  const day = trendData[label as number]?.day ?? "";
+                  const parts = day.split("-");
+                  if (parts.length === 2) return `${parts[0]}/${parts[1]}`;
+                  return day;
+                }}
               />
               <Area
                 type="monotone"
@@ -163,18 +178,18 @@ export function DashboardCharts({
               <div className="flex-1 h-[8px] bg-[#F5F5F5] rounded-full mx-3 relative overflow-hidden">
                 <div
                   className="absolute left-0 top-0 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${item.value}%`, backgroundColor: item.color }}
+                  style={{ width: `${Math.round(item.value)}%`, backgroundColor: item.color }}
                 />
               </div>
-              <div className="w-[48px] flex items-center justify-end gap-1.5 text-right">
+              <div className="w-[56px] flex items-center justify-end gap-1.5">
                 <div
-                  className="text-[13px] font-[700]"
+                  className="w-[24px] text-[13px] font-[700] tabular-nums text-right"
                   style={{ color: item.color === '#5DAA30' ? '#5DAA30' : '#FF6600' }}
                 >
-                  {item.value}
+                  {Math.round(item.value)}
                 </div>
                 <div
-                  className="text-[10px] font-[600]"
+                  className="w-[24px] text-[10px] font-[600] tabular-nums text-right"
                   style={{
                     color: item.diff.startsWith("+")
                       ? "#E24B4A"
@@ -230,7 +245,7 @@ export function DashboardCharts({
                     : "text-[#AAAAAA]"
                 }`}
               >
-                {d}
+                {d === "오늘" ? d : d.replace("-", "/")}
               </div>
             ))}
           </div>

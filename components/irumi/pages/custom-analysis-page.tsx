@@ -93,7 +93,7 @@ function NewsCard({ card, isSelected, isDimmed, onClick }: NewsCardProps) {
         <span style={{ backgroundColor: "rgba(255,255,255,0.22)", borderRadius: "20px", padding: "5px 12px", fontSize: "11px", fontWeight: 700, color: "white", letterSpacing: "0.2px" }}>
           {card.risk} · {card.category}
         </span>
-        <span style={{ fontSize: "28px", fontWeight: 900, color: "rgba(255,255,255,0.22)", lineHeight: 1 }}>{card.id}</span>
+        <span style={{ fontSize: "28px", fontWeight: 900, color: "rgba(255,255,255,0.22)", lineHeight: 1 }}>{String(card.id).replace(/\D/g, "")}</span>
       </div>
 
       {/* 제목 */}
@@ -211,8 +211,8 @@ export function CustomAnalysisPage({ data, onReanalyze }: CustomAnalysisPageProp
           </div>
 
           <div className="flex flex-col gap-[10px]">
-            {Array.from({ length: Math.ceil(cards.length / 3) }).map((_, rowIndex) => {
-              const rowCards = cards.slice(rowIndex * 3, (rowIndex + 1) * 3);
+            {Array.from({ length: Math.ceil(Math.min(cards.length, 6) / 3) }).map((_, rowIndex) => {
+              const rowCards = cards.slice(rowIndex * 3, Math.min((rowIndex + 1) * 3, 6));
               const isSelectedInRow = selectedCard && rowCards.some((c) => c.id === selectedCard.id);
 
               return (

@@ -97,7 +97,7 @@ export function CrisisSignalsTable({ signals, selectedDate }: CrisisSignalsTable
                 <div className="text-[var(--irumi-text-1)] truncate pr-4 hover:text-irumi-brand transition-colors">
                   {signal.title}
                 </div>
-                <div className="text-right pr-2 text-[var(--irumi-text-3)]">{signal.date}</div>
+                <div className="text-right pr-2 text-[var(--irumi-text-3)]">{signal.date.replace("-", "/")}</div>
               </div>
             ))
           )}
