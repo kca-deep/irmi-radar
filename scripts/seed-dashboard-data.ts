@@ -90,21 +90,42 @@ function findWeekIndex(dateStr: string, weekStarts: string[]): number {
   return -1;
 }
 
-function computeReporterStats(db: InstanceType<typeof Database>, refDateStr: string): ReporterDataResult {
+/**
+ * middle_category_name 기준으로 기자 통계를 계산하고 RDB 테이블에 저장한다.
+ * beat 컬럼: COALESCE(middle_category_name, category_label) 사용
+ */
+function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateStr: string): ReporterDataResult {
   const referenceDate = refDateStr.split(" ")[0];
+  const now = new Date().toISOString();
+  const BEAT_COL = "COALESCE(middle_category_name, category_label)";
 
-  // beatSummary
+  // 테이블 생성 (schema.ts 와 동일)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS reporter_profiles (writer TEXT PRIMARY KEY, total_articles INTEGER DEFAULT 0, primary_beat TEXT, is_specialist INTEGER DEFAULT 0, beat_count INTEGER DEFAULT 1, recent_count INTEGER DEFAULT 0, avg_weekly REAL DEFAULT 0, surge_ratio REAL DEFAULT 0, rank_4week INTEGER, surge_reason TEXT, ai_profile TEXT, computed_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS reporter_beats (writer TEXT NOT NULL, beat TEXT NOT NULL, count INTEGER DEFAULT 0, PRIMARY KEY (writer, beat));
+    CREATE TABLE IF NOT EXISTS reporter_weekly_trend (writer TEXT NOT NULL, week_index INTEGER NOT NULL, week_start TEXT NOT NULL, count INTEGER DEFAULT 0, PRIMARY KEY (writer, week_index));
+    CREATE TABLE IF NOT EXISTS reporter_convergence (topic TEXT PRIMARY KEY, writer_count INTEGER DEFAULT 0, beat_count INTEGER DEFAULT 0, article_count INTEGER DEFAULT 0, beat_distribution TEXT, top_reporters TEXT, ai_insight TEXT);
+    CREATE TABLE IF NOT EXISTS reporter_beat_summary (beat TEXT PRIMARY KEY, writers INTEGER DEFAULT 0, articles INTEGER DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS reporter_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+  `);
+
+  // 기존 데이터 초기화
+  db.exec("DELETE FROM reporter_profiles; DELETE FROM reporter_beats; DELETE FROM reporter_weekly_trend; DELETE FROM reporter_convergence; DELETE FROM reporter_beat_summary; DELETE FROM reporter_meta;");
+
+  // ── beatSummary (middle_category_name 기준) ──
   const beatSummary = db.prepare(
-    `SELECT category_label AS beat, COUNT(DISTINCT writer) AS writers, COUNT(*) AS articles
-     FROM articles WHERE writer IS NOT NULL AND writer != '' GROUP BY category_label`
+    `SELECT ${BEAT_COL} AS beat, COUNT(DISTINCT writer) AS writers, COUNT(*) AS articles
+     FROM articles WHERE writer IS NOT NULL AND writer != '' GROUP BY ${BEAT_COL} ORDER BY articles DESC`
   ).all() as BeatSummary[];
 
-  // leaderboard
+  const insertBeatSummary = db.prepare("INSERT INTO reporter_beat_summary (beat, writers, articles) VALUES (?, ?, ?)");
+  for (const bs of beatSummary) insertBeatSummary.run(bs.beat, bs.writers, bs.articles);
+
+  // ── 시간 윈도우 ──
   const refDate = new Date(referenceDate + "T00:00:00Z");
   const eightWeeksAgo = new Date(refDate); eightWeeksAgo.setUTCDate(eightWeeksAgo.getUTCDate() - 56);
   const fourWeeksAgo = new Date(refDate); fourWeeksAgo.setUTCDate(fourWeeksAgo.getUTCDate() - 28);
   const oneWeekAgo = new Date(refDate); oneWeekAgo.setUTCDate(oneWeekAgo.getUTCDate() - 7);
-
   const eightWeeksAgoStr = toDateString(eightWeeksAgo);
   const fourWeeksAgoStr = toDateString(fourWeeksAgo);
   const oneWeekAgoStr = toDateString(oneWeekAgo);
@@ -115,32 +136,32 @@ function computeReporterStats(db: InstanceType<typeof Database>, refDateStr: str
     weekStarts.push(toDateString(d));
   }
 
-  // 전체 기간 기자별 주 분야
+  // ── 기자별 주 분야 (middle_category_name 기준) ──
   const primaryBeatRows = db.prepare(
-    `SELECT writer, category_label, COUNT(*) as cnt
+    `SELECT writer, ${BEAT_COL} AS beat, COUNT(*) as cnt
      FROM articles WHERE writer IS NOT NULL AND writer != ''
-     GROUP BY writer, category_label ORDER BY writer, cnt DESC`
-  ).all() as { writer: string; category_label: string; cnt: number }[];
+     GROUP BY writer, ${BEAT_COL} ORDER BY writer, cnt DESC`
+  ).all() as { writer: string; beat: string; cnt: number }[];
 
-  const writerPrimaryBeat = new Map<string, { beat: string; total: number; beatCount: number; breakdown: BeatItem[] }>();
+  const writerInfo = new Map<string, { beat: string; total: number; beatCount: number; breakdown: BeatItem[] }>();
   let curWriter = ""; let curBeats: BeatItem[] = []; let curTotal = 0;
 
   for (const row of primaryBeatRows) {
     const name = extractWriterName(row.writer);
     if (name !== curWriter) {
       if (curWriter && curBeats.length > 0) {
-        writerPrimaryBeat.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
+        writerInfo.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
       }
       curWriter = name; curBeats = []; curTotal = 0;
     }
-    curBeats.push({ beat: row.category_label, count: row.cnt });
+    curBeats.push({ beat: row.beat, count: row.cnt });
     curTotal += row.cnt;
   }
   if (curWriter && curBeats.length > 0) {
-    writerPrimaryBeat.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
+    writerInfo.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
   }
 
-  // 최근 8주 기사
+  // ── 최근 8주 기사 ──
   const recentRows = db.prepare(
     `SELECT writer, published_at FROM articles
      WHERE writer IS NOT NULL AND writer != '' AND published_at >= ? ORDER BY published_at`
@@ -155,18 +176,24 @@ function computeReporterStats(db: InstanceType<typeof Database>, refDateStr: str
     list.push(r.published_at);
   }
 
-  // 4주 출고량 기준 순위
+  // ── 4주 출고량 기준 순위 → Top 20 ──
   const ranked: { name: string; fourWeekCount: number }[] = [];
   for (const [name, dates] of writerRecent) {
-    const fourWeekCount = dates.filter(d => d >= fourWeeksAgoStr).length;
-    ranked.push({ name, fourWeekCount });
+    ranked.push({ name, fourWeekCount: dates.filter(d => d >= fourWeeksAgoStr).length });
   }
   ranked.sort((a, b) => b.fourWeekCount - a.fourWeekCount);
 
+  const insertProfile = db.prepare(
+    "INSERT INTO reporter_profiles (writer, total_articles, primary_beat, is_specialist, beat_count, recent_count, avg_weekly, surge_ratio, rank_4week, computed_at) VALUES (?,?,?,?,?,?,?,?,?,?)"
+  );
+  const insertBeat = db.prepare("INSERT OR REPLACE INTO reporter_beats (writer, beat, count) VALUES (?,?,?)");
+  const insertTrend = db.prepare("INSERT OR REPLACE INTO reporter_weekly_trend (writer, week_index, week_start, count) VALUES (?,?,?,?)");
+
   const leaderboard: ReporterStat[] = [];
-  for (const { name } of ranked.slice(0, 20)) {
+  for (let rank = 0; rank < Math.min(ranked.length, 20); rank++) {
+    const { name } = ranked[rank];
     const dates = writerRecent.get(name) || [];
-    const info = writerPrimaryBeat.get(name);
+    const info = writerInfo.get(name);
     const primaryBeat = info?.beat || "기타";
     const totalAll = info?.total || dates.length;
     const beatCount = info?.beatCount || 1;
@@ -180,26 +207,27 @@ function computeReporterStats(db: InstanceType<typeof Database>, refDateStr: str
       if (idx >= 0 && idx < 8) weeklyTrend[idx]++;
     }
     const totalInWindow = weeklyTrend.reduce((s, v) => s + v, 0);
-    const avgWeekly = totalInWindow / 8;
+    const avgWeekly = Math.round((totalInWindow / 8) * 10) / 10;
     const surgeRatio = avgWeekly > 0 ? Math.round((recentCount / avgWeekly) * 10) / 10 : 0;
 
-    leaderboard.push({
-      name, total: totalAll, primaryBeat, isSpecialist, beatCount,
-      recentCount, avgWeekly: Math.round(avgWeekly * 10) / 10, surgeRatio,
-      weeklyTrend, beatBreakdown,
-    });
+    // RDB INSERT
+    insertProfile.run(name, totalAll, primaryBeat, isSpecialist ? 1 : 0, beatCount, recentCount, avgWeekly, surgeRatio, rank + 1, now);
+    for (const b of beatBreakdown) insertBeat.run(name, b.beat, b.count);
+    for (let wi = 0; wi < 8; wi++) insertTrend.run(name, wi, weekStarts[wi], weeklyTrend[wi]);
+
+    leaderboard.push({ name, total: totalAll, primaryBeat, isSpecialist, beatCount, recentCount, avgWeekly, surgeRatio, weeklyTrend, beatBreakdown });
   }
 
-  // convergence (2주간 교차취재)
+  // ── convergence (middle_category_name 기준) ──
   const twoWeeksAgo = new Date(refDate); twoWeeksAgo.setUTCDate(twoWeeksAgo.getUTCDate() - 14);
   const twoWeeksAgoStr = toDateString(twoWeeksAgo);
 
   const kwRows = db.prepare(
-    `SELECT writer, category_label, keywords FROM articles
+    `SELECT writer, ${BEAT_COL} AS beat, keywords FROM articles
      WHERE writer IS NOT NULL AND writer != ''
        AND keywords IS NOT NULL AND keywords != '' AND keywords != '[]'
        AND published_at >= ?`
-  ).all(twoWeeksAgoStr) as { writer: string; category_label: string; keywords: string }[];
+  ).all(twoWeeksAgoStr) as { writer: string; beat: string; keywords: string }[];
 
   const keywordMap = new Map<string, {
     categories: Set<string>; writers: Map<string, { beat: string; count: number }>;
@@ -222,33 +250,37 @@ function computeReporterStats(db: InstanceType<typeof Database>, refDateStr: str
         entry = { categories: new Set(), writers: new Map(), totalArticles: 0, beatCounts: new Map() };
         keywordMap.set(trimmed, entry);
       }
-      entry.categories.add(r.category_label);
+      entry.categories.add(r.beat);
       entry.totalArticles++;
-      entry.beatCounts.set(r.category_label, (entry.beatCounts.get(r.category_label) || 0) + 1);
-
+      entry.beatCounts.set(r.beat, (entry.beatCounts.get(r.beat) || 0) + 1);
       const existing = entry.writers.get(writerName);
-      if (existing) { existing.count++; } else { entry.writers.set(writerName, { beat: r.category_label, count: 1 }); }
+      if (existing) { existing.count++; } else { entry.writers.set(writerName, { beat: r.beat, count: 1 }); }
     }
   }
 
+  const insertConv = db.prepare(
+    "INSERT INTO reporter_convergence (topic, writer_count, beat_count, article_count, beat_distribution, top_reporters) VALUES (?,?,?,?,?,?)"
+  );
   const convergence: ConvergenceStat[] = [];
   for (const [topic, entry] of keywordMap) {
     if (entry.categories.size < 3) continue;
-    const beatDistribution: BeatItem[] = [];
-    for (const [beat, count] of entry.beatCounts) beatDistribution.push({ beat, count });
-    beatDistribution.sort((a, b) => b.count - a.count);
-
-    const writerList = Array.from(entry.writers.entries()).map(([n, info]) => ({ name: n, beat: info.beat, count: info.count }));
-    writerList.sort((a, b) => b.count - a.count);
-
-    convergence.push({
-      topic, writer_count: entry.writers.size, beat_count: entry.categories.size,
-      article_count: entry.totalArticles, beatDistribution, topReporters: writerList.slice(0, 3),
-    });
+    const bd: BeatItem[] = [];
+    for (const [beat, count] of entry.beatCounts) bd.push({ beat, count });
+    bd.sort((a, b) => b.count - a.count);
+    const wl = Array.from(entry.writers.entries()).map(([n, info]) => ({ name: n, beat: info.beat, count: info.count }));
+    wl.sort((a, b) => b.count - a.count);
+    convergence.push({ topic, writer_count: entry.writers.size, beat_count: entry.categories.size, article_count: entry.totalArticles, beatDistribution: bd, topReporters: wl.slice(0, 3) });
   }
   convergence.sort((a, b) => b.article_count - a.article_count || b.beat_count - a.beat_count);
+  const top20Conv = convergence.slice(0, 20);
+  for (const c of top20Conv) insertConv.run(c.topic, c.writer_count, c.beat_count, c.article_count, JSON.stringify(c.beatDistribution), JSON.stringify(c.topReporters));
 
-  return { referenceDate, leaderboard, convergence: convergence.slice(0, 20), beatSummary };
+  // ── meta ──
+  const insertMeta = db.prepare("INSERT INTO reporter_meta (key, value) VALUES (?, ?)");
+  insertMeta.run("reference_date", referenceDate);
+  insertMeta.run("computed_at", now);
+
+  return { referenceDate, leaderboard, convergence: top20Conv, beatSummary };
 }
 
 function severityOf(score: number): string {
@@ -774,18 +806,11 @@ const seed = db.transaction(() => {
 
   console.log("[seed] dashboard_snapshots + dashboard_cache: done");
 
-  // 8. reporter_cache (기자 통계 사전 계산)
-  db.prepare(
-    "CREATE TABLE IF NOT EXISTS reporter_cache (cache_key TEXT PRIMARY KEY, data TEXT NOT NULL, computed_at TEXT NOT NULL)"
-  ).run();
-
-  const reporterData = computeReporterStats(db, latestDate);
-  db.prepare(
-    "INSERT OR REPLACE INTO reporter_cache (cache_key, data, computed_at) VALUES (?, ?, datetime('now'))"
-  ).run("reporters", JSON.stringify(reporterData));
+  // 8. 기자 통계 RDB 테이블 (middle_category_name 기준)
+  const reporterData = computeAndSaveReporterStats(db, latestDate);
 
   console.log(
-    `[seed] reporter_cache: leaderboard ${reporterData.leaderboard.length}명, ` +
+    `[seed] reporter RDB: leaderboard ${reporterData.leaderboard.length}명, ` +
     `convergence ${reporterData.convergence.length}건, ` +
     `beatSummary ${reporterData.beatSummary.length}개 분야`
   );
@@ -810,7 +835,10 @@ try {
     regions: (db.prepare("SELECT COUNT(*) as c FROM regions").get() as { c: number }).c,
     dashboard_snapshots: (db.prepare("SELECT COUNT(*) as c FROM dashboard_snapshots").get() as { c: number }).c,
     dashboard_cache: (db.prepare("SELECT COUNT(*) as c FROM dashboard_cache").get() as { c: number }).c,
-    reporter_cache: (db.prepare("SELECT COUNT(*) as c FROM reporter_cache").get() as { c: number }).c,
+    reporter_profiles: (db.prepare("SELECT COUNT(*) as c FROM reporter_profiles").get() as { c: number }).c,
+    reporter_beats: (db.prepare("SELECT COUNT(*) as c FROM reporter_beats").get() as { c: number }).c,
+    reporter_convergence: (db.prepare("SELECT COUNT(*) as c FROM reporter_convergence").get() as { c: number }).c,
+    reporter_beat_summary: (db.prepare("SELECT COUNT(*) as c FROM reporter_beat_summary").get() as { c: number }).c,
   };
   console.log("\n[seed] DB 테이블 상태:");
   for (const [table, count] of Object.entries(stats)) {

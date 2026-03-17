@@ -224,11 +224,68 @@ CREATE TABLE IF NOT EXISTS score_history (
   created_at     TEXT DEFAULT (datetime('now'))
 );
 
--- 기자 통계 캐시 (1회 사전 계산, 이후 읽기 전용)
+-- 기자 통계 캐시 (레거시 호환용 유지)
 CREATE TABLE IF NOT EXISTS reporter_cache (
   cache_key   TEXT PRIMARY KEY,
   data        TEXT NOT NULL,
   computed_at TEXT NOT NULL
+);
+
+-- 기자 프로파일 (middle_category_name 기준 분류)
+CREATE TABLE IF NOT EXISTS reporter_profiles (
+  writer         TEXT PRIMARY KEY,
+  total_articles INTEGER DEFAULT 0,
+  primary_beat   TEXT,
+  is_specialist  INTEGER DEFAULT 0,
+  beat_count     INTEGER DEFAULT 1,
+  recent_count   INTEGER DEFAULT 0,
+  avg_weekly     REAL DEFAULT 0,
+  surge_ratio    REAL DEFAULT 0,
+  rank_4week     INTEGER,
+  surge_reason   TEXT,
+  ai_profile     TEXT,
+  computed_at    TEXT NOT NULL
+);
+
+-- 기자별 분야 비중 (middle_category_name 기준)
+CREATE TABLE IF NOT EXISTS reporter_beats (
+  writer TEXT NOT NULL,
+  beat   TEXT NOT NULL,
+  count  INTEGER DEFAULT 0,
+  PRIMARY KEY (writer, beat)
+);
+
+-- 기자별 8주 출고 추이
+CREATE TABLE IF NOT EXISTS reporter_weekly_trend (
+  writer     TEXT NOT NULL,
+  week_index INTEGER NOT NULL,
+  week_start TEXT NOT NULL,
+  count      INTEGER DEFAULT 0,
+  PRIMARY KEY (writer, week_index)
+);
+
+-- 교차취재 감지 (middle_category_name 기준)
+CREATE TABLE IF NOT EXISTS reporter_convergence (
+  topic             TEXT PRIMARY KEY,
+  writer_count      INTEGER DEFAULT 0,
+  beat_count        INTEGER DEFAULT 0,
+  article_count     INTEGER DEFAULT 0,
+  beat_distribution TEXT,
+  top_reporters     TEXT,
+  ai_insight        TEXT
+);
+
+-- 분야별 요약 (middle_category_name 기준)
+CREATE TABLE IF NOT EXISTS reporter_beat_summary (
+  beat     TEXT PRIMARY KEY,
+  writers  INTEGER DEFAULT 0,
+  articles INTEGER DEFAULT 0
+);
+
+-- 기자 분석 메타 정보
+CREATE TABLE IF NOT EXISTS reporter_meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
 );
 
 -- 기사 댓글 (원본 매경 댓글 데이터)

@@ -2,7 +2,7 @@
  * POST /api/reporters/insights
  * 기자의 시선 AI 인사이트 생성 (SSE 스트리밍)
  *
- * 사전 계산된 통계 → Claude API 4단계 → reporter_cache 업데이트
+ * 사전 계산된 통계 → Claude API 4단계 → RDB 테이블 업데이트
  */
 
 import { errorResponse } from "@/lib/api/response";
@@ -121,35 +121,31 @@ export async function POST() {
           percent: 100,
         });
 
-        // 결과 병합
-        const enriched: ReporterData = {
-          ...data,
-          aiSummary,
-          aiAnalyzedAt: new Date().toISOString(),
-          convergence: data.convergence.map((c) => {
-            const found = convInsights.find((ci) => ci.topic === c.topic);
-            return found ? { ...c, aiInsight: found.insight } : c;
-          }),
-          leaderboard: data.leaderboard.map((r) => {
-            const surge = surgeReasons.find((s) => s.name === r.name);
-            const profile = profileSummaries.find((p) => p.name === r.name);
-            return {
-              ...r,
-              ...(surge ? { surgeReason: surge.reason } : {}),
-              ...(profile ? { aiProfileSummary: profile.summary } : {}),
-            };
-          }),
-        };
-
-        // reporter_cache 업데이트
+        // RDB 테이블에 AI 결과 저장
         try {
           const db = getDb();
-          db.prepare(
-            "INSERT OR REPLACE INTO reporter_cache (cache_key, data, computed_at) VALUES (?, ?, datetime('now'))"
-          ).run("reporters", JSON.stringify(enriched));
+          const now = new Date().toISOString();
+
+          // reporter_meta
+          db.prepare("INSERT OR REPLACE INTO reporter_meta (key, value) VALUES ('ai_summary', ?)").run(aiSummary);
+          db.prepare("INSERT OR REPLACE INTO reporter_meta (key, value) VALUES ('ai_analyzed_at', ?)").run(now);
+
+          // reporter_profiles: surge_reason, ai_profile
+          const updateSurge = db.prepare("UPDATE reporter_profiles SET surge_reason = ? WHERE writer = ?");
+          for (const s of surgeReasons) updateSurge.run(s.reason, s.name);
+
+          const updateProfile = db.prepare("UPDATE reporter_profiles SET ai_profile = ? WHERE writer = ?");
+          for (const p of profileSummaries) updateProfile.run(p.summary, p.name);
+
+          // reporter_convergence: ai_insight
+          const updateConv = db.prepare("UPDATE reporter_convergence SET ai_insight = ? WHERE topic = ?");
+          for (const ci of convInsights) updateConv.run(ci.insight, ci.topic);
         } catch (e) {
-          console.error("[ReporterInsights] cache 업데이트 실패:", e);
+          console.error("[ReporterInsights] RDB 업데이트 실패:", e);
         }
+
+        // 업데이트된 데이터 다시 로드
+        const enriched = loadReporterData();
 
         const usage = usageTracker.getSummary();
 
