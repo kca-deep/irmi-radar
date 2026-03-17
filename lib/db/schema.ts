@@ -224,6 +224,13 @@ CREATE TABLE IF NOT EXISTS score_history (
   created_at     TEXT DEFAULT (datetime('now'))
 );
 
+-- 기자 통계 캐시 (1회 사전 계산, 이후 읽기 전용)
+CREATE TABLE IF NOT EXISTS reporter_cache (
+  cache_key   TEXT PRIMARY KEY,
+  data        TEXT NOT NULL,
+  computed_at TEXT NOT NULL
+);
+
 -- 기사 댓글 (원본 매경 댓글 데이터)
 CREATE TABLE IF NOT EXISTS article_comments (
   comment_id  INTEGER PRIMARY KEY,

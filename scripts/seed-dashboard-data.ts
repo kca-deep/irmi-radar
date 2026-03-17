@@ -54,6 +54,203 @@ const REGIONS = [
 
 const IRMI_CATS = "('prices','employment','selfEmployed','finance','realEstate')";
 
+// ── 기자 통계 계산 ──
+
+interface BeatItem { beat: string; count: number }
+interface BeatSummary { beat: string; writers: number; articles: number }
+interface ReporterStat {
+  name: string; total: number; primaryBeat: string; isSpecialist: boolean;
+  beatCount: number; recentCount: number; avgWeekly: number; surgeRatio: number;
+  weeklyTrend: number[]; beatBreakdown: BeatItem[];
+}
+interface ConvergenceStat {
+  topic: string; writer_count: number; beat_count: number; article_count: number;
+  beatDistribution: BeatItem[];
+  topReporters: { name: string; beat: string; count: number }[];
+}
+interface ReporterDataResult {
+  referenceDate: string; leaderboard: ReporterStat[];
+  convergence: ConvergenceStat[]; beatSummary: BeatSummary[];
+}
+
+function extractWriterName(writer: string): string {
+  const match = writer.match(/^([가-힣]+)/);
+  return match ? match[1] : writer.split("(")[0].trim();
+}
+
+function toDateString(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function findWeekIndex(dateStr: string, weekStarts: string[]): number {
+  const d = dateStr.slice(0, 10);
+  for (let i = weekStarts.length - 1; i >= 0; i--) {
+    if (d >= weekStarts[i]) return i;
+  }
+  return -1;
+}
+
+function computeReporterStats(db: InstanceType<typeof Database>, refDateStr: string): ReporterDataResult {
+  const referenceDate = refDateStr.split(" ")[0];
+
+  // beatSummary
+  const beatSummary = db.prepare(
+    `SELECT category_label AS beat, COUNT(DISTINCT writer) AS writers, COUNT(*) AS articles
+     FROM articles WHERE writer IS NOT NULL AND writer != '' GROUP BY category_label`
+  ).all() as BeatSummary[];
+
+  // leaderboard
+  const refDate = new Date(referenceDate + "T00:00:00Z");
+  const eightWeeksAgo = new Date(refDate); eightWeeksAgo.setUTCDate(eightWeeksAgo.getUTCDate() - 56);
+  const fourWeeksAgo = new Date(refDate); fourWeeksAgo.setUTCDate(fourWeeksAgo.getUTCDate() - 28);
+  const oneWeekAgo = new Date(refDate); oneWeekAgo.setUTCDate(oneWeekAgo.getUTCDate() - 7);
+
+  const eightWeeksAgoStr = toDateString(eightWeeksAgo);
+  const fourWeeksAgoStr = toDateString(fourWeeksAgo);
+  const oneWeekAgoStr = toDateString(oneWeekAgo);
+
+  const weekStarts: string[] = [];
+  for (let i = 7; i >= 0; i--) {
+    const d = new Date(refDate); d.setUTCDate(d.getUTCDate() - i * 7);
+    weekStarts.push(toDateString(d));
+  }
+
+  // 전체 기간 기자별 주 분야
+  const primaryBeatRows = db.prepare(
+    `SELECT writer, category_label, COUNT(*) as cnt
+     FROM articles WHERE writer IS NOT NULL AND writer != ''
+     GROUP BY writer, category_label ORDER BY writer, cnt DESC`
+  ).all() as { writer: string; category_label: string; cnt: number }[];
+
+  const writerPrimaryBeat = new Map<string, { beat: string; total: number; beatCount: number; breakdown: BeatItem[] }>();
+  let curWriter = ""; let curBeats: BeatItem[] = []; let curTotal = 0;
+
+  for (const row of primaryBeatRows) {
+    const name = extractWriterName(row.writer);
+    if (name !== curWriter) {
+      if (curWriter && curBeats.length > 0) {
+        writerPrimaryBeat.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
+      }
+      curWriter = name; curBeats = []; curTotal = 0;
+    }
+    curBeats.push({ beat: row.category_label, count: row.cnt });
+    curTotal += row.cnt;
+  }
+  if (curWriter && curBeats.length > 0) {
+    writerPrimaryBeat.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
+  }
+
+  // 최근 8주 기사
+  const recentRows = db.prepare(
+    `SELECT writer, published_at FROM articles
+     WHERE writer IS NOT NULL AND writer != '' AND published_at >= ? ORDER BY published_at`
+  ).all(eightWeeksAgoStr) as { writer: string; published_at: string }[];
+
+  const writerRecent = new Map<string, string[]>();
+  for (const r of recentRows) {
+    const name = extractWriterName(r.writer);
+    if (!name) continue;
+    let list = writerRecent.get(name);
+    if (!list) { list = []; writerRecent.set(name, list); }
+    list.push(r.published_at);
+  }
+
+  // 4주 출고량 기준 순위
+  const ranked: { name: string; fourWeekCount: number }[] = [];
+  for (const [name, dates] of writerRecent) {
+    const fourWeekCount = dates.filter(d => d >= fourWeeksAgoStr).length;
+    ranked.push({ name, fourWeekCount });
+  }
+  ranked.sort((a, b) => b.fourWeekCount - a.fourWeekCount);
+
+  const leaderboard: ReporterStat[] = [];
+  for (const { name } of ranked.slice(0, 20)) {
+    const dates = writerRecent.get(name) || [];
+    const info = writerPrimaryBeat.get(name);
+    const primaryBeat = info?.beat || "기타";
+    const totalAll = info?.total || dates.length;
+    const beatCount = info?.beatCount || 1;
+    const beatBreakdown = info?.breakdown || [{ beat: primaryBeat, count: totalAll }];
+    const isSpecialist = totalAll > 0 && beatBreakdown[0].count / totalAll > 0.5;
+    const recentCount = dates.filter(d => d >= oneWeekAgoStr).length;
+
+    const weeklyTrend: number[] = new Array(8).fill(0);
+    for (const d of dates) {
+      const idx = findWeekIndex(d, weekStarts);
+      if (idx >= 0 && idx < 8) weeklyTrend[idx]++;
+    }
+    const totalInWindow = weeklyTrend.reduce((s, v) => s + v, 0);
+    const avgWeekly = totalInWindow / 8;
+    const surgeRatio = avgWeekly > 0 ? Math.round((recentCount / avgWeekly) * 10) / 10 : 0;
+
+    leaderboard.push({
+      name, total: totalAll, primaryBeat, isSpecialist, beatCount,
+      recentCount, avgWeekly: Math.round(avgWeekly * 10) / 10, surgeRatio,
+      weeklyTrend, beatBreakdown,
+    });
+  }
+
+  // convergence (2주간 교차취재)
+  const twoWeeksAgo = new Date(refDate); twoWeeksAgo.setUTCDate(twoWeeksAgo.getUTCDate() - 14);
+  const twoWeeksAgoStr = toDateString(twoWeeksAgo);
+
+  const kwRows = db.prepare(
+    `SELECT writer, category_label, keywords FROM articles
+     WHERE writer IS NOT NULL AND writer != ''
+       AND keywords IS NOT NULL AND keywords != '' AND keywords != '[]'
+       AND published_at >= ?`
+  ).all(twoWeeksAgoStr) as { writer: string; category_label: string; keywords: string }[];
+
+  const keywordMap = new Map<string, {
+    categories: Set<string>; writers: Map<string, { beat: string; count: number }>;
+    totalArticles: number; beatCounts: Map<string, number>;
+  }>();
+
+  for (const r of kwRows) {
+    let keywords: string[];
+    try { keywords = JSON.parse(r.keywords); } catch { continue; }
+    if (!Array.isArray(keywords)) continue;
+    const writerName = extractWriterName(r.writer);
+
+    for (const kw of keywords) {
+      if (!kw || typeof kw !== "string") continue;
+      const trimmed = kw.trim();
+      if (!trimmed || trimmed.length < 2) continue;
+
+      let entry = keywordMap.get(trimmed);
+      if (!entry) {
+        entry = { categories: new Set(), writers: new Map(), totalArticles: 0, beatCounts: new Map() };
+        keywordMap.set(trimmed, entry);
+      }
+      entry.categories.add(r.category_label);
+      entry.totalArticles++;
+      entry.beatCounts.set(r.category_label, (entry.beatCounts.get(r.category_label) || 0) + 1);
+
+      const existing = entry.writers.get(writerName);
+      if (existing) { existing.count++; } else { entry.writers.set(writerName, { beat: r.category_label, count: 1 }); }
+    }
+  }
+
+  const convergence: ConvergenceStat[] = [];
+  for (const [topic, entry] of keywordMap) {
+    if (entry.categories.size < 3) continue;
+    const beatDistribution: BeatItem[] = [];
+    for (const [beat, count] of entry.beatCounts) beatDistribution.push({ beat, count });
+    beatDistribution.sort((a, b) => b.count - a.count);
+
+    const writerList = Array.from(entry.writers.entries()).map(([n, info]) => ({ name: n, beat: info.beat, count: info.count }));
+    writerList.sort((a, b) => b.count - a.count);
+
+    convergence.push({
+      topic, writer_count: entry.writers.size, beat_count: entry.categories.size,
+      article_count: entry.totalArticles, beatDistribution, topReporters: writerList.slice(0, 3),
+    });
+  }
+  convergence.sort((a, b) => b.article_count - a.article_count || b.beat_count - a.beat_count);
+
+  return { referenceDate, leaderboard, convergence: convergence.slice(0, 20), beatSummary };
+}
+
 function severityOf(score: number): string {
   if (score >= 80) return "critical";
   if (score >= 60) return "warning";
@@ -577,6 +774,22 @@ const seed = db.transaction(() => {
 
   console.log("[seed] dashboard_snapshots + dashboard_cache: done");
 
+  // 8. reporter_cache (기자 통계 사전 계산)
+  db.prepare(
+    "CREATE TABLE IF NOT EXISTS reporter_cache (cache_key TEXT PRIMARY KEY, data TEXT NOT NULL, computed_at TEXT NOT NULL)"
+  ).run();
+
+  const reporterData = computeReporterStats(db, latestDate);
+  db.prepare(
+    "INSERT OR REPLACE INTO reporter_cache (cache_key, data, computed_at) VALUES (?, ?, datetime('now'))"
+  ).run("reporters", JSON.stringify(reporterData));
+
+  console.log(
+    `[seed] reporter_cache: leaderboard ${reporterData.leaderboard.length}명, ` +
+    `convergence ${reporterData.convergence.length}건, ` +
+    `beatSummary ${reporterData.beatSummary.length}개 분야`
+  );
+
   return RUN_ID;
 });
 
@@ -597,6 +810,7 @@ try {
     regions: (db.prepare("SELECT COUNT(*) as c FROM regions").get() as { c: number }).c,
     dashboard_snapshots: (db.prepare("SELECT COUNT(*) as c FROM dashboard_snapshots").get() as { c: number }).c,
     dashboard_cache: (db.prepare("SELECT COUNT(*) as c FROM dashboard_cache").get() as { c: number }).c,
+    reporter_cache: (db.prepare("SELECT COUNT(*) as c FROM reporter_cache").get() as { c: number }).c,
   };
   console.log("\n[seed] DB 테이블 상태:");
   for (const [table, count] of Object.entries(stats)) {

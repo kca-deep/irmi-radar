@@ -1,7 +1,11 @@
 /**
- * 기자의 시선 -- SQLite 기반 실시간 쿼리
+ * 기자의 시선 -- SQLite 기반 기자 분석 데이터
  * 서버 컴포넌트 / API Route 전용
+ *
+ * 1차: reporter_cache 테이블에서 사전 계산된 데이터 읽기
+ * 2차: cache miss 시 실시간 쿼리 fallback
  */
+import Database from "better-sqlite3";
 import { getDb } from "@/lib/db";
 import type {
   ReporterData,
@@ -35,8 +39,7 @@ function getWeekIndex(dateStr: string, weekStarts: string[]): number {
 
 // ── beatSummary ───────────────────────────────────────
 
-function queryBeatSummary(): BeatSummary[] {
-  const db = getDb(true);
+function queryBeatSummary(db: Database.Database): BeatSummary[] {
   const rows = db
     .prepare(
       `SELECT category_label AS beat,
@@ -52,8 +55,7 @@ function queryBeatSummary(): BeatSummary[] {
 
 // ── referenceDate ─────────────────────────────────────
 
-function queryMaxDate(): string {
-  const db = getDb(true);
+function queryMaxDate(db: Database.Database): string {
   const row = db
     .prepare("SELECT MAX(published_at) AS maxDate FROM articles")
     .get() as { maxDate: string };
@@ -62,9 +64,7 @@ function queryMaxDate(): string {
 
 // ── leaderboard ───────────────────────────────────────
 
-function queryLeaderboard(maxDate: string): Reporter[] {
-  const db = getDb(true);
-
+function queryLeaderboard(db: Database.Database, maxDate: string): Reporter[] {
   // 8주 윈도우 계산
   const refDate = new Date(maxDate);
   const eightWeeksAgo = new Date(refDate);
@@ -79,7 +79,7 @@ function queryLeaderboard(maxDate: string): Reporter[] {
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   const oneWeekAgoStr = toDateStr(oneWeekAgo);
 
-  // 8주 버킷 시작 날짜 (월요일 기준이 아닌 단순 7일 간격)
+  // 8주 버킷 시작 날짜
   const weekStarts: string[] = [];
   for (let i = 7; i >= 0; i--) {
     const d = new Date(refDate);
@@ -87,7 +87,7 @@ function queryLeaderboard(maxDate: string): Reporter[] {
     weekStarts.push(toDateStr(d));
   }
 
-  // 전체 기간 기자별 주 분야 (DB에서 직접 가져옴)
+  // 전체 기간 기자별 주 분야
   const primaryBeatRows = db
     .prepare(
       `SELECT writer, category_label, COUNT(*) as cnt
@@ -98,7 +98,7 @@ function queryLeaderboard(maxDate: string): Reporter[] {
     )
     .all() as { writer: string; category_label: string; cnt: number }[];
 
-  // 기자별 주 분야 맵 (전체 기간 기준)
+  // 기자별 주 분야 맵
   const writerPrimaryBeat = new Map<string, { beat: string; total: number; beatCount: number; breakdown: BeatItem[] }>();
   let currentWriter = "";
   let currentBeats: BeatItem[] = [];
@@ -131,7 +131,7 @@ function queryLeaderboard(maxDate: string): Reporter[] {
     });
   }
 
-  // 최근 8주 기사 가져오기
+  // 최근 8주 기사
   const recentRows = db
     .prepare(
       `SELECT writer, category_label, published_at
@@ -171,17 +171,14 @@ function queryLeaderboard(maxDate: string): Reporter[] {
     const articles = writerRecent.get(name) || [];
     const info = writerPrimaryBeat.get(name);
 
-    // 주 분야: 전체 기간 DB 기준
     const primaryBeat = info?.beat || "기타";
     const totalAll = info?.total || articles.length;
     const beatCount = info?.beatCount || 1;
     const beatBreakdown = info?.breakdown || [{ beat: primaryBeat, count: totalAll }];
     const isSpecialist = totalAll > 0 && beatBreakdown[0].count / totalAll > 0.5;
 
-    // 이번주 출고량
     const recentCount = articles.filter(a => a.published_at >= oneWeekAgoStr).length;
 
-    // 8주 추이
     const weeklyTrend: number[] = new Array(8).fill(0);
     for (const a of articles) {
       const idx = getWeekIndex(a.published_at, weekStarts);
@@ -190,11 +187,9 @@ function queryLeaderboard(maxDate: string): Reporter[] {
       }
     }
 
-    // 주평균 (8주)
     const totalInWindow = weeklyTrend.reduce((s, v) => s + v, 0);
     const avgWeekly = totalInWindow / 8;
 
-    // 급증 배수
     const surgeRatio = avgWeekly > 0
       ? Math.round((recentCount / avgWeekly) * 10) / 10
       : 0;
@@ -218,9 +213,7 @@ function queryLeaderboard(maxDate: string): Reporter[] {
 
 // ── convergence ───────────────────────────────────────
 
-function queryConvergence(maxDate: string): Convergence[] {
-  const db = getDb(true);
-
+function queryConvergence(db: Database.Database, maxDate: string): Convergence[] {
   const twoWeeksAgo = new Date(maxDate);
   twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
   const twoWeeksAgoStr = toDateStr(twoWeeksAgo);
@@ -239,7 +232,6 @@ function queryConvergence(maxDate: string): Convergence[] {
     keywords: string;
   }[];
 
-  // keyword -> 집계
   const keywordMap = new Map<
     string,
     {
@@ -324,16 +316,47 @@ function queryConvergence(maxDate: string): Convergence[] {
   return results.slice(0, 20);
 }
 
-// ── 공개 API ──────────────────────────────────────────
+// ── DB 인스턴스를 받아 계산하는 공용 함수 ──────────────
 
-export function loadReporterData(): ReporterData {
-  const maxDate = queryMaxDate();
+/**
+ * 주어진 DB 인스턴스로 기자 통계를 계산한다.
+ * seed 스크립트와 실시간 fallback 모두에서 사용 가능.
+ */
+export function computeReporterData(db: Database.Database): ReporterData {
+  const maxDate = queryMaxDate(db);
   const referenceDate = maxDate ? maxDate.slice(0, 10) : new Date().toISOString().slice(0, 10);
 
   return {
     referenceDate,
-    beatSummary: queryBeatSummary(),
-    leaderboard: queryLeaderboard(referenceDate),
-    convergence: queryConvergence(referenceDate),
+    beatSummary: queryBeatSummary(db),
+    leaderboard: queryLeaderboard(db, referenceDate),
+    convergence: queryConvergence(db, referenceDate),
   };
+}
+
+// ── 공개 API ──────────────────────────────────────────
+
+/**
+ * 기자 분석 데이터 로드
+ * 1차: reporter_cache에서 사전 계산된 데이터 읽기
+ * 2차: cache miss 시 실시간 계산 fallback
+ */
+export function loadReporterData(): ReporterData {
+  const db = getDb(true);
+
+  // cache 우선 읽기
+  try {
+    const cached = db
+      .prepare("SELECT data FROM reporter_cache WHERE cache_key = ?")
+      .get("reporters") as { data: string } | undefined;
+
+    if (cached) {
+      return JSON.parse(cached.data) as ReporterData;
+    }
+  } catch {
+    // cache 테이블이 없거나 파싱 실패 시 fallback
+  }
+
+  // fallback: 실시간 계산
+  return computeReporterData(db);
 }

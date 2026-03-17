@@ -138,6 +138,8 @@ export interface Reporter {
   surgeRatio: number;
   weeklyTrend: number[];
   beatBreakdown: BeatItem[];
+  surgeReason?: string;
+  aiProfileSummary?: string;
 }
 
 export interface Convergence {
@@ -147,6 +149,7 @@ export interface Convergence {
   article_count: number;
   beatDistribution: BeatItem[];
   topReporters: { name: string; beat: string; count: number }[];
+  aiInsight?: string;
 }
 
 export interface BeatSummary {
@@ -160,6 +163,8 @@ export interface ReporterData {
   convergence: Convergence[];
   beatSummary: BeatSummary[];
   referenceDate: string;
+  aiSummary?: string;
+  aiAnalyzedAt?: string;
 }
 
 /* ── 맞춤 분석 (GET /api/custom) ───────────────────────── */

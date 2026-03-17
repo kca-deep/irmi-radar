@@ -10,7 +10,7 @@
  *   - recharts는 동일하게 사용
  */
 
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { BloggingIllustration } from "@/components/irumi/blogging-illustration";
@@ -278,6 +278,14 @@ function ReporterProfile({ reporter }: { reporter: Reporter }) {
         </div>
       </div>
 
+      {/* AI 프로파일 요약 */}
+      {reporter.aiProfileSummary && (
+        <div className="rounded-xl bg-[#FFF4EB] px-4 py-3">
+          <p className="text-xs font-bold text-[#FF6600] mb-1">AI 분석</p>
+          <p className="text-sm text-gray-700">{reporter.aiProfileSummary}</p>
+        </div>
+      )}
+
       {/* 8주 출고 추이 */}
       <div>
         <p className="mb-3 text-xs font-semibold text-gray-400">8주 출고 추이</p>
@@ -334,29 +342,134 @@ export function ReportersPage({ data }: ReportersPageProps) {
   const [showAllSurging, setShowAllSurging] = useState(false);
   const [showAllLeaderboard, setShowAllLeaderboard] = useState(false);
 
-  const surging      = data.leaderboard.filter((r) => r.surgeRatio >= 2);
-  const selected     = selectedIdx !== null ? data.leaderboard[selectedIdx] : null;
-  const topBeat      = data.beatSummary.reduce((a, b) => (a.articles > b.articles ? a : b), data.beatSummary[0]);
-  const restBeats    = data.beatSummary.filter((bs) => bs.beat !== topBeat.beat);
-  const visibleConv  = showAllConv ? data.convergence : data.convergence.slice(0, 2);
+  // AI 인사이트 상태
+  const [aiState, setAiState] = useState<"idle" | "running" | "completed">(
+    data.aiSummary ? "completed" : "idle"
+  );
+  const [aiProgress, setAiProgress] = useState("");
+  const [enrichedData, setEnrichedData] = useState<ReporterData>(data);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const handleAiAnalysis = useCallback(async () => {
+    if (aiState === "running") return;
+    setAiState("running");
+    setAiProgress("AI 인사이트 생성 준비 중...");
+
+    abortRef.current = new AbortController();
+
+    try {
+      const res = await fetch("/api/reporters/insights", {
+        method: "POST",
+        signal: abortRef.current.signal,
+      });
+
+      if (!res.ok || !res.body) {
+        setAiState("idle");
+        setAiProgress("");
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        let eventType = "";
+        for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            eventType = line.slice(7).trim();
+          } else if (line.startsWith("data: ") && eventType) {
+            try {
+              const payload = JSON.parse(line.slice(6));
+              if (eventType === "step-start") {
+                setAiProgress(payload.label);
+              } else if (eventType === "step-complete") {
+                setAiProgress(`${payload.stepId} 완료 (${payload.percent}%)`);
+              } else if (eventType === "complete" && payload.enrichedData) {
+                setEnrichedData(payload.enrichedData);
+                setAiState("completed");
+                setAiProgress("");
+              } else if (eventType === "error") {
+                setAiState("idle");
+                setAiProgress("");
+              }
+            } catch {
+              // JSON 파싱 실패 무시
+            }
+            eventType = "";
+          }
+        }
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setAiState("idle");
+      setAiProgress("");
+    }
+  }, [aiState]);
+
+  const d = enrichedData;
+  const surging      = d.leaderboard.filter((r) => r.surgeRatio >= 2);
+  const selected     = selectedIdx !== null ? d.leaderboard[selectedIdx] : null;
+  const topBeat      = d.beatSummary.reduce((a, b) => (a.articles > b.articles ? a : b), d.beatSummary[0]);
+  const restBeats    = d.beatSummary.filter((bs) => bs.beat !== topBeat.beat);
+  const visibleConv  = showAllConv ? d.convergence : d.convergence.slice(0, 2);
   const visibleSurging = showAllSurging ? surging : surging.slice(0, 3);
-  const topReporter  = data.leaderboard[0];
+  const topReporter  = d.leaderboard[0];
 
   return (
     <div className="space-y-4 pb-10">
       <div className="flex items-center justify-between mt-[12px] mb-[12px]">
-        <div className="text-[#AAAAAA] text-[14px]">기자 활동 패턴으로 읽는 위기 신호를 확인해 보세요</div>
+        <div className="text-[#AAAAAA] text-[14px]">
+          {aiState === "running" ? aiProgress : "기자 활동 패턴으로 읽는 위기 신호를 확인해 보세요"}
+        </div>
+        <button
+          onClick={handleAiAnalysis}
+          disabled={aiState === "running"}
+          className="flex items-center gap-[5px] bg-[#FF6600] border-none rounded-[8px] px-[16px] py-[7px] text-white font-[700] cursor-pointer hover:bg-[#E65C00] transition-colors text-[14px] disabled:opacity-50"
+        >
+          {aiState === "running" ? (
+            <>
+              <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              분석 중...
+            </>
+          ) : aiState === "completed" ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              AI 인사이트 재분석
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              AI 인사이트 분석
+            </>
+          )}
+        </button>
       </div>
 
       {/* 인사이트 배너 */}
       <div className="animate-fade-in rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] px-5 py-4 flex items-center gap-4 flex-wrap relative overflow-hidden">
-        <span className="shrink-0 rounded-full bg-[#EFF6FF] px-2.5 py-0.5 text-xs font-black text-[#3182F6] tracking-wider">요약</span>
+        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-black tracking-wider ${d.aiSummary ? "bg-[#FFF4EB] text-[#FF6600]" : "bg-[#EFF6FF] text-[#3182F6]"}`}>
+          {d.aiSummary ? "AI 요약" : "요약"}
+        </span>
         <p className="text-gray-800 flex-1 min-w-0 text-[16px]">
-          <span className="font-extrabold text-gray-900">{topBeat.beat}</span>{" "}분야{" "}
-          <span className="font-extrabold text-gray-900">{topBeat.writers}명</span>의 기자가{" "}
-          <span className="font-extrabold text-gray-900">{topBeat.articles}건</span> 출고하며 전 분야 최다 활동.{" "}
-          기사 출고 급증 기자{" "}<span className="font-extrabold text-[#3182F6]">{surging.length}명</span>,{" "}
-          교차취재{" "}<span className="font-extrabold text-[#3182F6]">{data.convergence.length}건</span> 감지.
+          {d.aiSummary ? (
+            d.aiSummary
+          ) : (
+            <>
+              <span className="font-extrabold text-gray-900">{topBeat.beat}</span>{" "}분야{" "}
+              <span className="font-extrabold text-gray-900">{topBeat.writers}명</span>의 기자가{" "}
+              <span className="font-extrabold text-gray-900">{topBeat.articles}건</span> 출고하며 전 분야 최다 활동.{" "}
+              기사 출고 급증 기자{" "}<span className="font-extrabold text-[#3182F6]">{surging.length}명</span>,{" "}
+              교차취재{" "}<span className="font-extrabold text-[#3182F6]">{d.convergence.length}건</span> 감지.
+            </>
+          )}
         </p>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 w-[44px] h-[44px] pointer-events-none select-none">
           <img src="/images/irumi-logo.svg" alt="" className="w-full h-full object-contain" style={{ filter: "grayscale(1) brightness(0.75)", opacity: 0.12 }} />
@@ -380,14 +493,14 @@ export function ReportersPage({ data }: ReportersPageProps) {
                 <span>1인당 <span className="font-bold text-white/90">{(topBeat.articles / topBeat.writers).toFixed(1)}건</span></span>
               </div>
             </div>
-            <ActivityGauge beatSummary={data.beatSummary} convergenceCount={data.convergence.length} surgingCount={surging.length} dark />
+            <ActivityGauge beatSummary={d.beatSummary} convergenceCount={d.convergence.length} surgingCount={surging.length} dark />
           </div>
         </div>
 
         <div className="flex items-stretch divide-x divide-gray-200">
           {restBeats.map((bs) => {
-            const pct = data.beatSummary.reduce((s, b) => s + b.articles, 0) > 0
-              ? Math.round((bs.articles / data.beatSummary.reduce((s, b) => s + b.articles, 0)) * 100) : 0;
+            const pct = d.beatSummary.reduce((s, b) => s + b.articles, 0) > 0
+              ? Math.round((bs.articles / d.beatSummary.reduce((s, b) => s + b.articles, 0)) * 100) : 0;
             return (
               <div key={bs.beat} className="flex-1 flex flex-col justify-center px-5 py-3"
                 style={{ animationDelay: `${(restBeats.indexOf(bs) + 1) * 80}ms`, animationFillMode: "both" }}>
@@ -421,10 +534,15 @@ export function ReportersPage({ data }: ReportersPageProps) {
           <p className="mb-5 text-sm text-gray-500">주평균 대비 2배 이상 출고 - 특정 이슈에 대한 집중 취재 가능성</p>
           <div className="grid grid-cols-1 gap-2">
             {visibleSurging.map((r) => (
-              <div key={r.name} className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-3">
-                <span className="font-semibold text-gray-900 text-[14px] flex-1">{r.name.split("(")[0].trim()}</span>
-                <span className="text-xs text-gray-500">이번주 {r.recentCount}건</span>
-                <span className="rounded-md bg-[#3182F6]/15 px-2 py-0.5 text-sm font-bold text-[#3182F6]">x{r.surgeRatio}</span>
+              <div key={r.name} className="rounded-xl bg-gray-100 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-900 text-[14px] flex-1">{r.name.split("(")[0].trim()}</span>
+                  <span className="text-xs text-gray-500">이번주 {r.recentCount}건</span>
+                  <span className="rounded-md bg-[#3182F6]/15 px-2 py-0.5 text-sm font-bold text-[#3182F6]">x{r.surgeRatio}</span>
+                </div>
+                {r.surgeReason && (
+                  <p className="mt-1.5 text-xs text-[#FF6600]">{r.surgeReason}</p>
+                )}
               </div>
             ))}
           </div>
@@ -451,8 +569,8 @@ export function ReportersPage({ data }: ReportersPageProps) {
           <div className="mb-2.5 flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-[#3182F6]" />
             <h2 className="text-base font-bold text-gray-900">교차취재 감지</h2>
-            <span className="rounded-full bg-[#3182F6]/15 px-2.5 py-0.5 text-xs font-bold text-[#3182F6]">{data.convergence.length}건</span>
-            {data.convergence.length >= 5 && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-black text-[#3182F6]">긴급</span>}
+            <span className="rounded-full bg-[#3182F6]/15 px-2.5 py-0.5 text-xs font-bold text-[#3182F6]">{d.convergence.length}건</span>
+            {d.convergence.length >= 5 && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-black text-[#3182F6]">긴급</span>}
           </div>
           <p className="mb-5 text-sm text-gray-500">3개 이상 분야 기자가 동시에 집중하는 주제 - 위기가 분야를 넘어 확산되고 있다는 신호</p>
           <div className="divide-y divide-gray-100 flex-1">
@@ -470,6 +588,9 @@ export function ReportersPage({ data }: ReportersPageProps) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-lg font-bold text-gray-900">{c.topic}</p>
                   <p className="mt-0.5 text-sm text-gray-500">{c.beat_count}개 분야 기자 {c.writer_count}명이 동시 취재 중</p>
+                  {c.aiInsight && (
+                    <p className="mt-1 text-xs text-[#FF6600]">{c.aiInsight}</p>
+                  )}
                   <div className="mt-1 flex items-center gap-2">
                     {c.beatDistribution.map((bd, idx) => (
                       <div key={bd.beat} className="flex items-center gap-1 text-xs text-gray-400">
@@ -491,10 +612,10 @@ export function ReportersPage({ data }: ReportersPageProps) {
               </div>
             ))}
           </div>
-          {data.convergence.length > 2 && (
+          {d.convergence.length > 2 && (
             <button onClick={() => setShowAllConv(!showAllConv)} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium text-gray-400 transition hover:bg-gray-100 hover:text-gray-900">
               {showAllConv ? <>접기 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m18 15-6-6-6 6"/></svg></>
-                : <>나머지 {data.convergence.length - 2}건 더 보기 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg></>}
+                : <>나머지 {d.convergence.length - 2}건 더 보기 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg></>}
             </button>
           )}
         </div>
@@ -522,7 +643,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
               </tr>
             </thead>
             <tbody>
-              {(showAllLeaderboard ? data.leaderboard : data.leaderboard.slice(0, 10)).map((r, i) => {
+              {(showAllLeaderboard ? d.leaderboard : d.leaderboard.slice(0, 10)).map((r, i) => {
                 const isSelected = selectedIdx === i;
                 return (
                   <tr key={r.name} onClick={() => setSelectedIdx(isSelected ? null : i)}
@@ -550,7 +671,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
               })}
             </tbody>
           </table>
-          {data.leaderboard.length > 10 && (
+          {d.leaderboard.length > 10 && (
             <button
               onClick={() => setShowAllLeaderboard(!showAllLeaderboard)}
               className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-medium text-gray-400 transition hover:bg-gray-50 hover:text-gray-700 border border-dashed border-gray-200"
@@ -558,7 +679,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
               {showAllLeaderboard ? (
                 <>접기 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m18 15-6-6-6 6"/></svg></>
               ) : (
-                <>더보기 · {data.leaderboard.length - 10}명 남음 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg></>
+                <>더보기 · {d.leaderboard.length - 10}명 남음 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg></>
               )}
             </button>
           )}
