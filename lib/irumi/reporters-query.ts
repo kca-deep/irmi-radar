@@ -36,6 +36,7 @@ export function loadReporterData(): ReporterData {
   const meta = new Map(metaRows.map((r) => [r.key, r.value]));
 
   const referenceDate = meta.get("reference_date") || new Date().toISOString().slice(0, 10);
+  const weeklyRatio = meta.get("weekly_ratio") ? Number(meta.get("weekly_ratio")) : undefined;
   const aiSummary = meta.get("ai_summary") || undefined;
   const aiAnalyzedAt = meta.get("ai_analyzed_at") || undefined;
 
@@ -95,7 +96,7 @@ export function loadReporterData(): ReporterData {
   const convRows = db
     .prepare(
       `SELECT topic, writer_count, beat_count, article_count,
-              beat_distribution, top_reporters, ai_insight
+              beat_distribution, top_reporters, ai_insight, top_article_title
        FROM reporter_convergence
        ORDER BY article_count DESC LIMIT 20`
     )
@@ -103,6 +104,7 @@ export function loadReporterData(): ReporterData {
     topic: string; writer_count: number; beat_count: number;
     article_count: number; beat_distribution: string;
     top_reporters: string; ai_insight: string | null;
+    top_article_title: string | null;
   }[];
 
   const convergence: Convergence[] = convRows.map((c) => ({
@@ -113,6 +115,7 @@ export function loadReporterData(): ReporterData {
     beatDistribution: JSON.parse(c.beat_distribution || "[]") as BeatItem[],
     topReporters: JSON.parse(c.top_reporters || "[]") as { name: string; beat: string; count: number }[],
     ...(c.ai_insight ? { aiInsight: c.ai_insight } : {}),
+    ...(c.top_article_title ? { topArticleTitle: c.top_article_title } : {}),
   }));
 
   return {
@@ -120,6 +123,7 @@ export function loadReporterData(): ReporterData {
     leaderboard,
     convergence,
     beatSummary,
+    ...(weeklyRatio !== undefined ? { weeklyRatio } : {}),
     ...(aiSummary ? { aiSummary } : {}),
     ...(aiAnalyzedAt ? { aiAnalyzedAt } : {}),
   };

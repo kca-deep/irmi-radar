@@ -272,7 +272,8 @@ CREATE TABLE IF NOT EXISTS reporter_convergence (
   article_count     INTEGER DEFAULT 0,
   beat_distribution TEXT,
   top_reporters     TEXT,
-  ai_insight        TEXT
+  ai_insight        TEXT,
+  top_article_title TEXT
 );
 
 -- 분야별 요약 (middle_category_name 기준)

@@ -12,16 +12,8 @@
 
 import { useState } from "react";
 
-import Autoplay from "embla-carousel-autoplay";
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { BloggingIllustration } from "@/components/irumi/blogging-illustration";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from "@/components/ui/carousel";
 import type { ReporterData, Reporter, BeatSummary, BeatItem } from "@/lib/irumi/types";
 
 // ── 색상 팔레트 ────────────────────────────────────────────
@@ -72,13 +64,14 @@ function describeArc(cx: number, cy: number, r: number, a1: number, a2: number):
   return `M ${x1} ${y1} A ${r} ${r} 0 ${la} 1 ${x2} ${y2}`;
 }
 
-function ActivityGauge({ beatSummary, convergenceCount, surgingCount, dark = false }:
-  { beatSummary: BeatSummary[]; convergenceCount: number; surgingCount: number; dark?: boolean }) {
-  const total    = beatSummary.reduce((s, b) => s + b.articles, 0);
-  const writers  = beatSummary.reduce((s, b) => s + b.writers, 0);
-  const score1   = Math.min(total / 10, 40);
-  const score2   = Math.min(convergenceCount * 5, 30);
-  const score3   = Math.min(surgingCount * 10, 30);
+function ActivityGauge({ weeklyRatio, convergenceCount, surgingCount, dark = false }:
+  { weeklyRatio: number; convergenceCount: number; surgingCount: number; dark?: boolean }) {
+  // score1: 주간 기사량 변동률 (0.8 이하 0점, 1.6+ 40점)
+  const score1   = Math.min(Math.max((weeklyRatio - 0.8) * 50, 0), 40);
+  // score2: 교차취재 건수 (10건이면 30점 최대)
+  const score2   = Math.min(convergenceCount * 3, 30);
+  // score3: 급증 기자 수 (6명이면 30점 최대)
+  const score3   = Math.min(surgingCount * 5, 30);
   const intensity = Math.min(Math.round(score1 + score2 + score3), 100);
 
   const level = intensity >= 75 ? { color: "#EF4444", bg: "#FEE2E2", label: "긴급",  arc: "#EF4444" }
@@ -174,7 +167,7 @@ function DefaultProfile({ reporter }: { reporter: Reporter | undefined }) {
           <p className="text-xs text-gray-400">이번주</p>
         </div>
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
-          <p className={`font-bold ${reporter.surgeRatio >= 2 ? "text-[#3182F6]" : "text-gray-900"} text-[24px]`}>
+          <p className={`font-bold ${reporter.surgeRatio >= 1.5 ? "text-[#3182F6]" : "text-gray-900"} text-[24px]`}>
             x{reporter.surgeRatio}
           </p>
           <p className="text-xs text-gray-400">급등 배수</p>
@@ -261,7 +254,7 @@ function ReporterProfile({ reporter }: { reporter: Reporter }) {
         </div>
         <div className="rounded-2xl bg-gray-100 px-5 py-4">
           <p className="text-xs text-gray-400">교차 비율</p>
-          <p className={`mt-0.5 text-2xl font-bold ${reporter.surgeRatio >= 2 ? "text-[#3182F6]" : "text-gray-900"}`}>
+          <p className={`mt-0.5 text-2xl font-bold ${reporter.surgeRatio >= 1.5 ? "text-[#3182F6]" : "text-gray-900"}`}>
             <span className="text-sm font-medium text-gray-500">x</span>{reporter.surgeRatio}
           </p>
         </div>
@@ -375,10 +368,10 @@ export function ReportersPage({ data }: ReportersPageProps) {
   const [showAllLeaderboard, setShowAllLeaderboard] = useState(false);
 
   const d = data;
-  const surging      = d.leaderboard.filter((r) => r.surgeRatio >= 2);
+  const surging      = d.leaderboard.filter((r) => r.surgeRatio >= 1.5);
   const selected     = selectedIdx !== null ? d.leaderboard[selectedIdx] : null;
   const topBeat      = d.beatSummary.reduce((a, b) => (a.articles > b.articles ? a : b), d.beatSummary[0]);
-  const restBeats    = d.beatSummary.filter((bs) => bs.beat !== topBeat.beat && bs.beat && bs.articles >= 1000);
+  const restBeats    = d.beatSummary.filter((bs) => bs.beat !== topBeat.beat && bs.beat).sort((a, b) => b.articles - a.articles);
   const visibleConv  = showAllConv ? d.convergence : d.convergence.slice(0, 2);
   const visibleSurging = showAllSurging ? surging : surging.slice(0, 3);
   const topReporter  = d.leaderboard[0];
@@ -429,39 +422,25 @@ export function ReportersPage({ data }: ReportersPageProps) {
                 <span>1인당 <span className="font-bold text-white/90">{(topBeat.articles / topBeat.writers).toFixed(1)}건</span></span>
               </div>
             </div>
-            <ActivityGauge beatSummary={d.beatSummary} convergenceCount={d.convergence.length} surgingCount={surging.length} dark />
+            <ActivityGauge weeklyRatio={d.weeklyRatio ?? 1} convergenceCount={d.convergence.length} surgingCount={surging.length} dark />
           </div>
         </div>
 
-        <div className="min-w-0 overflow-hidden">
-          <Carousel
-            opts={{ align: "start", loop: true, slidesToScroll: 4 }}
-            plugins={[Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true })]}
-            className="w-full"
-          >
-            <div className="flex items-center justify-end gap-1 px-3 pb-1">
-              <CarouselPrevious className="static h-6 w-6 translate-x-0 translate-y-0 shadow-none border-gray-200" />
-              <CarouselNext className="static h-6 w-6 translate-x-0 translate-y-0 shadow-none border-gray-200" />
+        <div className="min-w-0 flex">
+          {restBeats.slice(0, 4).map((bs, idx) => (
+            <div key={bs.beat} className={`flex-1 flex flex-col justify-center px-4 py-3 ${idx < 3 ? "border-r border-gray-200" : ""}`}>
+              <p className="text-xs text-gray-400">{bs.beat}</p>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-3xl font-extrabold text-gray-900">{fmt(bs.articles)}</span>
+                <span className="text-xs text-gray-400">건</span>
+              </div>
+              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400 whitespace-nowrap">
+                <span>기자 <span className="font-bold text-gray-600">{fmt(bs.writers)}명</span></span>
+                <span className="h-3 w-px bg-gray-300" />
+                <span>1인당 <span className="font-bold text-gray-600">{bs.writers > 0 ? (bs.articles / bs.writers).toFixed(1) : "0"}건</span></span>
+              </div>
             </div>
-            <CarouselContent className="-ml-2">
-              {restBeats.map((bs, idx) => (
-                <CarouselItem key={bs.beat} className="basis-1/4 pl-2">
-                  <div className={`flex flex-col justify-center px-4 py-3 h-full ${idx < restBeats.length - 1 ? "border-r border-gray-200" : ""}`}>
-                    <p className="text-xs text-gray-400">{bs.beat}</p>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold text-gray-900">{fmt(bs.articles)}</span>
-                      <span className="text-xs text-gray-400">건</span>
-                    </div>
-                    <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-gray-400 whitespace-nowrap">
-                      <span>기자 <span className="font-bold text-gray-600">{fmt(bs.writers)}명</span></span>
-                      <span className="h-3 w-px bg-gray-300" />
-                      <span>1인당 <span className="font-bold text-gray-600">{bs.writers > 0 ? (bs.articles / bs.writers).toFixed(1) : "0"}건</span></span>
-                    </div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+          ))}
         </div>
       </div>
 
@@ -476,12 +455,14 @@ export function ReportersPage({ data }: ReportersPageProps) {
             <span className="rounded-full bg-[#3182F6]/15 px-2 py-0.5 text-xs font-bold text-[#3182F6]">{surging.length}명</span>
             {surging.length >= 3 && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-black text-[#3182F6]">주의</span>}
           </div>
-          <p className="mb-5 text-sm text-gray-500">주평균 대비 2배 이상 출고 - 특정 이슈에 대한 집중 취재 가능성</p>
+          <p className="mb-5 text-sm text-gray-500">주평균 대비 1.5배 이상 출고 - 특정 이슈에 대한 집중 취재 가능성</p>
           <div className="grid grid-cols-1 gap-2">
             {visibleSurging.map((r) => (
               <div key={r.name} className="rounded-xl bg-gray-100 px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900 text-[14px] flex-1">{r.name.split("(")[0].trim()}</span>
+                  <span className="font-semibold text-gray-900 text-[14px]">{r.name.split("(")[0].trim()}</span>
+                  <span className="text-xs text-gray-400">{r.primaryBeat}</span>
+                  <span className="flex-1" />
                   <span className="text-xs text-gray-500">이번주 {fmt(r.recentCount)}건</span>
                   <span className="rounded-md bg-[#3182F6]/15 px-2 py-0.5 text-sm font-bold text-[#3182F6]">x{r.surgeRatio}</span>
                 </div>
@@ -517,7 +498,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
             <span className="rounded-full bg-[#3182F6]/15 px-2.5 py-0.5 text-xs font-bold text-[#3182F6]">{d.convergence.length}건</span>
             {d.convergence.length >= 5 && <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-black text-[#3182F6]">긴급</span>}
           </div>
-          <p className="mb-5 text-sm text-gray-500">3개 이상 분야 기자가 동시에 집중하는 주제 - 위기가 분야를 넘어 확산되고 있다는 신호</p>
+          <p className="mb-5 text-sm text-gray-500">2개 이상 민생 분야 기자가 동시에 집중하는 주제 - 위기가 분야를 넘어 확산되고 있다는 신호</p>
           <div className="divide-y divide-gray-100 flex-1">
             {visibleConv.map((c) => (
               <div key={c.topic} className="group flex items-center gap-4 rounded-xl px-4 py-2.5 transition hover:bg-gray-50">
@@ -531,7 +512,14 @@ export function ReportersPage({ data }: ReportersPageProps) {
                   </ResponsiveContainer>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-lg font-bold text-gray-900">{c.topic}</p>
+                  <div className="flex items-baseline gap-2 min-w-0">
+                    <p className="shrink-0 text-lg font-bold text-gray-900">{c.topic}</p>
+                    {c.topArticleTitle && (
+                      <p className="truncate text-xs text-gray-400 min-w-0">
+                        <span className="text-gray-300 mr-0.5">&ldquo;</span>{c.topArticleTitle}<span className="text-gray-300 ml-0.5">&rdquo;</span>
+                      </p>
+                    )}
+                  </div>
                   <p className="mt-0.5 text-sm text-gray-500">{c.beat_count}개 분야 기자 {c.writer_count}명이 동시 취재 중</p>
                   {c.aiInsight && (
                     <p className="mt-1 text-xs text-[#FF6600]">{c.aiInsight}</p>
@@ -598,7 +586,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
                     <td className="py-2.5 pr-4 align-middle"><span className="text-xs text-gray-400 whitespace-nowrap">{r.primaryBeat}{r.isSpecialist ? " 전문" : ""}</span></td>
                     <td className="py-2.5 pr-4 text-right text-sm font-bold text-gray-900 align-middle whitespace-nowrap">{fmt(r.total)}건</td>
                     <td className="py-2.5 pr-4 text-right align-middle">
-                      <span className={`text-sm font-bold ${r.surgeRatio >= 2 ? "text-[#3182F6]" : r.surgeRatio >= 1.5 ? "text-gray-700" : "text-gray-400"}`}>x{r.surgeRatio}</span>
+                      <span className={`text-sm font-bold ${r.surgeRatio >= 1.5 ? "text-[#3182F6]" : r.surgeRatio >= 1.2 ? "text-gray-700" : "text-gray-400"}`}>x{r.surgeRatio}</span>
                     </td>
                     <td className="py-2.5 text-right align-middle">
                       <div className="inline-flex items-end justify-end gap-px h-5 w-12">

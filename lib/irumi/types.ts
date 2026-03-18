@@ -150,6 +150,7 @@ export interface Convergence {
   beatDistribution: BeatItem[];
   topReporters: { name: string; beat: string; count: number }[];
   aiInsight?: string;
+  topArticleTitle?: string;
 }
 
 export interface BeatSummary {
@@ -163,6 +164,7 @@ export interface ReporterData {
   convergence: Convergence[];
   beatSummary: BeatSummary[];
   referenceDate: string;
+  weeklyRatio?: number;
   aiSummary?: string;
   aiAnalyzedAt?: string;
 }

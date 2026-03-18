@@ -97,7 +97,8 @@ function findWeekIndex(dateStr: string, weekStarts: string[]): number {
 function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateStr: string): ReporterDataResult {
   const referenceDate = refDateStr.split(" ")[0];
   const now = new Date().toISOString();
-  const BEAT_COL = "COALESCE(middle_category_name, category_label)";
+  const BEAT_COL = "category_label";
+  const IRMI_FILTER = "AND category IN ('prices','employment','selfEmployed','finance','realEstate')";
 
   // 테이블 생성 (schema.ts 와 동일)
   db.exec(`
@@ -112,14 +113,12 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
   // 기존 데이터 초기화
   db.exec("DELETE FROM reporter_profiles; DELETE FROM reporter_beats; DELETE FROM reporter_weekly_trend; DELETE FROM reporter_convergence; DELETE FROM reporter_beat_summary; DELETE FROM reporter_meta;");
 
-  // ── beatSummary (middle_category_name 기준) ──
+  // ── beatSummary (middle_category_name 기준, IRMI 카테고리만) ──
+  // writers 카운트는 extractWriterName 기준으로 후처리 (writerInfo 완성 후 정정)
   const beatSummary = db.prepare(
     `SELECT ${BEAT_COL} AS beat, COUNT(DISTINCT writer) AS writers, COUNT(*) AS articles
-     FROM articles WHERE writer IS NOT NULL AND writer != '' GROUP BY ${BEAT_COL} ORDER BY articles DESC`
+     FROM articles WHERE writer IS NOT NULL AND writer != '' ${IRMI_FILTER} GROUP BY ${BEAT_COL} ORDER BY articles DESC`
   ).all() as BeatSummary[];
-
-  const insertBeatSummary = db.prepare("INSERT INTO reporter_beat_summary (beat, writers, articles) VALUES (?, ?, ?)");
-  for (const bs of beatSummary) insertBeatSummary.run(bs.beat, bs.writers, bs.articles);
 
   // ── 시간 윈도우 ──
   const refDate = new Date(referenceDate + "T00:00:00Z");
@@ -136,10 +135,10 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
     weekStarts.push(toDateString(d));
   }
 
-  // ── 기자별 주 분야 (middle_category_name 기준) ──
+  // ── 기자별 주 분야 (middle_category_name 기준, IRMI 카테고리만) ──
   const primaryBeatRows = db.prepare(
     `SELECT writer, ${BEAT_COL} AS beat, COUNT(*) as cnt
-     FROM articles WHERE writer IS NOT NULL AND writer != ''
+     FROM articles WHERE writer IS NOT NULL AND writer != '' ${IRMI_FILTER}
      GROUP BY writer, ${BEAT_COL} ORDER BY writer, cnt DESC`
   ).all() as { writer: string; beat: string; cnt: number }[];
 
@@ -150,21 +149,40 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
     const name = extractWriterName(row.writer);
     if (name !== curWriter) {
       if (curWriter && curBeats.length > 0) {
+        curBeats.sort((a, b) => b.count - a.count);
         writerInfo.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
       }
       curWriter = name; curBeats = []; curTotal = 0;
     }
-    curBeats.push({ beat: row.beat, count: row.cnt });
+    // 같은 기자의 같은 beat가 다른 writer 문자열에서 나올 수 있으므로 합산
+    const existing = curBeats.find(b => b.beat === row.beat);
+    if (existing) { existing.count += row.cnt; } else { curBeats.push({ beat: row.beat, count: row.cnt }); }
     curTotal += row.cnt;
   }
   if (curWriter && curBeats.length > 0) {
+    curBeats.sort((a, b) => b.count - a.count);
     writerInfo.set(curWriter, { beat: curBeats[0].beat, total: curTotal, beatCount: curBeats.length, breakdown: [...curBeats] });
   }
 
-  // ── 최근 8주 기사 ──
+  // ── beatSummary writers를 extractWriterName 기준으로 정정 후 저장 ──
+  const beatWritersMap = new Map<string, Set<string>>();
+  for (const [writerName, info] of writerInfo) {
+    for (const b of info.breakdown) {
+      if (!beatWritersMap.has(b.beat)) beatWritersMap.set(b.beat, new Set());
+      beatWritersMap.get(b.beat)!.add(writerName);
+    }
+  }
+  const insertBeatSummary = db.prepare("INSERT INTO reporter_beat_summary (beat, writers, articles) VALUES (?, ?, ?)");
+  for (const bs of beatSummary) {
+    const actualWriters = beatWritersMap.get(bs.beat);
+    if (actualWriters) bs.writers = actualWriters.size;
+    insertBeatSummary.run(bs.beat, bs.writers, bs.articles);
+  }
+
+  // ── 최근 8주 기사 (IRMI 카테고리만) ──
   const recentRows = db.prepare(
     `SELECT writer, published_at FROM articles
-     WHERE writer IS NOT NULL AND writer != '' AND published_at >= ? ORDER BY published_at`
+     WHERE writer IS NOT NULL AND writer != '' ${IRMI_FILTER} AND published_at >= ? ORDER BY published_at`
   ).all(eightWeeksAgoStr) as { writer: string; published_at: string }[];
 
   const writerRecent = new Map<string, string[]>();
@@ -184,10 +202,18 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
   ranked.sort((a, b) => b.fourWeekCount - a.fourWeekCount);
 
   const insertProfile = db.prepare(
-    "INSERT INTO reporter_profiles (writer, total_articles, primary_beat, is_specialist, beat_count, recent_count, avg_weekly, surge_ratio, rank_4week, computed_at) VALUES (?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO reporter_profiles (writer, total_articles, primary_beat, is_specialist, beat_count, recent_count, avg_weekly, surge_ratio, rank_4week, surge_reason, computed_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
   );
   const insertBeat = db.prepare("INSERT OR REPLACE INTO reporter_beats (writer, beat, count) VALUES (?,?,?)");
   const insertTrend = db.prepare("INSERT OR REPLACE INTO reporter_weekly_trend (writer, week_index, week_start, count) VALUES (?,?,?,?)");
+
+  // 급증 기자 키워드 추출용 쿼리
+  const stmtSurgeKw = db.prepare(
+    `SELECT keywords FROM articles
+     WHERE writer LIKE ? || '%' ${IRMI_FILTER}
+       AND published_at >= ?
+       AND keywords IS NOT NULL AND keywords != '' AND keywords != '[]'`
+  );
 
   const leaderboard: ReporterStat[] = [];
   for (let rank = 0; rank < Math.min(ranked.length, 20); rank++) {
@@ -210,8 +236,27 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
     const avgWeekly = Math.round((totalInWindow / 8) * 10) / 10;
     const surgeRatio = avgWeekly > 0 ? Math.round((recentCount / avgWeekly) * 10) / 10 : 0;
 
+    // 급증 기자(x1.5 이상)의 이번주 키워드에서 surgeReason 생성
+    let surgeReason: string | null = null;
+    if (surgeRatio >= 1.5) {
+      const kwRows = stmtSurgeKw.all(name, oneWeekAgoStr) as { keywords: string }[];
+      const kwCount = new Map<string, number>();
+      for (const r of kwRows) {
+        let kws: string[];
+        try { kws = JSON.parse(r.keywords); } catch { continue; }
+        if (!Array.isArray(kws)) continue;
+        for (const kw of kws) {
+          if (!kw || typeof kw !== "string" || kw.trim().length < 2) continue;
+          const t = kw.trim();
+          kwCount.set(t, (kwCount.get(t) || 0) + 1);
+        }
+      }
+      const topKws = Array.from(kwCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([kw]) => kw);
+      if (topKws.length > 0) surgeReason = `${topKws.join(", ")} 관련 집중 취재`;
+    }
+
     // RDB INSERT
-    insertProfile.run(name, totalAll, primaryBeat, isSpecialist ? 1 : 0, beatCount, recentCount, avgWeekly, surgeRatio, rank + 1, now);
+    insertProfile.run(name, totalAll, primaryBeat, isSpecialist ? 1 : 0, beatCount, recentCount, avgWeekly, surgeRatio, rank + 1, surgeReason, now);
     for (const b of beatBreakdown) insertBeat.run(name, b.beat, b.count);
     for (let wi = 0; wi < 8; wi++) insertTrend.run(name, wi, weekStarts[wi], weeklyTrend[wi]);
 
@@ -226,7 +271,7 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
     `SELECT writer, ${BEAT_COL} AS beat, keywords FROM articles
      WHERE writer IS NOT NULL AND writer != ''
        AND keywords IS NOT NULL AND keywords != '' AND keywords != '[]'
-       AND published_at >= ?`
+       ${IRMI_FILTER} AND published_at >= ?`
   ).all(twoWeeksAgoStr) as { writer: string; beat: string; keywords: string }[];
 
   const keywordMap = new Map<string, {
@@ -259,11 +304,21 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
   }
 
   const insertConv = db.prepare(
-    "INSERT INTO reporter_convergence (topic, writer_count, beat_count, article_count, beat_distribution, top_reporters) VALUES (?,?,?,?,?,?)"
+    "INSERT INTO reporter_convergence (topic, writer_count, beat_count, article_count, beat_distribution, top_reporters, top_article_title) VALUES (?,?,?,?,?,?,?)"
   );
+  // 토픽별 참여도 최고 기사 제목 추출용 쿼리
+  const stmtTopArticle = db.prepare(
+    `SELECT title FROM articles
+     WHERE ${BEAT_COL} IS NOT NULL ${IRMI_FILTER}
+       AND published_at >= ?
+       AND keywords LIKE '%' || ? || '%'
+     ORDER BY (COALESCE(reply_count,0) + COALESCE(like_count,0)) DESC, published_at DESC
+     LIMIT 1`
+  );
+
   const convergence: ConvergenceStat[] = [];
   for (const [topic, entry] of keywordMap) {
-    if (entry.categories.size < 3) continue;
+    if (entry.categories.size < 2) continue;
     const bd: BeatItem[] = [];
     for (const [beat, count] of entry.beatCounts) bd.push({ beat, count });
     bd.sort((a, b) => b.count - a.count);
@@ -273,12 +328,23 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
   }
   convergence.sort((a, b) => b.article_count - a.article_count || b.beat_count - a.beat_count);
   const top20Conv = convergence.slice(0, 20);
-  for (const c of top20Conv) insertConv.run(c.topic, c.writer_count, c.beat_count, c.article_count, JSON.stringify(c.beatDistribution), JSON.stringify(c.topReporters));
+  for (const c of top20Conv) {
+    const topArt = stmtTopArticle.get(twoWeeksAgoStr, c.topic) as { title: string } | undefined;
+    insertConv.run(c.topic, c.writer_count, c.beat_count, c.article_count, JSON.stringify(c.beatDistribution), JSON.stringify(c.topReporters), topArt?.title ?? null);
+  }
 
-  // ── meta ──
+  // ── meta + weeklyRatio ──
+  const thisWeekTotal = recentRows.filter(r => r.published_at >= oneWeekAgoStr).length;
+  const totalEightWeeks = recentRows.length;
+  const avgWeeklyTotal = totalEightWeeks / 8;
+  const weeklyRatio = avgWeeklyTotal > 0 ? Math.round((thisWeekTotal / avgWeeklyTotal) * 100) / 100 : 1;
+
   const insertMeta = db.prepare("INSERT INTO reporter_meta (key, value) VALUES (?, ?)");
   insertMeta.run("reference_date", referenceDate);
   insertMeta.run("computed_at", now);
+  insertMeta.run("weekly_ratio", String(weeklyRatio));
+  insertMeta.run("this_week_articles", String(thisWeekTotal));
+  insertMeta.run("avg_weekly_articles", String(Math.round(avgWeeklyTotal)));
 
   return { referenceDate, leaderboard, convergence: top20Conv, beatSummary };
 }
