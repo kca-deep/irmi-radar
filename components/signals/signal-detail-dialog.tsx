@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  AlertCircleIcon,
-  Target01Icon,
   News01Icon,
   Calendar03Icon,
-  Search01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Dialog,
@@ -17,7 +16,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import { SEVERITY_LABEL_MAP } from "@/lib/constants";
 import { SEVERITY_COLOR_MAP, CATEGORY_ICON_MAP, CATEGORY_BADGE_MAP } from "@/lib/icon-maps";
 import { cn } from "@/lib/utils";
@@ -36,27 +42,6 @@ const SEV_BADGE: Record<string, string> = {
   safe: "bg-safe text-safe-foreground",
 };
 
-const SEV_STRIPE: Record<string, string> = {
-  danger: "from-danger to-danger/60",
-  warning: "from-warning to-warning/60",
-  caution: "from-caution to-caution/60",
-  safe: "from-safe to-safe/60",
-};
-
-const SEV_TINT: Record<string, string> = {
-  danger: "bg-danger/5 hover:bg-danger/10",
-  warning: "bg-warning/5 hover:bg-warning/10",
-  caution: "bg-caution/5 hover:bg-caution/10",
-  safe: "bg-safe/5 hover:bg-safe/10",
-};
-
-const SEV_DOT: Record<string, string> = {
-  danger: "bg-danger",
-  warning: "bg-warning",
-  caution: "bg-caution",
-  safe: "bg-safe",
-};
-
 /* ── Related article card ── */
 
 function RelatedArticleCard({ article }: { article: NewsArticle }) {
@@ -66,11 +51,11 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
 
   return (
     <div className={cn(
-      "rounded-lg border border-border bg-card shadow-sm p-3 space-y-2 h-(--height-signal-card) flex flex-col overflow-hidden",
+      "rounded-lg border border-border bg-card shadow-sm p-3 space-y-1.5 h-(--height-signal-card) flex flex-col overflow-hidden",
       "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md",
     )}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2 flex-1">
+        <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 flex-1">
           {article.title}
         </p>
         {colorToken && riskScore !== undefined && (
@@ -82,7 +67,7 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
           </span>
         )}
       </div>
-      <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+      <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
         {article.analysis?.summary || article.summary}
       </p>
       <div className="flex items-center justify-between gap-2 mt-auto">
@@ -122,6 +107,9 @@ export function SignalDetailDialog({
 }: SignalDetailDialogProps) {
   const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
   const [articlesLoading, setArticlesLoading] = useState(false);
+  const [newsApi, setNewsApi] = useState<CarouselApi>();
+  const [canScrollNewsPrev, setCanScrollNewsPrev] = useState(false);
+  const [canScrollNewsNext, setCanScrollNewsNext] = useState(false);
 
   const fetchRelatedArticles = useCallback(async (signalId: string) => {
     setArticlesLoading(true);
@@ -148,6 +136,21 @@ export function SignalDetailDialog({
     }
   }, [open, signal, fetchRelatedArticles]);
 
+  useEffect(() => {
+    if (!newsApi) return;
+    const update = () => {
+      setCanScrollNewsPrev(newsApi.canScrollPrev());
+      setCanScrollNewsNext(newsApi.canScrollNext());
+    };
+    update();
+    newsApi.on("select", update);
+    newsApi.on("reInit", update);
+    return () => {
+      newsApi.off("select", update);
+      newsApi.off("reInit", update);
+    };
+  }, [newsApi]);
+
   if (!signal) return null;
 
   const colorToken = SEVERITY_COLOR_MAP[signal.severity];
@@ -157,11 +160,8 @@ export function SignalDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
-        {/* Severity accent stripe */}
-        <div className={cn("h-1 w-full bg-gradient-to-r shrink-0 rounded-t-xl", SEV_STRIPE[colorToken])} />
-
         {/* Header */}
-        <DialogHeader className="px-5 pt-4 pb-2 shrink-0">
+        <DialogHeader className="px-5 pt-5 pb-2 shrink-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-2">
             <Badge className={cn("text-[10px] font-semibold", SEV_BADGE[colorToken])}>
               {severityLabel}
@@ -220,17 +220,39 @@ export function SignalDetailDialog({
 
         {/* Body - single column */}
         <ScrollArea className="flex-1 min-h-0 border-t border-border">
-          <div className="p-5 space-y-4">
+          <div className="p-5 space-y-4 bg-background">
             {/* Related news */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <HugeiconsIcon icon={News01Icon} size={14} strokeWidth={2} className="text-brand" />
-                <span className="text-[11px] font-semibold text-foreground">
+                <span className="text-xs font-semibold text-foreground">
                   관련 뉴스 기사
                 </span>
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
                   {relatedArticles.length}건
                 </Badge>
+                {relatedArticles.length > 3 && (
+                  <div className="flex items-center gap-1 ml-auto">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-6 rounded-full"
+                      disabled={!canScrollNewsPrev}
+                      onClick={() => newsApi?.scrollPrev()}
+                    >
+                      <HugeiconsIcon icon={ArrowLeft01Icon} size={12} strokeWidth={2} />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-6 rounded-full"
+                      disabled={!canScrollNewsNext}
+                      onClick={() => newsApi?.scrollNext()}
+                    >
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={12} strokeWidth={2} />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {articlesLoading ? (
@@ -238,13 +260,15 @@ export function SignalDetailDialog({
                   관련 기사를 불러오는 중...
                 </div>
               ) : relatedArticles.length > 0 ? (
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {relatedArticles.map((article) => (
-                    <div key={article.id} className="shrink-0 w-(--width-signal-card) min-w-0">
-                      <RelatedArticleCard article={article} />
-                    </div>
-                  ))}
-                </div>
+                <Carousel opts={{ slidesToScroll: 3, align: "start" }} setApi={setNewsApi} className="w-full">
+                  <CarouselContent className="-ml-2">
+                    {relatedArticles.map((article) => (
+                      <CarouselItem key={article.id} className="pl-2 basis-1/3">
+                        <RelatedArticleCard article={article} />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
               ) : (
                 <div className="text-center py-4 text-xs text-muted-foreground">
                   연결된 뉴스 기사가 없습니다.
