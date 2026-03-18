@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Carousel,
   CarouselContent,
@@ -55,19 +54,19 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
       "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md",
     )}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 flex-1">
+        <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2 flex-1">
           {article.title}
         </p>
         {colorToken && riskScore !== undefined && (
           <span className={cn(
-            "shrink-0 text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded",
+            "shrink-0 text-xs font-bold tabular-nums px-1.5 py-0.5 rounded",
             SEV_BADGE[colorToken],
           )}>
             {riskScore}
           </span>
         )}
       </div>
-      <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+      <p className="text-[13px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
         {article.analysis?.summary || article.summary}
       </p>
       <div className="flex items-center justify-between gap-2 mt-auto">
@@ -76,15 +75,15 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
             {article.keywords.slice(0, 3).map((kw) => (
               <span
                 key={kw}
-                className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground truncate"
+                className="text-[11px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground truncate"
               >
                 {kw}
               </span>
             ))}
           </div>
         )}
-        <span className="text-[9px] text-muted-foreground shrink-0 flex items-center gap-0.5">
-          <HugeiconsIcon icon={Calendar03Icon} size={9} strokeWidth={2} />
+        <span className="text-[11px] text-muted-foreground shrink-0 flex items-center gap-0.5">
+          <HugeiconsIcon icon={Calendar03Icon} size={10} strokeWidth={2} />
           {new Date(article.publishedAt).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}
         </span>
       </div>
@@ -159,56 +158,56 @@ export function SignalDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
+      <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[92vh] !grid-rows-[auto_1fr] p-0 overflow-hidden">
         {/* Header */}
-        <DialogHeader className="px-5 pt-5 pb-2 shrink-0">
-          <div className="flex flex-wrap items-center gap-1.5 mb-2">
-            <Badge className={cn("text-[10px] font-semibold", SEV_BADGE[colorToken])}>
+        <DialogHeader className="px-5 pt-4 pb-1.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+            <Badge className={cn("text-xs font-semibold", SEV_BADGE[colorToken])}>
               {severityLabel}
             </Badge>
-            <Badge variant="outline" className={cn("gap-1 text-[10px]", CATEGORY_BADGE_MAP[signal.category])}>
+            <Badge variant="outline" className={cn("gap-1 text-xs", CATEGORY_BADGE_MAP[signal.category])}>
               <HugeiconsIcon icon={categoryIcon} size={10} strokeWidth={2} />
               {signal.categoryLabel}
             </Badge>
             {signal.region && (
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {signal.region}
               </span>
             )}
-            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
               <HugeiconsIcon icon={Calendar03Icon} size={10} strokeWidth={2} />
               {signal.detectedAt} 감지
             </span>
           </div>
-          <DialogTitle className="text-sm font-semibold text-left leading-snug">
+          <DialogTitle className="text-base font-semibold text-left leading-snug">
             {signal.title}
           </DialogTitle>
-          <DialogDescription className="text-left text-[11px] leading-relaxed">
+          <DialogDescription className="text-left text-[13px] leading-relaxed">
             {signal.description}
           </DialogDescription>
 
           {/* Evidence / Cause / Impact card */}
           {(signal.evidence.length > 0 || signal.analysis.cause || signal.analysis.impact) && (
-            <div className="mt-3 rounded-lg border border-border bg-card shadow-sm px-4 py-3 space-y-2">
+            <div className="mt-2 rounded-lg border border-border bg-card shadow-sm px-3 py-2 space-y-1.5">
               {signal.evidence.length > 0 && (
-                <div className="flex items-start gap-2 text-[11px] leading-relaxed text-foreground">
-                  <Badge variant="secondary" className="shrink-0 text-[9px] px-1.5 py-0 bg-warning/10 text-warning border-warning/20 font-semibold">
+                <div className="flex items-start gap-2 text-[13px] leading-relaxed text-foreground">
+                  <Badge variant="secondary" className="shrink-0 text-[11px] px-1.5 py-0 bg-warning/10 text-warning border-warning/20 font-semibold">
                     감지 근거
                   </Badge>
                   <span>{signal.evidence.join(" / ")}</span>
                 </div>
               )}
               {signal.analysis.cause && (
-                <div className="flex items-start gap-2 text-[11px] leading-relaxed text-foreground">
-                  <Badge variant="secondary" className="shrink-0 text-[9px] px-1.5 py-0 bg-caution/10 text-caution border-caution/20 font-semibold">
+                <div className="flex items-start gap-2 text-[13px] leading-relaxed text-foreground">
+                  <Badge variant="secondary" className="shrink-0 text-[11px] px-1.5 py-0 bg-caution/10 text-caution border-caution/20 font-semibold">
                     원인 분석
                   </Badge>
                   <span>{signal.analysis.cause}</span>
                 </div>
               )}
               {signal.analysis.impact && (
-                <div className="flex items-start gap-2 text-[11px] leading-relaxed text-foreground">
-                  <Badge variant="secondary" className="shrink-0 text-[9px] px-1.5 py-0 bg-danger/10 text-danger border-danger/20 font-semibold">
+                <div className="flex items-start gap-2 text-[13px] leading-relaxed text-foreground">
+                  <Badge variant="secondary" className="shrink-0 text-[11px] px-1.5 py-0 bg-danger/10 text-danger border-danger/20 font-semibold">
                     영향 범위
                   </Badge>
                   <span>{signal.analysis.impact}</span>
@@ -219,16 +218,16 @@ export function SignalDetailDialog({
         </DialogHeader>
 
         {/* Body - single column */}
-        <ScrollArea className="flex-1 min-h-0 border-t border-border">
-          <div className="p-5 space-y-4 bg-background">
+        <div className="min-h-0 overflow-y-auto border-t border-border">
+          <div className="p-4 space-y-3 bg-background">
             {/* Related news */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <HugeiconsIcon icon={News01Icon} size={14} strokeWidth={2} className="text-brand" />
-                <span className="text-xs font-semibold text-foreground">
+                <span className="text-sm font-semibold text-foreground">
                   관련 뉴스 기사
                 </span>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
                   {relatedArticles.length}건
                 </Badge>
                 {relatedArticles.length > 3 && (
@@ -256,7 +255,7 @@ export function SignalDetailDialog({
               </div>
 
               {articlesLoading ? (
-                <div className="text-center py-4 text-xs text-muted-foreground">
+                <div className="text-center py-4 text-sm text-muted-foreground">
                   관련 기사를 불러오는 중...
                 </div>
               ) : relatedArticles.length > 0 ? (
@@ -270,19 +269,19 @@ export function SignalDetailDialog({
                   </CarouselContent>
                 </Carousel>
               ) : (
-                <div className="text-center py-4 text-xs text-muted-foreground">
+                <div className="text-center py-4 text-sm text-muted-foreground">
                   연결된 뉴스 기사가 없습니다.
                 </div>
               )}
             </div>
 
-            {/* Policies */}
-            <GovPolicySection category={signal.category} />
-
-            {/* Assembly */}
-            <AssemblyRelatedSection category={signal.category} />
+            {/* Policies + Assembly: 2열 배치 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <GovPolicySection category={signal.category} />
+              <AssemblyRelatedSection category={signal.category} />
+            </div>
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

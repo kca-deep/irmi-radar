@@ -45,6 +45,18 @@ export interface EmergingIssue {
   method?: "volume_spike" | "keyword_emergence" | "ai_detected" | "subcategory_gap";
 }
 
+/** 데이터 신선도 정보 */
+export interface DataFreshnessInfo {
+  /** fresh: 6시간 이내, aging: 24시간 이내, stale: 24시간 초과 */
+  level: "fresh" | "aging" | "stale";
+  /** 데이터 출처 */
+  source: "snapshot" | "cache" | "computed" | "mock";
+  /** 마지막 분석 시각 (ISO 8601) */
+  lastAnalyzedAt: string;
+  /** 분석된 카테고리 목록 */
+  analyzedCategories: string[];
+}
+
 export interface DashboardData {
   compositeIndex: number;       // 종합 민생위기 지수
   indexChange: number;          // 전일 대비 변화
@@ -57,6 +69,8 @@ export interface DashboardData {
   heatmapData: HeatmapRow[];
   signals: SignalTableItem[];
   emergingIssues: EmergingIssue[];
+  /** 데이터 신선도 (P1-7) */
+  freshness?: DataFreshnessInfo;
 }
 
 /* ── 위기 신호 (GET /api/signals) ───────────────────────── */

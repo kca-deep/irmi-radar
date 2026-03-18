@@ -20,6 +20,8 @@ export interface CategoryRisk {
   trend: Trend;
   keyIssues: string[];
   articleCount?: number;
+  /** 이 카테고리가 현재 회차에서 실제 분석되었는지 여부 (false면 이전 값 또는 기본값) */
+  isAnalyzed?: boolean;
 }
 
 // -- 신호 통계 --
@@ -114,6 +116,23 @@ export interface AnalysisRunInfo {
   articlesAnalyzed: number;
 }
 
+// -- 데이터 소스 메타데이터 --
+export type DashboardDataSource = "snapshot" | "cache" | "computed" | "mock";
+export type DataFreshness = "fresh" | "aging" | "stale";
+
+export interface DashboardMeta {
+  /** 데이터 출처 */
+  source: DashboardDataSource;
+  /** 분석 회차 ID */
+  runId: string | null;
+  /** 데이터 생성 시각 (ISO 8601) */
+  generatedAt: string;
+  /** 데이터 신선도 */
+  freshness: DataFreshness;
+  /** 분석된 카테고리 목록 (부분 분석 시 일부만 포함) */
+  analyzedCategories: CategoryKey[];
+}
+
 // -- 대시보드 데이터 --
 export interface DashboardData {
   lastUpdated: string;
@@ -131,6 +150,8 @@ export interface DashboardData {
   dailyDelta: DailyDelta | null;
   /** 현재 분석 회차 ID */
   runId: string | null;
+  /** 데이터 소스 메타데이터 */
+  _meta?: DashboardMeta;
 }
 
 // -- 신호 상세 분석 --

@@ -118,11 +118,27 @@ async function detectForCategory(
     })
     .join("\n");
 
+  // 이전 회차 신호 컨텍스트 추가
+  let prevSignalContext = "";
+  try {
+    const dbRo = getDb(true);
+    const prevSignals = dbRo.prepare(
+      `SELECT title, severity, score FROM signals
+       WHERE category = ? AND run_id != '__legacy__'
+       ORDER BY detected_at DESC
+       LIMIT 5`
+    ).all(category) as { title: string; severity: string; score: number }[];
+    if (prevSignals.length > 0) {
+      const lines = prevSignals.map((s) => `- [${s.severity}/${s.score}점] ${s.title}`);
+      prevSignalContext = `\n\n기존 감지 신호 (이전 분석):\n${lines.join("\n")}\n위 신호와 비교하여 신규/지속/해소 여부를 판단하세요.`;
+    }
+  } catch { /* skip */ }
+
   const userPrompt = `카테고리: ${categoryLabel} (${category})
 기사 수: ${articles.length}건
 
 최근 고위험 기사 목록:
-${articleList}`;
+${articleList}${prevSignalContext}`;
 
   const raw = await callLLM({
     system: loadPrompt(),
@@ -214,6 +230,24 @@ export async function detectSignals(options: DetectOptions = {}): Promise<Detect
     }
   }
 
+  // 복합 신호 탐지 (패턴 기반)
+  try {
+    const volumeSpikes = detectVolumeSpikes(windowDays);
+    const regionalClusters = detectRegionalClusters(windowDays);
+    const crossCategory = detectCrossCategorySignals(windowDays);
+
+    // 기존 AI 신호 ID와 중복되지 않는 것만 추가
+    const existingIds = new Set(allSignals.map((s) => s.id));
+    for (const sig of [...volumeSpikes, ...regionalClusters, ...crossCategory]) {
+      if (!existingIds.has(sig.id)) {
+        allSignals.push(sig);
+      }
+    }
+    console.log(`[SignalDetector] 복합 신호: volume=${volumeSpikes.length}, regional=${regionalClusters.length}, cross=${crossCategory.length}`);
+  } catch (err) {
+    console.warn("[SignalDetector] 복합 신호 탐지 실패:", (err as Error).message);
+  }
+
   // DB 저장 (run_id 포함)
   const effectiveRunId = runId ?? "__legacy__";
 
@@ -251,6 +285,183 @@ export async function detectSignals(options: DetectOptions = {}): Promise<Detect
   txn();
 
   return { signalCount: allSignals.length, signals: allSignals };
+}
+
+// ── 복합 신호 탐지 (패턴 기반) ────────────────────────────
+
+/**
+ * 기사량 급증(Volume Spike) 신호
+ * 최근 3일 기사량이 30일 평균 대비 2배 이상인 카테고리를 탐지
+ */
+function detectVolumeSpikes(windowDays: number): DetectedSignal[] {
+  const db = getDb(true);
+  const latestRow = db
+    .prepare(`SELECT MAX(published_at) as latest FROM articles`)
+    .get() as { latest: string | null };
+  const baseDate = latestRow?.latest || new Date().toISOString();
+
+  const rows = db.prepare(
+    `SELECT category,
+            COUNT(CASE WHEN published_at >= date(?, '-3 days') THEN 1 END) as recent_3d,
+            COUNT(*) * 1.0 / ? as daily_avg
+     FROM articles
+     WHERE published_at >= date(?, '-' || ? || ' days')
+     GROUP BY category
+     HAVING recent_3d > daily_avg * 2 * 3`
+  ).all(baseDate, windowDays, baseDate, windowDays) as {
+    category: string; recent_3d: number; daily_avg: number;
+  }[];
+
+  const catLabelMap: Record<string, string> = {};
+  for (const c of CATEGORIES) catLabelMap[c.key] = c.label;
+
+  return rows.map((r, idx) => {
+    const ratio = r.daily_avg > 0 ? Math.round(r.recent_3d / (r.daily_avg * 3) * 100) / 100 : 1;
+    const score = Math.min(75, Math.round(50 + ratio * 10));
+    return {
+      id: `sig-vol-${r.category}-${idx}`,
+      title: `[${catLabelMap[r.category] ?? r.category}] 기사량 급증`,
+      description: `최근 3일간 기사량이 평균 대비 ${ratio}배 증가. 해당 분야의 관심도가 급격히 높아지고 있습니다.`,
+      severity: getSeverityFromScore(score),
+      score,
+      category: r.category as CategoryKey,
+      categoryLabel: catLabelMap[r.category] ?? r.category,
+      region: null,
+      cause: `기사량 ${r.recent_3d}건 (3일) vs 일평균 ${r.daily_avg.toFixed(1)}건`,
+      impact: "사회적 관심 급증으로 실질 민생 영향 가능성",
+      actionPoints: ["해당 분야 모니터링 강화", "관련 정책 대응 검토"],
+      evidence: [],
+      articleIds: [],
+    };
+  });
+}
+
+/**
+ * 지역 집중(Regional Cluster) 신호
+ * 특정 지역에 고위험 기사가 3건 이상 집중된 경우
+ */
+function detectRegionalClusters(windowDays: number): DetectedSignal[] {
+  const db = getDb(true);
+  const latestRow = db
+    .prepare(
+      `SELECT MAX(a.published_at) as latest
+       FROM articles a INNER JOIN analysis an ON a.id = an.article_id`
+    )
+    .get() as { latest: string | null };
+  const baseDate = latestRow?.latest || new Date().toISOString();
+
+  const rows = db.prepare(
+    `SELECT an.impact_region as region,
+            COUNT(*) as cnt,
+            ROUND(AVG(an.risk_score), 1) as avg_score,
+            GROUP_CONCAT(DISTINCT a.category) as categories
+     FROM articles a
+     INNER JOIN analysis an ON a.id = an.article_id
+     WHERE an.impact_region IS NOT NULL
+       AND an.severity IN ('critical', 'warning')
+       AND a.published_at >= date(?, '-' || ? || ' days')
+     GROUP BY an.impact_region
+     HAVING cnt >= 3
+     ORDER BY avg_score DESC`
+  ).all(baseDate, windowDays) as {
+    region: string; cnt: number; avg_score: number; categories: string;
+  }[];
+
+  return rows.slice(0, 3).map((r, idx) => {
+    const score = Math.min(85, Math.round(r.avg_score));
+    const cats = r.categories.split(",").map((c) => c.trim());
+    return {
+      id: `sig-reg-${r.region}-${idx}`,
+      title: `[${r.region}] 지역 집중 위기`,
+      description: `${r.region} 지역에서 고위험 기사 ${r.cnt}건 집중 발생. 평균 위험도 ${r.avg_score}점.`,
+      severity: getSeverityFromScore(score),
+      score,
+      category: (cats[0] || "prices") as CategoryKey,
+      categoryLabel: r.region,
+      region: r.region,
+      cause: `${r.region} 지역 고위험 기사 ${r.cnt}건 (분야: ${cats.join(", ")})`,
+      impact: "지역 특화 민생 위기 가능성",
+      actionPoints: [
+        `${r.region} 지역 맞춤 대응 검토`,
+        "지자체 협조 강화",
+      ],
+      evidence: [],
+      articleIds: [],
+    };
+  });
+}
+
+/**
+ * 교차 카테고리(Cross-Category) 신호
+ * 서로 다른 카테고리에서 동일 키워드가 반복 등장 (연쇄 위기 조기 감지)
+ */
+function detectCrossCategorySignals(windowDays: number): DetectedSignal[] {
+  const db = getDb(true);
+  const latestRow = db
+    .prepare(
+      `SELECT MAX(a.published_at) as latest
+       FROM articles a INNER JOIN analysis an ON a.id = an.article_id`
+    )
+    .get() as { latest: string | null };
+  const baseDate = latestRow?.latest || new Date().toISOString();
+
+  // 카테고리별 핵심 요인 추출
+  const rows = db.prepare(
+    `SELECT a.category, an.key_factors
+     FROM articles a
+     INNER JOIN analysis an ON a.id = an.article_id
+     WHERE an.key_factors IS NOT NULL AND an.key_factors != '[]'
+       AND an.severity IN ('critical', 'warning')
+       AND a.published_at >= date(?, '-' || ? || ' days')`
+  ).all(baseDate, windowDays) as { category: string; key_factors: string }[];
+
+  // 키워드 → 카테고리 집합 매핑
+  const keywordCats = new Map<string, Set<string>>();
+  for (const row of rows) {
+    try {
+      const factors = JSON.parse(row.key_factors) as string[];
+      for (const f of factors) {
+        const normalized = f.trim().slice(0, 30);
+        if (normalized.length < 3) continue;
+        if (!keywordCats.has(normalized)) keywordCats.set(normalized, new Set());
+        keywordCats.get(normalized)!.add(row.category);
+      }
+    } catch { /* skip */ }
+  }
+
+  // 2개 이상 카테고리에 걸친 키워드 → 신호
+  const crossKeywords: { keyword: string; categories: string[] }[] = [];
+  for (const [kw, cats] of keywordCats) {
+    if (cats.size >= 2) {
+      crossKeywords.push({ keyword: kw, categories: [...cats] });
+    }
+  }
+
+  if (crossKeywords.length === 0) return [];
+
+  // 상위 3개만 신호로 생성
+  const catLabelMap: Record<string, string> = {};
+  for (const c of CATEGORIES) catLabelMap[c.key] = c.label;
+
+  return crossKeywords.slice(0, 3).map((ck, idx) => {
+    const catLabels = ck.categories.map((c) => catLabelMap[c] || c).join(", ");
+    const score = Math.min(80, 55 + ck.categories.length * 10);
+    return {
+      id: `sig-cross-${idx}`,
+      title: `교차 분야 위기: ${ck.keyword}`,
+      description: `"${ck.keyword}" 이슈가 ${catLabels} 등 ${ck.categories.length}개 분야에 동시 영향. 연쇄 위기 가능성 모니터링 필요.`,
+      severity: getSeverityFromScore(score),
+      score,
+      category: ck.categories[0] as CategoryKey,
+      categoryLabel: catLabels,
+      region: null,
+      cause: `${ck.categories.length}개 분야 공통 이슈: ${ck.keyword}`,
+      impact: "분야 간 연쇄 영향 가능성",
+      actionPoints: ["범분야 통합 대응 검토", "연쇄 위기 시나리오 점검"],
+      evidence: [],
+      articleIds: [],
+    };
+  });
 }
 
 // -- 헬퍼 --

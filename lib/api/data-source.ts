@@ -8,6 +8,9 @@
 
 import type {
   DashboardData,
+  DashboardDataSource,
+  DashboardMeta,
+  DataFreshness,
   DailyDelta,
   BriefingData,
   CrisisChainData,
@@ -35,6 +38,70 @@ export function getDataSource(): DataSource {
 
 function isDb(): boolean {
   return getDataSource() === "db";
+}
+
+/** DB 모드에서 분석 결과가 없을 때 반환할 빈 대시보드 */
+function emptyDashboard(): DashboardData {
+  const now = new Date().toISOString();
+  return {
+    lastUpdated: now,
+    overallScore: 0,
+    categories: Object.fromEntries(
+      CATEGORIES.map((c) => [
+        c.key,
+        {
+          label: c.label,
+          score: 0,
+          trend: "stable" as const,
+          keyIssues: [],
+          isAnalyzed: false,
+        },
+      ]),
+    ) as unknown as Record<CategoryKey, CategoryRisk>,
+    signalStats: { critical: 0, warning: 0, caution: 0, surging: 0 },
+    recentSignals: [],
+    scoreHistory: [],
+    categoryScoreHistory: [],
+    categoryDist: [],
+    signalDelta: null,
+    dailyDelta: null,
+    runId: null,
+  };
+}
+
+/** DB 모드에서 분석 결과가 없을 때 반환할 빈 브리핑 */
+function emptyBriefing(): BriefingData {
+  return {
+    generatedAt: new Date().toISOString(),
+    summary: "",
+    highlights: [],
+    recommendation: "",
+    forecast: { scenarios: [], period: "1m", outlook: "" },
+  };
+}
+
+/** 데이터 신선도 판정 (마지막 분석 시점 기준) */
+function calcFreshness(lastUpdated: string): DataFreshness {
+  const hours = (Date.now() - new Date(lastUpdated).getTime()) / 3_600_000;
+  if (hours < 6) return "fresh";
+  if (hours < 24) return "aging";
+  return "stale";
+}
+
+/** 메타데이터 생성 헬퍼 */
+function makeMeta(
+  source: DashboardDataSource,
+  runId: string | null,
+  generatedAt: string,
+  analyzedCategories?: CategoryKey[],
+): DashboardMeta {
+  return {
+    source,
+    runId,
+    generatedAt,
+    freshness: calcFreshness(generatedAt),
+    analyzedCategories: analyzedCategories ?? CATEGORIES.map((c) => c.key),
+  };
 }
 
 // ── DB 행 → 타입 변환 헬퍼 ──
@@ -172,6 +239,7 @@ export function loadDashboard(): DashboardData {
         getScoreHistory,
         getCategorySeverityDistribution,
         getSignalCountByDate,
+        getArticles: dbGetArticles,
       } = require("@/lib/db/queries");
 
       // 최신 완료 회차 조회
@@ -192,6 +260,7 @@ export function loadDashboard(): DashboardData {
         const data = JSON.parse(cached);
         // dashboard_cache → DashboardData 변환
         const categories: Record<string, CategoryRisk> = {};
+        const analyzedCategoryKeys: CategoryKey[] = [];
         for (const cat of (data.categories || [])) {
           categories[cat.category] = {
             label: cat.label,
@@ -199,33 +268,69 @@ export function loadDashboard(): DashboardData {
             trend: cat.trend || "stable",
             keyIssues: cat.keyIssues || [],
             articleCount: cat.articleCount ?? undefined,
+            isAnalyzed: true,
           };
+          analyzedCategoryKeys.push(cat.category as CategoryKey);
         }
 
-        // 누락된 카테고리에 기본값 채우기 (부분 분석 시)
+        // 누락된 카테고리: 이전 회차 점수 유지, 없으면 기본값 (isAnalyzed=false)
+        let prevCategoryScores: Record<string, { score: number; trend: string; keyIssues: string[] }> | null = null;
+        if (analyzedCategoryKeys.length < CATEGORIES.length && runId) {
+          try {
+            const { getPreviousCompletedRun, getCategoryDetailsByRunId } = require("@/lib/db/queries");
+            const prevRun = getPreviousCompletedRun(runId);
+            if (prevRun?.id) {
+              const prevDetails = getCategoryDetailsByRunId(prevRun.id) as { category: string; score: number; trend: string; key_issues: string }[];
+              if (prevDetails?.length) {
+                prevCategoryScores = {};
+                for (const d of prevDetails) {
+                  prevCategoryScores[d.category] = {
+                    score: d.score,
+                    trend: d.trend || "stable",
+                    keyIssues: (() => { try { return JSON.parse(d.key_issues || "[]"); } catch { return []; } })(),
+                  };
+                }
+              }
+            }
+          } catch { /* skip */ }
+        }
+
         for (const cat of CATEGORIES) {
           if (!categories[cat.key]) {
+            const prev = prevCategoryScores?.[cat.key];
             categories[cat.key] = {
               label: cat.label,
-              score: 0,
-              trend: "stable" as const,
-              keyIssues: [],
+              score: prev?.score ?? 0,
+              trend: (prev?.trend as "rising" | "stable" | "falling") ?? "stable",
+              keyIssues: prev?.keyIssues ?? [],
+              isAnalyzed: false,
             };
           }
         }
 
-        // 최근 신호 미리보기 (최신 회차 기준)
-        const signalRows = dbGetSignals({ runId, limit: 4 }) as SignalRow[];
-        const recentSignals: SignalPreview[] = signalRows.map((s: SignalRow) => ({
-          id: s.id,
-          title: s.title,
-          severity: s.severity as Severity,
-          score: s.score,
-          category: s.category as CategoryKey,
-          date: s.detected_at || "",
-        }));
+        // 최근 위기 뉴스 (분석된 기사 중 위험도 높은 순, safe 제외)
+        const newsRows = dbGetArticles({ analyzedOnly: true, sort: "riskScore", limit: 10 }) as Array<{
+          id: string; title: string; category: string; published_at: string;
+          risk_score: number; analysis_severity: string;
+        }>;
+        const recentSignals: SignalPreview[] = newsRows
+          .filter((r) => r.analysis_severity && r.analysis_severity !== "safe")
+          .slice(0, 4)
+          .map((r) => ({
+            id: r.id,
+            title: r.title,
+            severity: (r.analysis_severity || "safe") as Severity,
+            score: r.risk_score || 0,
+            category: (r.category || "other") as CategoryKey,
+            date: r.published_at || "",
+          }));
 
-        // 점수 히스토리 조회
+        // 점수 히스토리 무결성 보정 후 조회
+        try {
+          const { repairScoreHistory } = require("@/lib/db/queries");
+          repairScoreHistory();
+        } catch { /* skip */ }
+
         let scoreHistory: import("@/lib/types").ScoreHistoryEntry[] = [];
         let categoryScoreHistory: import("@/lib/types").CategoryScoreHistoryEntry[] = [];
         try {
@@ -290,8 +395,11 @@ export function loadDashboard(): DashboardData {
           } catch { /* skip */ }
         }
 
+        const dataSource: DashboardDataSource = runId ? "snapshot" : "cache";
+        const lastUpdated = data.updatedAt || new Date().toISOString();
+
         return {
-          lastUpdated: data.updatedAt || new Date().toISOString(),
+          lastUpdated,
           overallScore: data.overallScore ?? 0,
           categories: categories as Record<CategoryKey, CategoryRisk>,
           signalStats: {
@@ -307,30 +415,19 @@ export function loadDashboard(): DashboardData {
           signalDelta,
           dailyDelta,
           runId,
+          _meta: makeMeta(dataSource, runId, lastUpdated, analyzedCategoryKeys),
         };
       }
     } catch {
-      // DB 분석 결과 로드 실패 시 기사 기반 계산 시도
+      // DB 분석 결과 로드 실패
     }
-
-    // 분석 테이블이 비어있을 때: 기사 데이터에서 직접 지표 계산
-    try {
-      const { computeDashboardFromArticles } = require("@/lib/db/queries");
-      const computed = computeDashboardFromArticles();
-      if (computed) {
-        // briefing도 캐싱 (loadBriefing에서 재사용)
-        _cachedArticleBriefing = computed.briefing;
-        return computed.dashboard;
-      }
-    } catch {
-      // 기사 기반 계산도 실패 시 mock fallback
-    }
+    // AI 분석 결과가 없으면 빈 대시보드 반환 (기사량 변동만 별도 로드)
+    return emptyDashboard();
   }
-  return mock.loadDashboard();
+  const mockDash = mock.loadDashboard();
+  mockDash._meta = makeMeta("mock", null, mockDash.lastUpdated);
+  return mockDash;
 }
-
-/** 기사 기반 계산 결과의 briefing 캐시 (같은 렌더 사이클 재사용) */
-let _cachedArticleBriefing: BriefingData | null = null;
 
 // ── Briefing ──
 
@@ -379,21 +476,9 @@ export function loadBriefing(): BriefingData {
           apiUsage,
         };
       }
-    } catch { /* mock fallback */ }
-
-    // 기사 기반 계산 결과 재사용
-    if (_cachedArticleBriefing) {
-      const result = _cachedArticleBriefing;
-      _cachedArticleBriefing = null;
-      return result;
-    }
-
-    // briefing만 단독 호출된 경우
-    try {
-      const { computeDashboardFromArticles } = require("@/lib/db/queries");
-      const computed = computeDashboardFromArticles();
-      if (computed) return computed.briefing;
-    } catch { /* mock fallback */ }
+    } catch { /* empty fallback */ }
+    // AI 분석 결과가 없으면 빈 브리핑 반환
+    return emptyBriefing();
   }
   return mock.loadBriefing();
 }
@@ -434,7 +519,8 @@ export function loadCrisisChain(): CrisisChainData {
             : [],
         };
       }
-    } catch { /* mock fallback */ }
+    } catch { /* empty fallback */ }
+    return { nodes: [], edges: [], chains: [] };
   }
   return mock.loadCrisisChain();
 }
@@ -448,10 +534,7 @@ export function loadSignals(filters?: {
 }): Signal[] {
   if (isDb()) {
     try {
-      const { getSignals: dbGetSignals, seedSignalDataIfEmpty } = require("@/lib/db/queries");
-
-      // DB에 분석 데이터가 없으면 자동 시드
-      seedSignalDataIfEmpty();
+      const { getSignals: dbGetSignals } = require("@/lib/db/queries");
 
       const rows = dbGetSignals({
         category: filters?.category,
@@ -466,7 +549,7 @@ export function loadSignals(filters?: {
         return signal;
       });
     } catch {
-      return mock.loadSignals(filters);
+      return [];
     }
   }
   return mock.loadSignals(filters);
@@ -475,15 +558,21 @@ export function loadSignals(filters?: {
 export function loadSignalById(id: string): Signal | null {
   if (isDb()) {
     try {
-      const { getSignals: dbGetSignals } = require("@/lib/db/queries");
-      const rows = dbGetSignals({ limit: 100 }) as SignalRow[];
+      const { getSignals: dbGetSignals, getLatestCompletedRun } = require("@/lib/db/queries");
+      // run_id를 명시하여 최신 회차의 신호만 조회
+      const latestRun = getLatestCompletedRun();
+      const runId = latestRun?.id ?? undefined;
+      const rows = dbGetSignals({ runId, limit: 200 }) as SignalRow[];
       const row = rows.find((r: SignalRow) => r.id === id);
       if (row) {
         const signal = toSignal(row);
         signal.relatedArticleIds = loadSignalArticleIds(id);
         return signal;
       }
-    } catch { /* mock fallback */ }
+      return null;
+    } catch {
+      return null;
+    }
   }
   return mock.loadSignalById(id);
 }
@@ -499,7 +588,6 @@ export function loadSignalArticles(signalId: string): NewsArticle[] {
       return [];
     }
   }
-  // mock fallback: relatedArticleIds로 매칭
   const signal = mock.loadSignalById(signalId);
   if (!signal || !signal.relatedArticleIds.length) return [];
   const allNews = mock.loadNews();
@@ -512,11 +600,8 @@ export function loadSignalArticles(signalId: string): NewsArticle[] {
 export function loadRegionScores(): import("@/lib/types").RegionScore[] {
   if (isDb()) {
     try {
-      const { getRegions, seedSignalDataIfEmpty } = require("@/lib/db/queries");
+      const { getRegions } = require("@/lib/db/queries");
       const { getSeverityByScore } = require("@/lib/constants");
-
-      // DB에 분석 데이터가 없으면 자동 시드
-      seedSignalDataIfEmpty();
 
       const rows = getRegions() as {
         id: string;
@@ -603,11 +688,12 @@ export function loadArticleDailyStats(days = 14): ArticleDailyStat[] {
         count: r.count,
       }));
     } catch {
-      // DB 실패 시 mock fallback
+      // DB 실패 시 빈 배열 반환
     }
+    return [];
   }
 
-  // Mock: news.json에서 집계
+  // Mock 모드: news.json에서 집계
   const allNews = mock.loadNews();
   const dateMap = new Map<string, Map<string, number>>();
   for (const article of allNews) {
@@ -653,7 +739,7 @@ export function loadNews(filters?: {
       }) as ArticleRow[];
       return rows.map(toNewsArticle);
     } catch {
-      return mock.loadNews(filters);
+      return [];
     }
   }
   const all = mock.loadNews(filters);
@@ -684,7 +770,7 @@ export function loadNewsCount(filters?: {
         analyzedOnly: filters?.analyzedOnly,
       }) as number;
     } catch {
-      return mock.loadNews(filters).length;
+      return 0;
     }
   }
   return mock.loadNews(filters).length;
@@ -763,10 +849,10 @@ export function loadPolicies(filters?: {
         signalId: filters?.signalId,
         limit: 50,
       }) as PolicyRow[];
-      if (rows.length > 0) {
-        return rows.map(toPolicy);
-      }
-    } catch { /* mock fallback */ }
+      return rows.map(toPolicy);
+    } catch {
+      return [];
+    }
   }
   return mock.loadPolicies(filters);
 }

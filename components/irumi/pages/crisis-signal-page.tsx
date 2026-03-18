@@ -122,7 +122,7 @@ export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProp
   const currentRegion = selectedRegion
     ? regions.find((r) => r.id === selectedRegion)
     : null;
-  const currentScores = currentRegion?.bars ?? [72, 67, 58, 45, 41];
+  const currentScores = currentRegion?.bars ?? [0, 0, 0, 0, 0];
 
   const regionOptions = [
     "전체",

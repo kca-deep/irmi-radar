@@ -15,6 +15,10 @@ import {
   getCategoryDetailsByRunId,
 } from "@/lib/db/queries";
 import { aggregateCategories, type CategoryRiskResult } from "./category-aggregator";
+import {
+  calculateCategoryScores,
+  calculateOverallScore as calcOverall,
+} from "./score-calculator";
 import { SEVERITY_CONFIG } from "@/lib/constants";
 import type { CategoryKey, Severity } from "@/lib/types";
 
@@ -179,16 +183,10 @@ ${signalInfo}${prevContext}`;
   };
 }
 
-// -- 종합점수 가중평균 공식 --
+// -- 종합점수 가중평균 공식 (score-calculator.ts로 통합, 레거시 호환용 래퍼) --
 
 function calculateOverallScore(categoryScores: number[]): number {
-  if (categoryScores.length === 0) return 0;
-  const sorted = [...categoryScores].sort((a, b) => b - a);
-  const max = sorted[0];
-  const top2Avg = sorted.length >= 2 ? (sorted[0] + sorted[1]) / 2 : sorted[0];
-  const avg = categoryScores.reduce((a, b) => a + b, 0) / categoryScores.length;
-  // 최고 카테고리 35% + 상위 2개 평균 35% + 전체 평균 30%
-  return Math.round(max * 0.35 + top2Avg * 0.35 + avg * 0.30);
+  return calcOverall(categoryScores);
 }
 
 // -- 메인 함수 --
@@ -201,6 +199,23 @@ export async function buildDashboard(
 
   // 1. 카테고리 집계 (SQL 기반 유지) - 선택된 카테고리만
   const categories = aggregateCategories(options.categories);
+
+  // 1.5. 통합 점수 보정 (volume + engagement 요인 반영)
+  try {
+    const factors = calculateCategoryScores(options.categories);
+    const factorMap = new Map(factors.map((f) => [f.category, f]));
+    for (const cat of categories) {
+      const f = factorMap.get(cat.category);
+      if (f && f.articleCount > 0) {
+        // 기존 rawScore를 통합 점수로 보정 (큰 변동 방지를 위해 블렌딩)
+        const blended = Math.round(cat.score * 0.7 + f.combinedScore * 0.3);
+        cat.score = Math.max(0, Math.min(100, blended));
+      }
+    }
+    console.log("[Dashboard] 통합 점수 보정 적용 완료");
+  } catch (err) {
+    console.warn("[Dashboard] 통합 점수 보정 실패 (raw score 유지):", (err as Error).message);
+  }
 
   // 2. 신호 통계 (run_id 기반)
   let signalStats: { total: number; critical_count: number; warning_count: number; caution_count: number };
@@ -357,26 +372,39 @@ export async function buildDashboard(
   }
 
   // 9. Score History 저장 (일별 UPSERT)
-  const today = new Date().toISOString().slice(0, 10);
+  // 분석 회차의 run_date 사용 (없으면 오늘 날짜)
+  let scoreDate = new Date().toISOString().slice(0, 10);
+  if (runId) {
+    try {
+      const runRow = db.prepare("SELECT run_date FROM analysis_runs WHERE id = ?").get(runId) as { run_date: string } | undefined;
+      if (runRow?.run_date) scoreDate = runRow.run_date;
+    } catch { /* 조회 실패 시 오늘 날짜 사용 */ }
+  }
+
   const categoryScores: Record<string, number> = {};
   for (const c of categories) {
     categoryScores[c.category] = c.score;
   }
 
-  db.prepare(
-    `INSERT OR REPLACE INTO score_history
-       (date, overall_score, prices, employment, self_employed, finance, real_estate, run_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    today,
-    overallScore,
-    categoryScores["prices"] ?? 0,
-    categoryScores["employment"] ?? 0,
-    categoryScores["selfEmployed"] ?? 0,
-    categoryScores["finance"] ?? 0,
-    categoryScores["realEstate"] ?? 0,
-    runId ?? null,
-  );
+  try {
+    db.prepare(
+      `INSERT OR REPLACE INTO score_history
+         (date, overall_score, prices, employment, self_employed, finance, real_estate, run_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      scoreDate,
+      overallScore,
+      categoryScores["prices"] ?? 0,
+      categoryScores["employment"] ?? 0,
+      categoryScores["selfEmployed"] ?? 0,
+      categoryScores["finance"] ?? 0,
+      categoryScores["realEstate"] ?? 0,
+      runId ?? null,
+    );
+    console.log(`[Dashboard] score_history 저장 완료: ${scoreDate} = ${overallScore}점`);
+  } catch (err) {
+    console.error(`[Dashboard] score_history 저장 실패 (${scoreDate}):`, (err as Error).message);
+  }
 
   // 10. API 사용량 캐시 저장
   const usage = usageTracker.getSummary();

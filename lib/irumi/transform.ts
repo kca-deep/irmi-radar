@@ -269,11 +269,13 @@ export function transformDashboard(
     const cat = normalizedCategories[key] || { score: 0, trend: "stable", keyIssues: [] };
 
     let diffStr: string;
-    if (articleDiffs && articleDiffs[key]) {
+    if (cat.score === 0) {
+      // AI 분석 결과가 없으면 diff 표시 안 함
+      diffStr = "-";
+    } else if (articleDiffs && articleDiffs[key]) {
       const d = articleDiffs[key].diff;
       diffStr = d > 0 ? `+${d}` : d < 0 ? `${d}` : "0";
     } else {
-      // articles가 없으면 기존 fallback
       const trendSign = cat.trend === "rising" ? "+" : cat.trend === "falling" ? "-" : "";
       diffStr = `${trendSign}${cat.trend === "stable" ? "0" : Math.round(cat.score * 0.05)}`;
     }
@@ -397,20 +399,24 @@ export function transformDashboard(
       }));
   }
 
-  // 4차: 최종 fallback
-  if (emergingIssues.length === 0) {
-    emergingIssues = [
-      { rank: 1, name: "물가 상승 압력 지속", count: 10 },
-      { rank: 2, name: "고용 불확실성 확대", count: 8 },
-      { rank: 3, name: "가계부채 관리 강화", count: 6 },
-    ];
-  }
+  // 데이터가 없으면 빈 배열 유지
 
   // 전일 대비 변화 추정
   const prevScore = trendData.length >= 2
     ? trendData[trendData.length - 2].value
     : src.overallScore;
   const indexChange = src.overallScore - prevScore;
+
+  // 데이터 신선도 정보 (P1-7)
+  const freshnessInfo: import("@/lib/irumi/types").DataFreshnessInfo | undefined =
+    src._meta
+      ? {
+          level: src._meta.freshness,
+          source: src._meta.source,
+          lastAnalyzedAt: src._meta.generatedAt,
+          analyzedCategories: src._meta.analyzedCategories,
+        }
+      : undefined;
 
   return {
     compositeIndex: src.overallScore,
@@ -424,6 +430,7 @@ export function transformDashboard(
     heatmapData,
     signals,
     emergingIssues,
+    freshness: freshnessInfo,
   };
 }
 

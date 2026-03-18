@@ -12,11 +12,14 @@ export async function DELETE() {
 
     const tables = [
       "signal_articles",
-      "analysis",
       "signals",
+      "analysis",
       "regions",
-      "dashboard_cache",
+      "dashboard_snapshots",
+      "category_details",
       "score_history",
+      "dashboard_cache",
+      "analysis_runs",
     ];
 
     db.pragma("foreign_keys = OFF");

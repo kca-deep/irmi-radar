@@ -69,6 +69,8 @@ export interface PipelineOptions {
   includeGovServices?: boolean;
   /** 취소 시그널 */
   signal?: AbortSignal;
+  /** 증분 분석 모드: 새 기사만 분석 후 기존 결과에 병합 (기본: false) */
+  incremental?: boolean;
 }
 
 export interface PipelineCallbacks {
@@ -130,6 +132,7 @@ export async function runPipeline(
     includeAssembly = false,
     includeGovServices = false,
     signal,
+    incremental = false,
   } = options;
 
   function checkCancelled() {
@@ -165,6 +168,7 @@ export async function runPipeline(
     dateTo: dateTo || "없음",
     limitPerCategory,
     concurrency,
+    incremental,
     includeAssembly,
     includeGovServices,
   });
@@ -480,10 +484,11 @@ export async function runPipeline(
 
   try {
     // 1) 위기 신호 탐지 (AI) - 선택된 카테고리만, run_id 포함
-    console.log("[Pipeline] 위기 신호 탐지 시작...");
+    // 증분 모드에서는 기존 신호를 유지하고 새 신호만 추가 (rebuild=false)
+    console.log(`[Pipeline] 위기 신호 탐지 시작... (incremental=${incremental})`);
     const signalResult = await detectSignals({
       windowDays: signalWindowDays,
-      rebuild: true,
+      rebuild: !incremental,
       categories,
       runId,
     });
@@ -615,6 +620,34 @@ export async function runPipeline(
         totalCost: usage.totalCost,
       } : undefined,
     });
+
+    // score_history 보정: buildDashboard에서 저장 실패했을 경우 여기서 재시도
+    try {
+      const dbForHistory = getDb();
+      const runRow = dbForHistory.prepare("SELECT run_date FROM analysis_runs WHERE id = ?").get(runId) as { run_date: string } | undefined;
+      const scoreDate = runRow?.run_date || new Date().toISOString().slice(0, 10);
+      const existing = dbForHistory.prepare("SELECT date FROM score_history WHERE date = ?").get(scoreDate);
+      if (!existing) {
+        dbForHistory.prepare(
+          `INSERT OR REPLACE INTO score_history
+             (date, overall_score, prices, employment, self_employed, finance, real_estate, run_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        ).run(
+          scoreDate,
+          dashboard.overallScore,
+          catScoresForRun["prices"] ?? 0,
+          catScoresForRun["employment"] ?? 0,
+          catScoresForRun["selfEmployed"] ?? 0,
+          catScoresForRun["finance"] ?? 0,
+          catScoresForRun["realEstate"] ?? 0,
+          runId,
+        );
+        console.log(`[Pipeline] score_history 보정 저장: ${scoreDate} = ${dashboard.overallScore}점`);
+      }
+    } catch (err) {
+      console.error("[Pipeline] score_history 보정 실패:", (err as Error).message);
+    }
+
     console.log(`[Pipeline] 분석 회차 완료 (runId: ${runId})`);
   } else {
     failAnalysisRun(runId);

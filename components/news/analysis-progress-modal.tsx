@@ -376,7 +376,7 @@ function PhaseCard({ phase }: { phase: PhaseGroup }) {
       <div className="flex items-center justify-between gap-2">
         <span
           className={cn(
-            "text-[11px] font-semibold truncate",
+            "text-[13px] font-semibold truncate",
             phase.status === "running"
               ? "text-primary"
               : "text-foreground",
@@ -397,7 +397,7 @@ function PhaseCard({ phase }: { phase: PhaseGroup }) {
                 <div
                   key={item.label}
                   className={cn(
-                    "flex items-center justify-between gap-2 text-[10px]",
+                    "flex items-center justify-between gap-2 text-xs",
                     isTotalRow
                       ? "text-foreground font-medium border-t border-border pt-0.5 mt-0.5"
                       : "text-muted-foreground",
@@ -545,22 +545,22 @@ export function AnalysisProgressModal({
     <Dialog open={open} onOpenChange={(v) => { if (!v && !isRunning) onClose(); }}>
       <DialogContent
         showCloseButton={!isRunning}
-        className="sm:max-w-4xl"
+        className="sm:max-w-4xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden"
       >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-sm">
+        <DialogHeader className="px-5 pt-5 pb-3 shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
             <HugeiconsIcon
               icon={isCompleted ? Tick02Icon : AiBrain01Icon}
-              size={18}
+              size={14}
               strokeWidth={2}
               className={cn(
-                isCompleted ? "text-safe" : "text-primary",
+                isCompleted ? "text-safe" : "text-brand",
                 isRunning && "animate-pulse"
               )}
             />
             AI 뉴스 분석
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-[13px]">
             {isIdle
               ? "분석 조건을 설정한 후 시작하세요."
               : isCompleted
@@ -569,15 +569,16 @@ export function AnalysisProgressModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto border-t border-border">
+        <div className="p-5 space-y-4 bg-background">
           {/* -- 설정 영역 -- */}
           {isIdle ? (
             <>
               {/* 분석 기간 */}
-              <div className="space-y-2">
+              <div className="rounded-lg border border-border bg-card shadow-sm p-4 space-y-2">
                 <div className="flex items-center gap-1.5">
-                  <HugeiconsIcon icon={Calendar03Icon} size={14} strokeWidth={2} className="text-muted-foreground" />
-                  <span className="text-xs font-medium text-foreground">분석 기간</span>
+                  <HugeiconsIcon icon={Calendar03Icon} size={14} strokeWidth={2} className="text-brand" />
+                  <span className="text-sm font-semibold text-foreground">분석 기간</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1">
                   {ANALYSIS_PERIOD_PRESETS.map((preset) => (
@@ -585,7 +586,7 @@ export function AnalysisProgressModal({
                       key={preset.key}
                       onClick={() => onPeriodChange(preset.key)}
                       className={cn(
-                        "px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
+                        "px-2.5 py-1 rounded-md text-[13px] font-medium transition-colors border border-border/50",
                         selectedPeriod === preset.key
                           ? "bg-brand text-brand-foreground border-brand"
                           : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -597,24 +598,24 @@ export function AnalysisProgressModal({
                 </div>
                 {selectedPeriod === "custom" && (
                   <div className="flex items-center gap-2">
-                    <Input type="date" value={customStartDate} onChange={(e) => onCustomStartDateChange(e.target.value)} className="h-7 text-xs w-[130px]" />
-                    <span className="text-xs text-muted-foreground">~</span>
-                    <Input type="date" value={customEndDate} onChange={(e) => onCustomEndDateChange(e.target.value)} className="h-7 text-xs w-[130px]" />
+                    <Input type="date" value={customStartDate} onChange={(e) => onCustomStartDateChange(e.target.value)} className="h-7 text-[13px] w-[130px]" />
+                    <span className="text-[13px] text-muted-foreground">~</span>
+                    <Input type="date" value={customEndDate} onChange={(e) => onCustomEndDateChange(e.target.value)} className="h-7 text-[13px] w-[130px]" />
                   </div>
                 )}
               </div>
 
               {/* 카테고리 */}
-              <div className="space-y-2">
+              <div className="rounded-lg border border-border bg-card shadow-sm p-4 space-y-2">
                 <div className="flex items-center gap-1.5">
-                  <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={2} className="text-muted-foreground" />
-                  <span className="text-xs font-medium text-foreground">분석 카테고리</span>
+                  <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={2} className="text-brand" />
+                  <span className="text-sm font-semibold text-foreground">분석 카테고리</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1">
                   <button
                     onClick={() => onCategoryToggle("all")}
                     className={cn(
-                      "px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
+                      "px-2.5 py-1 rounded-md text-[13px] font-medium transition-colors border border-border/50",
                       isAllCategories
                         ? "bg-brand text-brand-foreground border-brand"
                         : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -630,7 +631,7 @@ export function AnalysisProgressModal({
                         key={cat.key}
                         onClick={() => handleCategoryToggle(cat.key)}
                         className={cn(
-                          "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
+                          "flex items-center gap-1 px-2.5 py-1 rounded-md text-[13px] font-medium transition-colors border border-border/50",
                           isSelected
                             ? "bg-brand text-brand-foreground border-brand"
                             : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -644,84 +645,85 @@ export function AnalysisProgressModal({
                 </div>
               </div>
 
-              {/* 카테고리당 분석 건수 제한 */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={2} className="text-muted-foreground" />
-                  <span className="text-xs font-medium text-foreground">카테고리당 분석 건수</span>
-                  <span className="text-[10px] text-muted-foreground">(비워두면 전체)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={1}
-                    placeholder="제한 없음"
-                    value={limitPerCategory ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      onLimitPerCategoryChange(
-                        v === "" ? undefined : Math.max(1, parseInt(v, 10) || 1)
-                      );
-                    }}
-                    className="h-7 text-xs w-[120px] tabular-nums"
-                  />
+              {/* 카테고리당 분석 건수 + 외부 데이터 (2열) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-lg border border-border bg-card shadow-sm p-4 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={2} className="text-brand" />
+                    <span className="text-sm font-semibold text-foreground">분석 건수</span>
+                    <span className="text-xs text-muted-foreground">(비워두면 전체)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="제한 없음"
+                      value={limitPerCategory ?? ""}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        onLimitPerCategoryChange(
+                          v === "" ? undefined : Math.max(1, parseInt(v, 10) || 1)
+                        );
+                      }}
+                      className="h-7 text-[13px] w-[100px] tabular-nums"
+                    />
+                  </div>
                   {limitPerCategory != null && (
-                    <span className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       카테고리당 최대 {limitPerCategory}건씩,
                       총 {limitPerCategory * (isAllCategories ? CATEGORIES.length : selectedCategories.length)}건
-                    </span>
+                    </p>
                   )}
                 </div>
-              </div>
 
-              {/* 외부 데이터 연계 */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <HugeiconsIcon icon={Building02Icon} size={14} strokeWidth={2} className="text-muted-foreground" />
-                  <span className="text-xs font-medium text-foreground">외부 데이터 연계</span>
+                <div className="rounded-lg border border-border bg-card shadow-sm p-4 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <HugeiconsIcon icon={Building02Icon} size={14} strokeWidth={2} className="text-brand" />
+                    <span className="text-sm font-semibold text-foreground">외부 데이터 연계</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1">
+                    <button
+                      onClick={() => onExternalDataToggle("includeAssembly")}
+                      className={cn(
+                        "flex items-center gap-1 px-2.5 py-1 rounded-md text-[13px] font-medium transition-colors border border-border/50",
+                        externalData.includeAssembly
+                          ? "bg-brand text-brand-foreground border-brand"
+                          : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      국회 입법 동향
+                    </button>
+                    <button
+                      onClick={() => onExternalDataToggle("includeGovServices")}
+                      className={cn(
+                        "flex items-center gap-1 px-2.5 py-1 rounded-md text-[13px] font-medium transition-colors border border-border/50",
+                        externalData.includeGovServices
+                          ? "bg-brand text-brand-foreground border-brand"
+                          : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      보조금24 정책 정보
+                    </button>
+                  </div>
+                  {(externalData.includeAssembly || externalData.includeGovServices) && (
+                    <p className="text-xs text-muted-foreground">
+                      선택한 외부 데이터가 AI 분석에 포함됩니다
+                    </p>
+                  )}
                 </div>
-                <div className="flex flex-wrap items-center gap-1">
-                  <button
-                    onClick={() => onExternalDataToggle("includeAssembly")}
-                    className={cn(
-                      "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
-                      externalData.includeAssembly
-                        ? "bg-brand text-brand-foreground border-brand"
-                        : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    국회 입법 동향
-                  </button>
-                  <button
-                    onClick={() => onExternalDataToggle("includeGovServices")}
-                    className={cn(
-                      "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors border border-border/50",
-                      externalData.includeGovServices
-                        ? "bg-brand text-brand-foreground border-brand"
-                        : "bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    보조금24 정책 정보
-                  </button>
-                </div>
-                {(externalData.includeAssembly || externalData.includeGovServices) && (
-                  <p className="text-[11px] text-muted-foreground">
-                    선택한 외부 데이터가 AI 분석 컨텍스트에 포함됩니다
-                  </p>
-                )}
               </div>
             </>
           ) : (
             /* 진행/완료 시 설정 요약 (접힌 상태) */
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
-              <span className="text-[11px] font-medium text-muted-foreground shrink-0">분석 조건</span>
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card shadow-sm px-3 py-2">
+              <span className="text-[13px] font-medium text-muted-foreground shrink-0">분석 조건</span>
               <div className="flex flex-wrap items-center gap-1">
                 {settingSummaryParts.map((part, i) => (
                   <span key={i} className="flex items-center gap-1">
                     {i > 0 && (
                       <HugeiconsIcon icon={ArrowRight01Icon} size={10} strokeWidth={2} className="text-border" />
                     )}
-                    <Badge variant="secondary" className="text-[11px] font-normal py-0">
+                    <Badge variant="secondary" className="text-[13px] font-normal py-0">
                       {part}
                     </Badge>
                   </span>
@@ -746,7 +748,7 @@ export function AnalysisProgressModal({
                       {progress.percent}%
                     </span>
                   </div>
-                  <span className="text-xs text-muted-foreground tabular-nums">
+                  <span className="text-sm text-muted-foreground tabular-nums">
                     {phaseProgressText}
                   </span>
                 </div>
@@ -794,7 +796,7 @@ export function AnalysisProgressModal({
               </div>
 
               {/* 시간 정보 */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <HugeiconsIcon icon={Clock01Icon} size={13} strokeWidth={2} />
                   {isCompleted ? "소요" : "경과"}: {formatTime(progress.elapsedSeconds)}
@@ -808,15 +810,15 @@ export function AnalysisProgressModal({
 
           {/* -- 완료 결과 요약 -- */}
           {isCompleted && result && (
-            <div className="flex items-center gap-3 rounded-lg border border-brand-border bg-brand-surface px-4 py-3">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card shadow-sm px-4 py-3">
               <div className="flex items-center gap-2 flex-1">
-                <span className="text-xs text-muted-foreground">종합 리스크</span>
+                <span className="text-sm text-muted-foreground">종합 리스크</span>
                 <span className={cn("text-lg font-bold", `text-${severityColor}`)}>
                   {result.overallScore}점
                 </span>
                 <span
                   className={cn(
-                    "text-[11px] font-medium px-1.5 py-0.5 rounded",
+                    "text-[13px] font-medium px-1.5 py-0.5 rounded",
                     `bg-${severityColor}/15 text-${severityColor}`
                   )}
                 >
@@ -825,7 +827,7 @@ export function AnalysisProgressModal({
               </div>
               <div className="h-4 w-px bg-border/50" />
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted-foreground">위기 신호</span>
+                <span className="text-sm text-muted-foreground">위기 신호</span>
                 <span className="text-sm font-semibold text-foreground">
                   {result.signalCount}건
                 </span>
@@ -835,7 +837,7 @@ export function AnalysisProgressModal({
 
           {/* -- 토큰 사용량 -- */}
           {isCompleted && result?.tokenUsage && result.tokenUsage.totalCalls > 0 && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-background px-4 py-2.5 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-card shadow-sm px-4 py-2.5 text-[13px] text-muted-foreground">
               <span className="flex items-center gap-1.5 font-medium text-foreground">
                 <HugeiconsIcon icon={CoinsIcon} size={13} strokeWidth={2} className="text-muted-foreground" />
                 API 사용량
@@ -845,18 +847,18 @@ export function AnalysisProgressModal({
               </span>
               <span>
                 토큰 <span className="font-semibold text-foreground tabular-nums">{result.tokenUsage.totalTokens.toLocaleString()}</span>
-                <span className="ml-0.5 text-[10px]">
+                <span className="ml-0.5 text-xs">
                   (in:{result.tokenUsage.totalInputTokens.toLocaleString()} / out:{result.tokenUsage.totalOutputTokens.toLocaleString()})
                 </span>
               </span>
               <span>
                 비용 <span className="font-semibold text-foreground tabular-nums">${result.tokenUsage.totalCost.toFixed(4)}</span>
-                <span className="ml-0.5 text-[10px]">
+                <span className="ml-0.5 text-xs">
                   (약 {Math.ceil(result.tokenUsage.totalCost * 1400).toLocaleString()}원)
                 </span>
               </span>
               {result.tokenUsage.model && (
-                <span className="text-[10px]">
+                <span className="text-xs">
                   {result.tokenUsage.provider}/{result.tokenUsage.model}
                 </span>
               )}
@@ -866,10 +868,10 @@ export function AnalysisProgressModal({
           {/* -- 에러 -- */}
           {analysisState === "error" && (
             <div className="rounded-lg border border-danger/40 bg-danger/10 p-4 text-center">
-              <p className="text-xs text-danger font-medium mb-1">
+              <p className="text-sm text-danger font-medium mb-1">
                 분석 중 오류가 발생했습니다
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground">
                 잠시 후 다시 시도해 주세요
               </p>
             </div>
@@ -933,6 +935,7 @@ export function AnalysisProgressModal({
               )}
             </div>
           </div>
+        </div>
         </div>
       </DialogContent>
     </Dialog>

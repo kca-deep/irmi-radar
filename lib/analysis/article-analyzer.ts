@@ -122,11 +122,21 @@ function hasCategoryKeywords(
   return keywords.some((kw) => text.includes(kw));
 }
 
+/** 인사/조직 공시 패턴 */
+const HR_PATTERN = /\[인사\]|\[조직\]|임원\s*인사|조직개편|승진|선임|부사장|전무|상무/;
+
+/** 스포츠/연예 패턴 */
+const SPORTS_ENT_PATTERN = /프로야구|프로축구|프로배구|프로농구|연예|시상식|음악|영화|드라마|아이돌/;
+
+/** 매물 광고 패턴 */
+const AD_PATTERN = /추천매물|MK추천|매물\]|분양광고/;
+
 /** 후처리 점수 보정 (프롬프트 위반 방어) */
 function postValidateScore(
   article: ArticleInput,
   rawScore: number,
   categoryMatch: boolean | undefined,
+  sentiment: string | undefined,
 ): number {
   let score = rawScore;
 
@@ -148,19 +158,63 @@ function postValidateScore(
     }
   }
 
+  // 4. 긍정적 변화 기사 → safe 범위 강제
+  if (sentiment === "positive" && score > 39) {
+    score = Math.min(score, 39);
+  }
+
+  // 5. 인사/조직 공시 패턴 → 12점 이하
+  if (HR_PATTERN.test(article.title)) {
+    score = Math.min(score, 12);
+  }
+
+  // 6. 스포츠/연예 패턴 → 12점 이하
+  const titleAndSummary = `${article.title} ${article.summary}`;
+  if (SPORTS_ENT_PATTERN.test(titleAndSummary)) {
+    score = Math.min(score, 12);
+  }
+
+  // 7. 매물 광고 패턴 → 8점 이하
+  if (AD_PATTERN.test(article.title)) {
+    score = Math.min(score, 8);
+  }
+
   return score;
 }
 
 // -- 단건 분석 --
+
+/** 같은 카테고리의 최근 분석 컨텍스트 조회 (최대 3건) */
+function getRecentContext(category: CategoryKey): string {
+  try {
+    const db = getDb(true);
+    const rows = db.prepare(
+      `SELECT a.title, an.risk_score, an.ai_summary
+       FROM articles a
+       INNER JOIN analysis an ON a.id = an.article_id
+       WHERE a.category = ? AND an.ai_summary IS NOT NULL
+       ORDER BY an.analyzed_at DESC
+       LIMIT 3`
+    ).all(category) as { title: string; risk_score: number; ai_summary: string }[];
+    if (rows.length === 0) return "";
+    const lines = rows.map((r) => `- [${r.risk_score}점] ${r.title}: ${r.ai_summary}`);
+    return `\n\n[참고: 같은 분야 최근 분석]\n${lines.join("\n")}`;
+  } catch {
+    return "";
+  }
+}
 
 async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult> {
   const contentSnippet = article.content
     ? `\n본문(발췌): ${article.content.slice(0, 800)}`
     : "";
 
+  // 컨텍스트 보강: 같은 카테고리 최근 분석 결과 추가
+  const recentContext = getRecentContext(article.category);
+
   const userPrompt = `카테고리: ${article.categoryLabel} (${article.category})
 제목: ${article.title}
-요약: ${article.summary}${contentSnippet}`;
+요약: ${article.summary}${contentSnippet}${recentContext}`;
 
   const raw = await callLLM({
     system: loadSystemPrompt(),
@@ -175,8 +229,12 @@ async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult>
 
   // 유효성 검증 + 정규화 + 후처리 보정
   const rawScore = Math.max(0, Math.min(100, Number(parsed.risk_score) || 0));
+  if (isNaN(rawScore)) {
+    throw new Error(`Invalid risk_score from LLM: ${parsed.risk_score}`);
+  }
   const categoryMatch = typeof parsed.category_match === "boolean" ? parsed.category_match : undefined;
-  const validatedScore = postValidateScore(article, rawScore, categoryMatch);
+  const sentiment = typeof parsed.sentiment === "string" ? parsed.sentiment : undefined;
+  const validatedScore = postValidateScore(article, rawScore, categoryMatch, sentiment);
   const riskScore = deRoundScore(validatedScore);
   let severity: Severity = "safe";
   if (riskScore >= 80) severity = "critical";
@@ -185,17 +243,26 @@ async function analyzeOne(article: ArticleInput): Promise<ArticleAnalysisResult>
 
   const rawRegion = typeof parsed.impact_region === "string" ? parsed.impact_region : null;
 
+  // 후검증: 필수 필드 품질 검증
+  const keyFactors = Array.isArray(parsed.key_factors)
+    ? parsed.key_factors.filter((k: unknown) => typeof k === "string" && (k as string).length > 0).slice(0, 5)
+    : [];
+  const summary = typeof parsed.summary === "string" ? parsed.summary.slice(0, 150) : "";
+
+  // 고위험(60+) 기사인데 핵심 요인/요약이 없으면 LLM 응답 품질 미달 → 재시도 유도
+  if (riskScore >= 60 && keyFactors.length === 0 && !summary) {
+    throw new Error(`High-risk article (score=${riskScore}) missing key_factors and summary`);
+  }
+
   return {
     keywords: Array.isArray(parsed.keywords)
       ? parsed.keywords.filter((k: unknown) => typeof k === "string").slice(0, 10)
       : [],
     riskScore,
     severity,
-    keyFactors: Array.isArray(parsed.key_factors)
-      ? parsed.key_factors.filter((k: unknown) => typeof k === "string").slice(0, 5)
-      : [],
+    keyFactors,
     impactRegion: sanitizeRegion(rawRegion),
-    summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 150) : "",
+    summary,
   };
 }
 

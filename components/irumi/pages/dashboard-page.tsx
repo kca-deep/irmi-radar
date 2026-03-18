@@ -12,6 +12,7 @@ import { DashboardHero } from "@/components/irumi/dashboard-hero";
 import { DashboardCharts } from "@/components/irumi/dashboard-charts";
 import { CrisisSignalsTable } from "@/components/irumi/crisis-signals-table";
 import { EmergingIssuesWidget } from "@/components/irumi/emerging-issues-widget";
+import { DataFreshnessBadge } from "@/components/irumi/data-freshness-badge";
 import type { DashboardData } from "@/lib/irumi/types";
 
 interface DashboardPageProps {
@@ -24,6 +25,13 @@ export function DashboardPage({ data }: DashboardPageProps) {
   return (
     <div className="flex flex-col pb-12 w-full min-h-full">
       <div className="flex flex-col gap-[24px]">
+        {/* 데이터 신선도 인디케이터 */}
+        {data.freshness && (
+          <div className="flex justify-end px-1">
+            <DataFreshnessBadge freshness={data.freshness} />
+          </div>
+        )}
+
         {/* Hero 카드 3종 */}
         <div className="shrink-0">
           <DashboardHero

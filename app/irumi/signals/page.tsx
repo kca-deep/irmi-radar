@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
 const FALLBACK_DATA: CrisisSignalData = {
   signals: [],
   regions: [],
-  nationalCompositeScore: 50,
+  nationalCompositeScore: 0,
 };
 
 export default function SignalsRoute() {
@@ -36,10 +36,9 @@ export default function SignalsRoute() {
     const dashboard = loadDashboard();
     const isDbMode = getDataSource() === "db";
 
-    // DB 기반 지역 데이터 우선, 없으면 mock fallback
     let regionScores: RegionScore[] = loadRegionScores();
 
-    if (regionScores.length === 0) {
+    if (regionScores.length === 0 && !isDbMode) {
       regionScores = regionsData.regions
         .filter((r) => r.id !== "nationwide")
         .map((r) => ({
@@ -57,13 +56,10 @@ export default function SignalsRoute() {
       }));
     }
 
-    // DB 모드면 DB에서 카테고리 점수 로드, 아니면 mock JSON
     let regionCategories: Record<string, Record<CategoryKey, number>> = {};
     if (isDbMode) {
       regionCategories = loadRegionCategoryScores();
-    }
-    // DB에서 카테고리 점수가 비어있으면 mock fallback
-    if (Object.keys(regionCategories).length === 0) {
+    } else {
       for (const r of regionsData.regions) {
         if (r.id !== "nationwide") {
           regionCategories[r.name] = r.categories as Record<CategoryKey, number>;

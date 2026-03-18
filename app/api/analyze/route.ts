@@ -15,6 +15,8 @@ interface AnalyzeRequest {
   concurrency?: number;
   includeAssembly?: boolean;
   includeGovServices?: boolean;
+  /** 증분 분석: 새 기사만 분석, 기존 신호 유지 */
+  incremental?: boolean;
 }
 
 // period -> dateFrom/dateTo 변환
@@ -72,12 +74,13 @@ export async function POST(request: Request) {
     return errorResponse("Invalid JSON body", 400);
   }
 
-  const { categories, period, customStartDate, customEndDate, limitPerCategory, concurrency, includeAssembly, includeGovServices } = body;
+  const { categories, period, customStartDate, customEndDate, limitPerCategory, concurrency, includeAssembly, includeGovServices, incremental } = body;
   const { dateFrom, dateTo } = getDateRange(period, customStartDate, customEndDate);
 
   console.log("\n[Analyze] ========== 분석 요청 ==========");
   console.log("[Analyze] 카테고리:", categories?.join(", ") || "전체");
   console.log("[Analyze] 기간:", period || "all", dateFrom ? `(${dateFrom} ~ ${dateTo})` : "");
+  console.log("[Analyze] 모드:", incremental ? "증분" : "전체");
   console.log("[Analyze] 외부 데이터:", { includeAssembly: !!includeAssembly, includeGovServices: !!includeGovServices });
   console.log("[Analyze] ================================\n");
 
@@ -117,6 +120,7 @@ export async function POST(request: Request) {
             concurrency: concurrency ?? 10,
             batchSize: 200,
             signalWindowDays: 30,
+            incremental: !!incremental,
             includeAssembly: !!includeAssembly,
             includeGovServices: !!includeGovServices,
             signal: abortController.signal,

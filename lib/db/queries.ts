@@ -735,6 +735,54 @@ export function insertScoreHistory(entry: {
   );
 }
 
+/**
+ * score_history 무결성 보정: analysis_runs에는 있지만 score_history에 없는 날짜를 보충
+ * 서버 시작 시 또는 대시보드 로드 시 호출
+ */
+export function repairScoreHistory(): number {
+  const db = getDb();
+  const missingRows = db.prepare(
+    `SELECT ar.id as run_id, ar.run_date, ar.overall_score,
+            ar.prices, ar.employment, ar.self_employed, ar.finance, ar.real_estate
+     FROM analysis_runs ar
+     LEFT JOIN score_history sh ON ar.run_date = sh.date
+     WHERE ar.status = 'completed'
+       AND ar.overall_score IS NOT NULL
+       AND sh.date IS NULL`
+  ).all() as {
+    run_id: string; run_date: string; overall_score: number;
+    prices: number; employment: number; self_employed: number;
+    finance: number; real_estate: number;
+  }[];
+
+  if (missingRows.length === 0) return 0;
+
+  const insert = db.prepare(
+    `INSERT OR REPLACE INTO score_history
+       (date, overall_score, prices, employment, self_employed, finance, real_estate, run_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+
+  const txn = db.transaction(() => {
+    for (const row of missingRows) {
+      insert.run(
+        row.run_date,
+        row.overall_score,
+        row.prices ?? 0,
+        row.employment ?? 0,
+        row.self_employed ?? 0,
+        row.finance ?? 0,
+        row.real_estate ?? 0,
+        row.run_id,
+      );
+    }
+  });
+  txn();
+
+  console.log(`[repairScoreHistory] ${missingRows.length}건 보정 완료`);
+  return missingRows.length;
+}
+
 // ────────────────────────────────────
 // 기사 댓글
 // ────────────────────────────────────

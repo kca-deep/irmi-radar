@@ -71,7 +71,7 @@ export function CrisisSignalsTable({ signals, selectedDate }: CrisisSignalsTable
         <div className="flex flex-col gap-[10px]">
           {signals.length === 0 ? (
             <div className="text-center text-[var(--irumi-text-3)] text-[13px] py-4">
-              해당 기간의 위기 신호 데이터가 없습니다.
+              해당 기간의 위기 뉴스가 없습니다.
             </div>
           ) : (
             signals.map((signal, idx) => (
