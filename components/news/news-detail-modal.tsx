@@ -137,7 +137,7 @@ export function NewsDetailModal({
         {/* 2-column layout */}
         <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] flex-1 min-h-0 border-t border-border">
           {/* Left: Article content */}
-          <ScrollArea className="min-h-0 sm:border-r border-border">
+          <ScrollArea className="min-h-0 bg-background">
             <div className="p-5 space-y-4 bg-background">
               <div className="flex items-center gap-1.5">
                 <HugeiconsIcon icon={News01Icon} size={14} strokeWidth={2} className="text-brand" />
@@ -169,7 +169,7 @@ export function NewsDetailModal({
           </ScrollArea>
 
           {/* Right: AI Analysis */}
-          <ScrollArea className="min-h-0 border-t sm:border-t-0 border-border">
+          <ScrollArea className="min-h-0 bg-background">
             <div className="p-5 space-y-3 bg-background">
               <div className="flex items-center gap-1.5">
                 <HugeiconsIcon icon={AiBrain01Icon} size={14} strokeWidth={2} className="text-brand" />
