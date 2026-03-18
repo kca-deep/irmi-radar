@@ -159,7 +159,7 @@ export function SignalDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
+      <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
         {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-2 shrink-0">
           <div className="flex flex-wrap items-center gap-1.5 mb-2">
@@ -175,7 +175,7 @@ export function SignalDetailDialog({
                 {signal.region}
               </span>
             )}
-            <span className="text-[10px] text-muted-foreground flex items-center gap-1 ml-auto">
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <HugeiconsIcon icon={Calendar03Icon} size={10} strokeWidth={2} />
               {signal.detectedAt} 감지
             </span>

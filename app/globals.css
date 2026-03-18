@@ -115,7 +115,7 @@
 
   /* signal modal card sizing */
   --width-signal-card: 13rem;
-  --height-signal-card: 7rem;
+  --height-signal-card: 9rem;
 }
 
 :root {
