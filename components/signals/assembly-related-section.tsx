@@ -93,7 +93,7 @@ export function AssemblyRelatedSection({
           조회 중...
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {legislation.map((l) => (
             <a
               key={l.billNo}
@@ -101,7 +101,7 @@ export function AssemblyRelatedSection({
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "block rounded-lg border border-assembly-accent/20 bg-assembly-accent/5 p-2.5 space-y-1.5 min-w-0",
+                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-assembly-accent/20 bg-assembly-accent/5 p-2.5 flex flex-col gap-1 overflow-hidden",
                 "transition-colors hover:bg-assembly-accent/10"
               )}
             >
@@ -114,7 +114,7 @@ export function AssemblyRelatedSection({
               <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
                 {l.name}
               </p>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 mt-auto">
                 <p className="text-[10px] text-muted-foreground truncate">
                   {l.committee}
                 </p>
@@ -138,7 +138,7 @@ export function AssemblyRelatedSection({
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "block rounded-lg border border-border/50 bg-muted/20 p-2.5 space-y-1.5 min-w-0",
+                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-border/50 bg-muted/20 p-2.5 flex flex-col gap-1 overflow-hidden",
                 "transition-colors hover:bg-muted/40"
               )}
             >
@@ -158,7 +158,7 @@ export function AssemblyRelatedSection({
               <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
                 {b.name}
               </p>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 mt-auto">
                 <p className="text-[10px] text-muted-foreground truncate">
                   {b.kind} / {b.proposerKind}
                 </p>

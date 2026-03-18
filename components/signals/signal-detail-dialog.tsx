@@ -66,7 +66,7 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
 
   return (
     <div className={cn(
-      "rounded-lg border border-border p-3 space-y-2 transition-colors",
+      "rounded-lg border border-border p-3 space-y-2 transition-colors h-(--height-signal-card) flex flex-col overflow-hidden",
       colorToken ? SEV_TINT[colorToken] : "bg-muted/20 hover:bg-muted/40",
     )}>
       <div className="flex items-center justify-between gap-2">
@@ -82,10 +82,10 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
           </span>
         )}
       </div>
-      <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
+      <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
         {article.analysis?.summary || article.summary}
       </p>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 mt-auto">
         {article.keywords.length > 0 && (
           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
             {article.keywords.slice(0, 3).map((kw) => (
@@ -156,7 +156,7 @@ export function SignalDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-6xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
+      <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
         {/* Severity accent stripe */}
         <div className={cn("h-1 w-full bg-gradient-to-r shrink-0 rounded-t-xl", SEV_STRIPE[colorToken])} />
 
@@ -218,11 +218,11 @@ export function SignalDetailDialog({
           )}
         </DialogHeader>
 
-        {/* 2-column body */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-0 border-t border-border flex-1 min-h-0 overflow-hidden">
-          {/* Left: Related news */}
-          <ScrollArea className="h-full">
-            <div className="p-5 space-y-3">
+        {/* Body - single column */}
+        <ScrollArea className="flex-1 min-h-0 border-t border-border">
+          <div className="p-5 space-y-4">
+            {/* Related news */}
+            <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <HugeiconsIcon icon={News01Icon} size={16} strokeWidth={2} className="text-brand" />
                 <span className="text-xs font-semibold text-foreground">
@@ -234,33 +234,31 @@ export function SignalDetailDialog({
               </div>
 
               {articlesLoading ? (
-                <div className="text-center py-6 text-xs text-muted-foreground">
+                <div className="text-center py-4 text-xs text-muted-foreground">
                   관련 기사를 불러오는 중...
                 </div>
               ) : relatedArticles.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-1">
                   {relatedArticles.map((article) => (
-                    <RelatedArticleCard key={article.id} article={article} />
+                    <div key={article.id} className="shrink-0 w-(--width-signal-card) min-w-0">
+                      <RelatedArticleCard article={article} />
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-6 text-xs text-muted-foreground">
+                <div className="text-center py-4 text-xs text-muted-foreground">
                   연결된 뉴스 기사가 없습니다.
                 </div>
               )}
             </div>
-          </ScrollArea>
 
-          {/* Right: Policies + Assembly */}
-          <div className="border-t lg:border-t-0 lg:border-l border-border overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="p-5 space-y-4">
-                <GovPolicySection category={signal.category} />
-                <AssemblyRelatedSection category={signal.category} />
-              </div>
-            </ScrollArea>
+            {/* Policies */}
+            <GovPolicySection category={signal.category} />
+
+            {/* Assembly */}
+            <AssemblyRelatedSection category={signal.category} />
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

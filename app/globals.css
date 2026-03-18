@@ -112,6 +112,10 @@
   --color-irumi-text-dropdown: var(--irumi-text-dropdown);
   --color-irumi-text-4: var(--irumi-text-4);
   --color-irumi-sidebar-bg: var(--irumi-sidebar-bg);
+
+  /* signal modal card sizing */
+  --width-signal-card: 13rem;
+  --height-signal-card: 7rem;
 }
 
 :root {

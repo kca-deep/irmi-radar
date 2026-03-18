@@ -83,7 +83,7 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
           조회 중...
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {policies.map((policy) => (
             <a
               key={policy.id}
@@ -91,11 +91,11 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "block rounded-lg border border-policy-accent/20 bg-policy-accent/5 p-2.5 space-y-1.5",
-                "transition-colors hover:bg-policy-accent/10 min-w-0"
+                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-policy-accent/20 bg-policy-accent/5 p-2.5 flex flex-col overflow-hidden",
+                "transition-colors hover:bg-policy-accent/10"
               )}
             >
-              <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2 min-w-0">
+              <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
                 {policy.title}
               </p>
 
@@ -105,7 +105,7 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
                 </p>
               )}
 
-              <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center justify-between gap-1 mt-auto">
                 <span className="text-[10px] text-muted-foreground truncate min-w-0">
                   {policy.provider}
                 </span>
