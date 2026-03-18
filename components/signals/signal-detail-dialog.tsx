@@ -19,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SEVERITY_LABEL_MAP } from "@/lib/constants";
-import { SEVERITY_COLOR_MAP, CATEGORY_ICON_MAP } from "@/lib/icon-maps";
+import { SEVERITY_COLOR_MAP, CATEGORY_ICON_MAP, CATEGORY_BADGE_MAP } from "@/lib/icon-maps";
 import { cn } from "@/lib/utils";
 
 import { AssemblyRelatedSection } from "@/components/signals/assembly-related-section";
@@ -66,8 +66,8 @@ function RelatedArticleCard({ article }: { article: NewsArticle }) {
 
   return (
     <div className={cn(
-      "rounded-lg border border-border p-3 space-y-2 transition-colors h-(--height-signal-card) flex flex-col overflow-hidden",
-      colorToken ? SEV_TINT[colorToken] : "bg-muted/20 hover:bg-muted/40",
+      "rounded-lg border border-border bg-card shadow-sm p-3 space-y-2 h-(--height-signal-card) flex flex-col overflow-hidden",
+      "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md",
     )}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2 flex-1">
@@ -162,36 +162,36 @@ export function SignalDetailDialog({
 
         {/* Header */}
         <DialogHeader className="px-5 pt-4 pb-2 shrink-0">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <Badge className={cn("text-xs font-semibold px-2 py-0.5", SEV_BADGE[colorToken])}>
+          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            <Badge className={cn("text-[10px] font-semibold", SEV_BADGE[colorToken])}>
               {severityLabel}
             </Badge>
-            <Badge variant="secondary" className="gap-1 text-xs">
-              <HugeiconsIcon icon={categoryIcon} size={12} strokeWidth={2} />
+            <Badge variant="outline" className={cn("gap-1 text-[10px]", CATEGORY_BADGE_MAP[signal.category])}>
+              <HugeiconsIcon icon={categoryIcon} size={10} strokeWidth={2} />
               {signal.categoryLabel}
             </Badge>
             {signal.region && (
-              <Badge variant="outline" className="text-xs">
+              <span className="text-[10px] text-muted-foreground">
                 {signal.region}
-              </Badge>
+              </span>
             )}
-            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1 ml-auto">
               <HugeiconsIcon icon={Calendar03Icon} size={10} strokeWidth={2} />
               {signal.detectedAt} 감지
             </span>
           </div>
-          <DialogTitle className="text-base font-semibold text-left leading-snug">
+          <DialogTitle className="text-sm font-semibold text-left leading-snug">
             {signal.title}
           </DialogTitle>
-          <DialogDescription className="text-left text-xs leading-relaxed">
+          <DialogDescription className="text-left text-[11px] leading-relaxed">
             {signal.description}
           </DialogDescription>
 
           {/* Evidence / Cause / Impact card */}
           {(signal.evidence.length > 0 || signal.analysis.cause || signal.analysis.impact) && (
-            <div className="mt-3 rounded-lg border border-border bg-muted/30 px-4 py-3 space-y-2">
+            <div className="mt-3 rounded-lg border border-border bg-card shadow-sm px-4 py-3 space-y-2">
               {signal.evidence.length > 0 && (
-                <div className="flex items-start gap-2 text-xs leading-relaxed text-foreground">
+                <div className="flex items-start gap-2 text-[11px] leading-relaxed text-foreground">
                   <Badge variant="secondary" className="shrink-0 text-[9px] px-1.5 py-0 bg-warning/10 text-warning border-warning/20 font-semibold">
                     감지 근거
                   </Badge>
@@ -199,7 +199,7 @@ export function SignalDetailDialog({
                 </div>
               )}
               {signal.analysis.cause && (
-                <div className="flex items-start gap-2 text-xs leading-relaxed text-foreground">
+                <div className="flex items-start gap-2 text-[11px] leading-relaxed text-foreground">
                   <Badge variant="secondary" className="shrink-0 text-[9px] px-1.5 py-0 bg-caution/10 text-caution border-caution/20 font-semibold">
                     원인 분석
                   </Badge>
@@ -207,7 +207,7 @@ export function SignalDetailDialog({
                 </div>
               )}
               {signal.analysis.impact && (
-                <div className="flex items-start gap-2 text-xs leading-relaxed text-foreground">
+                <div className="flex items-start gap-2 text-[11px] leading-relaxed text-foreground">
                   <Badge variant="secondary" className="shrink-0 text-[9px] px-1.5 py-0 bg-danger/10 text-danger border-danger/20 font-semibold">
                     영향 범위
                   </Badge>
@@ -224,8 +224,8 @@ export function SignalDetailDialog({
             {/* Related news */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={News01Icon} size={16} strokeWidth={2} className="text-brand" />
-                <span className="text-xs font-semibold text-foreground">
+                <HugeiconsIcon icon={News01Icon} size={14} strokeWidth={2} className="text-brand" />
+                <span className="text-[11px] font-semibold text-foreground">
                   관련 뉴스 기사
                 </span>
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">

@@ -57,12 +57,12 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
 
   return (
     <div>
-      <h4 className="flex items-center gap-2 font-semibold text-xs text-muted-foreground mb-3">
+      <h4 className="flex items-center gap-2 font-semibold text-[11px] text-muted-foreground mb-3">
         <HugeiconsIcon
           icon={Wallet01Icon}
           size={14}
           strokeWidth={2}
-          className="text-policy-accent"
+          className="text-brand"
         />
         관련 지원정책
         {!loading && (
@@ -91,8 +91,8 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-policy-accent/20 bg-policy-accent/5 p-2.5 flex flex-col overflow-hidden",
-                "transition-colors hover:bg-policy-accent/10"
+                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-border bg-card shadow-sm p-2.5 flex flex-col overflow-hidden",
+                "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
               )}
             >
               <p className="text-[11px] font-semibold text-foreground leading-snug line-clamp-2">
@@ -113,7 +113,7 @@ export function GovPolicySection({ category }: GovPolicySectionProps) {
                   icon={ArrowRight01Icon}
                   size={9}
                   strokeWidth={2}
-                  className="text-policy-accent shrink-0"
+                  className="text-muted-foreground shrink-0"
                 />
               </div>
             </a>

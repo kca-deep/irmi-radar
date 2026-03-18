@@ -67,12 +67,12 @@ export function AssemblyRelatedSection({
 
   return (
     <div>
-      <h4 className="flex items-center gap-2 font-semibold text-xs text-muted-foreground mb-3">
+      <h4 className="flex items-center gap-2 font-semibold text-[11px] text-muted-foreground mb-3">
         <HugeiconsIcon
           icon={Legal01Icon}
           size={14}
           strokeWidth={2}
-          className="text-assembly-accent"
+          className="text-brand"
         />
         관련 국회 동향
         {!loading && (
@@ -101,8 +101,8 @@ export function AssemblyRelatedSection({
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-assembly-accent/20 bg-assembly-accent/5 p-2.5 flex flex-col gap-1 overflow-hidden",
-                "transition-colors hover:bg-assembly-accent/10"
+                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-border bg-card shadow-sm p-2.5 flex flex-col gap-1 overflow-hidden",
+                "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
               )}
             >
               <Badge
@@ -138,8 +138,8 @@ export function AssemblyRelatedSection({
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-border/50 bg-muted/20 p-2.5 flex flex-col gap-1 overflow-hidden",
-                "transition-colors hover:bg-muted/40"
+                "shrink-0 w-(--width-signal-card) min-w-0 h-(--height-signal-card) rounded-lg border border-border bg-card shadow-sm p-2.5 flex flex-col gap-1 overflow-hidden",
+                "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
               )}
             >
               <div className="flex items-center gap-1">
