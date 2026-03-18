@@ -12,6 +12,7 @@
 
 import { useState } from "react";
 
+import Autoplay from "embla-carousel-autoplay";
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { BloggingIllustration } from "@/components/irumi/blogging-illustration";
 import {
@@ -433,7 +434,11 @@ export function ReportersPage({ data }: ReportersPageProps) {
         </div>
 
         <div className="min-w-0 overflow-hidden">
-          <Carousel opts={{ align: "start", loop: false }} className="w-full">
+          <Carousel
+            opts={{ align: "start", loop: true, slidesToScroll: 4 }}
+            plugins={[Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: true })]}
+            className="w-full"
+          >
             <div className="flex items-center justify-end gap-1 px-3 pb-1">
               <CarouselPrevious className="static h-6 w-6 translate-x-0 translate-y-0 shadow-none border-gray-200" />
               <CarouselNext className="static h-6 w-6 translate-x-0 translate-y-0 shadow-none border-gray-200" />
