@@ -145,24 +145,26 @@ export function NewsDetailModal({
                   기사 내용
                 </span>
               </div>
-              <div className="text-[11px] leading-relaxed text-foreground whitespace-pre-line">
-                {article.content || article.summary}
-              </div>
-
-              {/* Keywords */}
-              {article.keywords.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {article.keywords.map((keyword) => (
-                    <Badge
-                      key={keyword}
-                      variant="secondary"
-                      className="text-[9px] px-1.5 py-0.5 font-normal"
-                    >
-                      {keyword}
-                    </Badge>
-                  ))}
+              <div className="rounded-lg border border-border bg-card shadow-sm p-4 space-y-3">
+                <div className="text-[11px] leading-relaxed text-foreground whitespace-pre-line">
+                  {article.content || article.summary}
                 </div>
-              )}
+
+                {/* Keywords */}
+                {article.keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
+                    {article.keywords.map((keyword) => (
+                      <Badge
+                        key={keyword}
+                        variant="secondary"
+                        className="text-[9px] px-1.5 py-0.5 font-normal"
+                      >
+                        {keyword}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </ScrollArea>
 
