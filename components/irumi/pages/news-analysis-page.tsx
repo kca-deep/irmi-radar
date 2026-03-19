@@ -23,7 +23,7 @@ import {
 } from "@hugeicons/core-free-icons";
 
 type IconData = typeof Building01Icon;
-import type { NewsAnalysisData, NewsArticle } from "@/lib/irumi/types";
+import type { NewsAnalysisData, NewsArticle, RiskGrade } from "@/lib/irumi/types";
 import type {
   NewsArticle as ModalNewsArticle,
   CategoryKey,
@@ -38,6 +38,9 @@ import type {
 import {
   ANALYSIS_STEPS,
   EXTERNAL_ANALYSIS_STEPS,
+  CATEGORY_LABEL_MAP,
+  SEVERITY_LABEL_MAP,
+  NEWS_PAGE_SIZE,
 } from "@/lib/constants";
 import { NewsDetailModal } from "@/components/news/news-detail-modal";
 import { AnalysisProgressModal } from "@/components/news/analysis-progress-modal";
@@ -86,6 +89,30 @@ function convertAllToModalArticles(articles: NewsArticle[]): ModalNewsArticle[] 
   return articles.map(convertToModalArticle);
 }
 
+/** API 응답(lib/types NewsArticle)을 irumi NewsArticle로 변환 */
+function apiToIrumiArticle(a: ModalNewsArticle): NewsArticle {
+  const severity: Severity = a.analysis?.severity ?? "safe";
+  const gradeMap: Record<Severity, RiskGrade> = {
+    critical: "긴급", warning: "주의", caution: "관찰", safe: "안전",
+  };
+  const dateMatch = a.publishedAt?.match(/(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+  const shortDate = dateMatch
+    ? `${dateMatch[2].padStart(2, "0")}-${dateMatch[3].padStart(2, "0")}`
+    : a.publishedAt ?? "";
+  return {
+    id: a.id,
+    title: a.title,
+    category: CATEGORY_LABEL_MAP[a.category] ?? a.categoryLabel ?? a.category,
+    risk: gradeMap[severity],
+    score: a.analysis?.riskScore ?? 0,
+    date: shortDate,
+    reporter: a.source ?? "",
+    body: a.summary || a.content || "",
+    keywords: a.keywords ?? [],
+    thumbnailUrl: a.thumbnailUrl,
+  };
+}
+
 const CATEGORIES = ["전체", "물가", "고용", "자영업", "금융", "부동산"] as const;
 
 const CATEGORY_CONFIG: Record<string, { icon: IconData; iconBg: string; iconColor: string }> = {
@@ -109,82 +136,134 @@ function NewsArticleCard({
   isUrgent,
   dotColor,
   onClick,
+  featured = false,
 }: {
   card: NewsArticle;
   cat: { icon: IconData; iconBg: string; iconColor: string };
   isUrgent: boolean;
   dotColor: string;
   onClick: () => void;
+  featured?: boolean;
 }) {
   const [imgError, setImgError] = useState(false);
   const thumbnailUrl = !imgError ? card.thumbnailUrl : undefined;
 
+  const categoryBadge = (
+    <div className="flex items-center">
+      <div className="w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0" style={{ backgroundColor: cat.iconBg }}>
+        <HugeiconsIcon icon={cat.icon} size={16} color={cat.iconColor} strokeWidth={1.5} />
+      </div>
+      <span className="text-[11px] font-[600] text-[#555555] ml-[7px]">{card.category}</span>
+    </div>
+  );
+
+  const riskBadge = (
+    <div className="flex items-center gap-[5px]">
+      <div className="flex flex-col items-center gap-[2px]">
+        <div className="relative flex items-center justify-center w-[7px] h-[7px]">
+          {isUrgent && <div className="absolute w-[7px] h-[7px] rounded-full bg-[#E24B4A] animate-ping" style={{ animationDuration: "1.5s", opacity: 0.6 }} />}
+          <div className="relative z-10 w-[7px] h-[7px] rounded-full" style={{ backgroundColor: dotColor }} />
+        </div>
+        <span className="text-[8.5px] font-[600] text-[#AAAAAA]">{card.risk}</span>
+      </div>
+    </div>
+  );
+
+  const keywordTags = card.keywords.length > 0 && (
+    <div className="mt-auto flex gap-[5px] flex-wrap">
+      {card.keywords.slice(0, featured ? 8 : 5).map((kw) => (
+        <span key={kw} className="text-[10px] text-[#888888] bg-[#F5F5F5] px-[9px] py-[3px] rounded-[20px]">
+          {kw}
+        </span>
+      ))}
+    </div>
+  );
+
+  const bottomRow = (
+    <div className="pt-[8px] border-t-[0.5px] border-[#F5F5F5] flex items-center justify-between">
+      <span className="text-[10px] text-[#BBBBBB]">{card.date}</span>
+      <span className="text-[10px] font-[700] text-[#FF6600]">상세 →</span>
+    </div>
+  );
+
+  // --- Featured (메인 기사): 좌측 썸네일 + 우측 텍스트 ---
+  if (featured) {
+    return (
+      <div
+        onClick={onClick}
+        className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] cursor-pointer hover:shadow-[0_6px_20px_rgba(0,0,0,0.10)] hover:-translate-y-[2px] transition-all duration-200 overflow-hidden flex flex-row"
+      >
+        {thumbnailUrl && (
+          <div className="shrink-0 w-1/2 bg-[#F0F0F0] overflow-hidden">
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="w-full h-full object-cover object-top"
+              loading="lazy"
+              onError={(e: SyntheticEvent<HTMLImageElement>) => {
+                setImgError(true);
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        )}
+        <div className="p-[20px] flex flex-col flex-1 min-w-0" style={{ gap: "9px" }}>
+          <div className="flex items-center justify-between">
+            {categoryBadge}
+            {riskBadge}
+          </div>
+          <h3 className="font-[700] text-[#1A1A1A] leading-[1.5] line-clamp-2 text-[17px]">{card.title}</h3>
+          <p className="text-[#888888] leading-[1.6] text-[12px] flex-1"
+            style={{ display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}
+          >
+            {card.body}
+          </p>
+          {keywordTags}
+          {bottomRow}
+        </div>
+      </div>
+    );
+  }
+
+  // --- Regular (나머지 기사): 좌측 텍스트 + 우측 썸네일 ---
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex flex-col cursor-pointer hover:shadow-[0_6px_20px_rgba(0,0,0,0.10)] hover:-translate-y-[2px] transition-all duration-200 overflow-hidden"
+      className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] cursor-pointer hover:shadow-[0_6px_20px_rgba(0,0,0,0.10)] hover:-translate-y-[2px] transition-all duration-200 overflow-hidden p-[16px] flex flex-col"
     >
-      {/* 썸네일 */}
-      {thumbnailUrl && (
-        <div className="w-full aspect-[16/9] bg-[#F0F0F0] overflow-hidden shrink-0">
-          <img
-            src={thumbnailUrl}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="lazy"
-            onError={(e: SyntheticEvent<HTMLImageElement>) => {
-              setImgError(true);
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        </div>
-      )}
-
-      <div className="p-[16px] flex flex-col flex-1" style={{ gap: "9px" }}>
-        {/* 카테고리 + 위험도 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0" style={{ backgroundColor: cat.iconBg }}>
-              <HugeiconsIcon icon={cat.icon} size={16} color={cat.iconColor} strokeWidth={1.5} />
-            </div>
-            <span className="text-[11px] font-[600] text-[#555555] ml-[7px]">{card.category}</span>
-          </div>
-          <div className="flex items-center gap-[5px]">
-            <div className="flex flex-col items-center gap-[2px]">
-              <div className="relative flex items-center justify-center w-[7px] h-[7px]">
-                {isUrgent && <div className="absolute w-[7px] h-[7px] rounded-full bg-[#E24B4A] animate-ping" style={{ animationDuration: "1.5s", opacity: 0.6 }} />}
-                <div className="relative z-10 w-[7px] h-[7px] rounded-full" style={{ backgroundColor: dotColor }} />
-              </div>
-              <span className="text-[8.5px] font-[600] text-[#AAAAAA]">{card.risk}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 제목 */}
-        <h3 className="font-[700] text-[#1A1A1A] leading-[1.5] line-clamp-2 text-[15px]">{card.title}</h3>
-
-        {/* 본문 */}
-        <p className="text-[#888888] leading-[1.6] text-[12px]"
-          style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}
-        >
-          {card.body}
-        </p>
-
-        {/* 키워드 태그 */}
-        <div className="mt-auto flex gap-[5px] flex-wrap">
-          {card.keywords.map((kw) => (
-            <span key={kw} className="text-[10px] text-[#888888] bg-[#F5F5F5] px-[9px] py-[3px] rounded-[20px]">
-              {kw}
-            </span>
-          ))}
-        </div>
-
-        {/* 하단 */}
-        <div className="pt-[8px] border-t-[0.5px] border-[#F5F5F5] flex items-center justify-between">
-          <span className="text-[10px] text-[#BBBBBB]">{card.date}</span>
-          <span className="text-[10px] font-[700] text-[#FF6600]">상세 →</span>
-        </div>
+      <div className="flex items-center justify-between mb-[9px]">
+        {categoryBadge}
+        {riskBadge}
       </div>
+
+      <div className="flex gap-3 mb-[9px] flex-1 min-h-0">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-[700] text-[#1A1A1A] leading-[1.5] line-clamp-2 text-[13px] mb-1">{card.title}</h3>
+          <p className="text-[#888888] leading-[1.6] text-[11px]"
+            style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}
+          >
+            {card.body}
+          </p>
+        </div>
+
+        {thumbnailUrl && (
+          <div className="shrink-0 w-28 aspect-[4/3] rounded-md bg-[#F0F0F0] overflow-hidden">
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="w-full h-full object-cover object-top"
+              loading="lazy"
+              onError={(e: SyntheticEvent<HTMLImageElement>) => {
+                setImgError(true);
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {keywordTags}
+      {bottomRow}
     </div>
   );
 }
@@ -200,6 +279,44 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
   const [selectedArticle, setSelectedArticle] = useState<ModalNewsArticle | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // -- 페이지네이션 상태 --
+  const [allArticles, setAllArticles] = useState<NewsArticle[]>(data.articles);
+  const [remaining, setRemaining] = useState(data.stats.remaining);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // data가 변경되면(분석 완료 후 리로드 등) 상태 리셋
+  useEffect(() => {
+    setAllArticles(data.articles);
+    setRemaining(data.stats.remaining);
+  }, [data]);
+
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || remaining <= 0) return;
+    setIsLoadingMore(true);
+    try {
+      const offset = allArticles.length;
+      const params = new URLSearchParams({
+        offset: String(offset),
+        limit: String(NEWS_PAGE_SIZE),
+        analyzedOnly: "true",
+        sort: "riskScore",
+      });
+      const res = await fetch(`/api/news?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        const newArticles: NewsArticle[] = json.data.map((a: ModalNewsArticle) => apiToIrumiArticle(a));
+        setAllArticles((prev) => [...prev, ...newArticles]);
+        const total = json.meta?.total ?? data.stats.total;
+        setRemaining(Math.max(0, total - offset - newArticles.length));
+      }
+    } catch (err) {
+      console.error("Load more error:", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [allArticles.length, remaining, isLoadingMore, data.stats.total]);
 
   // -- 분석 모달 설정 상태 --
   const [analysisPeriod, setAnalysisPeriod] = useState<AnalysisPeriodPreset>("all");
@@ -526,7 +643,7 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
     }
   };
 
-  const filteredArticles = data.articles.filter((card) => {
+  const filteredArticles = allArticles.filter((card) => {
     const matchCat     = activeCategory === "전체" || card.category === activeCategory;
     const matchKeyword = keyword === "" ||
       card.title.includes(keyword) ||
@@ -644,35 +761,70 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
         </div>
       </div>
 
-      {/* 기사 카드 그리드 */}
-      <div className="grid grid-cols-3 gap-[10px]">
-        {filteredArticles.map((card) => {
-          const cat       = CATEGORY_CONFIG[card.category] ?? CATEGORY_CONFIG["금융"];
-          const isUrgent  = card.risk === "긴급";
-          const dotColor  = RISK_DOT_COLOR[card.risk] ?? "#AAAAAA";
-
-          return (
+      {/* 기사 카드: 메인 1건 + 나머지 그리드 */}
+      {filteredArticles.length > 0 && (() => {
+        const [featured, ...rest] = filteredArticles;
+        const featCat = CATEGORY_CONFIG[featured.category] ?? CATEGORY_CONFIG["금융"];
+        const featUrgent = featured.risk === "긴급";
+        const featDot = RISK_DOT_COLOR[featured.risk] ?? "#AAAAAA";
+        return (
+          <div className="space-y-[10px]">
+            {/* 메인 기사: 3열 전체 */}
             <NewsArticleCard
-              key={card.id}
-              card={card}
-              cat={cat}
-              isUrgent={isUrgent}
-              dotColor={dotColor}
+              key={featured.id}
+              card={featured}
+              cat={featCat}
+              isUrgent={featUrgent}
+              dotColor={featDot}
+              featured
               onClick={() => {
-                setSelectedArticle(convertToModalArticle(card));
+                setSelectedArticle(convertToModalArticle(featured));
                 setDetailOpen(true);
               }}
             />
-          );
-        })}
-      </div>
+            {/* 나머지 기사 그리드 */}
+            {rest.length > 0 && (
+              <div className="grid grid-cols-3 gap-[10px]">
+                {rest.map((card) => {
+                  const cat = CATEGORY_CONFIG[card.category] ?? CATEGORY_CONFIG["금융"];
+                  const isUrgent = card.risk === "긴급";
+                  const dotColor = RISK_DOT_COLOR[card.risk] ?? "#AAAAAA";
+                  return (
+                    <NewsArticleCard
+                      key={card.id}
+                      card={card}
+                      cat={cat}
+                      isUrgent={isUrgent}
+                      dotColor={dotColor}
+                      onClick={() => {
+                        setSelectedArticle(convertToModalArticle(card));
+                        setDetailOpen(true);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 더보기 */}
-      {data.stats.remaining > 0 && (
-        <div className="mt-[12px] flex justify-center">
-          <button className="flex flex-col items-center justify-center text-[#CCCCCC] hover:text-[#FF6600] transition-colors group border-none bg-transparent cursor-pointer">
-            <span className="text-[10px] font-[600] mb-[2px]">{data.stats.remaining}건 남음</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-[20px] h-[20px] group-hover:translate-y-[2px] transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+      {remaining > 0 && (
+        <div className="mt-[16px] flex justify-center">
+          <button
+            onClick={loadMore}
+            disabled={isLoadingMore}
+            className="flex flex-col items-center justify-center text-[#999999] hover:text-[#FF6600] transition-colors group border-none bg-transparent cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoadingMore ? (
+              <span className="text-[14px] font-[600]">불러오는 중...</span>
+            ) : (
+              <>
+                <span className="text-[14px] font-[600] mb-[4px]">{remaining}건 더보기</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-[22px] h-[22px] group-hover:translate-y-[2px] transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+              </>
+            )}
           </button>
         </div>
       )}
