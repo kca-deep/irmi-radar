@@ -663,6 +663,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
                 elapsedSeconds: (parsed.elapsedSeconds as number) || elapsed,
                 tokenUsage: tokenUsage ?? undefined,
               });
+              router.refresh();
             }, 500);
           } else if (eventType === "cancelled") {
             console.log("[Analysis] 서버에서 취소 확인");
@@ -736,12 +737,16 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
   const handleCloseModal = useCallback(() => {
     if (analysisState === "running") return;
     setModalOpen(false);
+    if (analysisState === "completed") {
+      router.refresh();
+    }
     setAnalysisState("idle");
-  }, [analysisState]);
+  }, [analysisState, router]);
 
   // 대시보드 이동
   const handleGoToDashboard = useCallback(() => {
     setModalOpen(false);
+    router.refresh();
     router.push("/");
   }, [router]);
 
