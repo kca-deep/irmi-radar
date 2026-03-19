@@ -105,7 +105,7 @@ function computeAndSaveReporterStats(db: InstanceType<typeof Database>, refDateS
     CREATE TABLE IF NOT EXISTS reporter_profiles (writer TEXT PRIMARY KEY, total_articles INTEGER DEFAULT 0, primary_beat TEXT, is_specialist INTEGER DEFAULT 0, beat_count INTEGER DEFAULT 1, recent_count INTEGER DEFAULT 0, avg_weekly REAL DEFAULT 0, surge_ratio REAL DEFAULT 0, rank_4week INTEGER, surge_reason TEXT, ai_profile TEXT, computed_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS reporter_beats (writer TEXT NOT NULL, beat TEXT NOT NULL, count INTEGER DEFAULT 0, PRIMARY KEY (writer, beat));
     CREATE TABLE IF NOT EXISTS reporter_weekly_trend (writer TEXT NOT NULL, week_index INTEGER NOT NULL, week_start TEXT NOT NULL, count INTEGER DEFAULT 0, PRIMARY KEY (writer, week_index));
-    CREATE TABLE IF NOT EXISTS reporter_convergence (topic TEXT PRIMARY KEY, writer_count INTEGER DEFAULT 0, beat_count INTEGER DEFAULT 0, article_count INTEGER DEFAULT 0, beat_distribution TEXT, top_reporters TEXT, ai_insight TEXT);
+    CREATE TABLE IF NOT EXISTS reporter_convergence (topic TEXT PRIMARY KEY, writer_count INTEGER DEFAULT 0, beat_count INTEGER DEFAULT 0, article_count INTEGER DEFAULT 0, beat_distribution TEXT, top_reporters TEXT, ai_insight TEXT, top_article_title TEXT);
     CREATE TABLE IF NOT EXISTS reporter_beat_summary (beat TEXT PRIMARY KEY, writers INTEGER DEFAULT 0, articles INTEGER DEFAULT 0);
     CREATE TABLE IF NOT EXISTS reporter_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
   `);

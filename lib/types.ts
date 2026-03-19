@@ -40,6 +40,7 @@ export interface SignalPreview {
   score: number;
   category: CategoryKey;
   date: string;
+  url?: string;
 }
 
 // -- 카테고리별 일별 기사 수 집계 --
@@ -285,6 +286,7 @@ export interface ApiUsageData {
 // -- AI 브리핑 데이터 --
 export interface BriefingData {
   generatedAt: string;
+  title?: string;
   summary: string;
   highlights: BriefingHighlight[];
   recommendation: string;

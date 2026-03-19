@@ -67,7 +67,11 @@ export default function SignalsRoute() {
       }
     }
 
-    data = transformSignals(signals, regionScores, dashboard.overallScore, regionCategories);
+    // 대시보드 카테고리별 점수 추출 (전국 평균용) - bars 순서: [물가, 자영업, 부동산, 고용, 금융]
+    const catKeys: CategoryKey[] = ["prices", "selfEmployed", "realEstate", "employment", "finance"];
+    const dashCatScores = catKeys.map((key) => dashboard.categories[key]?.score ?? 0);
+
+    data = transformSignals(signals, regionScores, dashboard.overallScore, regionCategories, dashCatScores);
 
     return <CrisisSignalPage data={data} originalSignals={signals} />;
   } catch {

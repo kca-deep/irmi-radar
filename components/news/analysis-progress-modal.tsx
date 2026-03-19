@@ -68,6 +68,7 @@ interface AnalysisProgressModalProps {
   onCancel: () => void;
   onGoToDashboard: () => void;
   onClose: () => void;
+  totalDbArticleCount?: number;
 }
 
 function getDateRange(
@@ -475,6 +476,7 @@ export function AnalysisProgressModal({
   onCancel,
   onGoToDashboard,
   onClose,
+  totalDbArticleCount,
 }: AnalysisProgressModalProps) {
   const isCompleted = analysisState === "completed" && result;
   const isRunning = analysisState === "running";
@@ -485,7 +487,16 @@ export function AnalysisProgressModal({
   const severityLabel = result ? SEVERITY_LABEL_MAP[result.severity] : "";
 
   // 분석 대상 기사 수 (설정 화면용)
+  // totalDbArticleCount가 있으면 DB 전체 기사 수 사용, 없으면 클라이언트 필터링
   const targetArticleCount = useMemo(() => {
+    if (totalDbArticleCount != null && totalDbArticleCount > 0) {
+      // limitPerCategory 적용 시: 카테고리 수 x limit
+      const catCount = selectedCategories.length > 0 ? selectedCategories.length : CATEGORIES.length;
+      if (limitPerCategory != null) {
+        return Math.min(totalDbArticleCount, catCount * limitPerCategory);
+      }
+      return totalDbArticleCount;
+    }
     const { start, end } = getDateRange(
       selectedPeriod,
       customStartDate,
@@ -504,7 +515,7 @@ export function AnalysisProgressModal({
       }
       return true;
     }).length;
-  }, [articles, selectedPeriod, customStartDate, customEndDate, selectedCategories]);
+  }, [articles, selectedPeriod, customStartDate, customEndDate, selectedCategories, totalDbArticleCount, limitPerCategory]);
 
   const isAllCategories = selectedCategories.length === 0;
   const periodLabel = ANALYSIS_PERIOD_PRESETS.find((p) => p.key === selectedPeriod)?.label ?? "";

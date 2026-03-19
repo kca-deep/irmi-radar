@@ -65,6 +65,7 @@ interface CrisisChainAIResult {
 interface AISummaryResult {
   overallScore: number;
   severity: Severity;
+  title: string;
   summary: string;
   keyRisks: string[];
   outlook: string;
@@ -144,6 +145,7 @@ ${signalInfo}${prevContext}`;
   return {
     overallScore: score,
     severity,
+    title: typeof parsed.title === "string" ? parsed.title.slice(0, 50) : "",
     summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 500) : "",
     keyRisks: Array.isArray(parsed.key_risks)
       ? (parsed.key_risks as string[]).filter((s) => typeof s === "string").slice(0, 5)
@@ -295,6 +297,7 @@ export async function buildDashboard(
   const cacheData = {
     overallScore,
     severity: overallSeverity,
+    title: aiResult.title,
     summary: aiResult.summary,
     keyRisks: aiResult.keyRisks,
     outlook: aiResult.outlook,

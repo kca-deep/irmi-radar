@@ -26,7 +26,12 @@ export function loadReporterData(): ReporterData {
     .get();
 
   if (!tableExists) {
-    throw new Error("reporter_profiles 테이블 없음 - seed 실행 필요");
+    return {
+      referenceDate: new Date().toISOString().slice(0, 10),
+      leaderboard: [],
+      convergence: [],
+      beatSummary: [],
+    };
   }
 
   // meta

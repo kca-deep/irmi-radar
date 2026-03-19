@@ -30,7 +30,7 @@ export interface CategoryRiskResult {
 export function aggregateCategories(categories?: CategoryKey[]): CategoryRiskResult[] {
   const db = getDb(true);
 
-  // 카테고리별 기본 통계
+  // 카테고리별 기본 통계 (카테고리 불일치 기사 제외)
   const stats = db
     .prepare(
       `SELECT
@@ -41,6 +41,7 @@ export function aggregateCategories(categories?: CategoryKey[]): CategoryRiskRes
         COUNT(CASE WHEN an.severity = 'warning' THEN 1 END) as warning_count
       FROM articles a
       INNER JOIN analysis an ON a.id = an.article_id
+      WHERE an.risk_score > 15
       GROUP BY a.category`
     )
     .all() as {
@@ -62,7 +63,7 @@ export function aggregateCategories(categories?: CategoryKey[]): CategoryRiskRes
     .get() as { latest: string | null };
   const baseDate = latestRow?.latest || new Date().toISOString();
 
-  // 트렌드 계산: 최근 7일 평균 vs 이전 7일 평균
+  // 트렌드 계산: 최근 7일 평균 vs 이전 7일 평균 (카테고리 불일치 기사 제외)
   const trends = db
     .prepare(
       `SELECT
@@ -72,6 +73,7 @@ export function aggregateCategories(categories?: CategoryKey[]): CategoryRiskRes
       FROM articles a
       INNER JOIN analysis an ON a.id = an.article_id
       WHERE a.published_at >= date(?, '-14 days')
+        AND an.risk_score > 15
       GROUP BY a.category`
     )
     .all(baseDate, baseDate, baseDate, baseDate) as {

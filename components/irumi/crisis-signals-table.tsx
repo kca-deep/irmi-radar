@@ -23,6 +23,17 @@ const GRADE_TOOLTIP: Record<string, string> = {
 };
 
 export const CrisisSignalsTable = memo(function CrisisSignalsTable({ signals, selectedDate }: CrisisSignalsTableProps) {
+  // 날짜 필터링: selectedDate가 있으면 해당 월/일에 해당하는 신호만 표시
+  // selectedDate와 signal.date 모두 "-"를 통일하여 비교
+  const filteredSignals = selectedDate
+    ? signals.filter((s) => {
+        const normalizedDate = selectedDate.replace("/", "-");
+        const normalizedSignalDate = s.date.replace("/", "-");
+        return normalizedSignalDate.startsWith(normalizedDate);
+      })
+    : signals.slice(0, 5);
+
+
   return (
     <div className="bg-card rounded-[16px] shadow-[var(--irumi-shadow-card)] p-[24px] h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -43,7 +54,7 @@ export const CrisisSignalsTable = memo(function CrisisSignalsTable({ signals, se
             </span>
             {selectedDate && (
               <span className="text-irumi-brand text-[12px] ml-1 font-medium bg-irumi-brand-muted px-1.5 py-0.5 rounded">
-                ({selectedDate}월 데이터)
+                ({selectedDate.replace("-", "/")} 데이터)
               </span>
             )}
           </span>
@@ -70,15 +81,18 @@ export const CrisisSignalsTable = memo(function CrisisSignalsTable({ signals, se
 
         {/* 행 목록 */}
         <div className="flex flex-col gap-[10px]">
-          {signals.length === 0 ? (
+          {filteredSignals.length === 0 ? (
             <div className="text-center text-[var(--irumi-text-3)] text-[13px] py-4">
               해당 기간의 위기 뉴스가 없습니다.
             </div>
           ) : (
-            signals.map((signal, idx) => (
-              <div
+            filteredSignals.map((signal, idx) => (
+              <a
                 key={idx}
-                className="grid grid-cols-[80px_80px_1fr_80px] items-center text-[13px] hover:bg-[#FAFAFA] p-1 -mx-1 rounded-md transition-colors cursor-pointer group/row"
+                href={signal.url || "#"}
+                target={signal.url ? "_blank" : undefined}
+                rel={signal.url ? "noopener noreferrer" : undefined}
+                className="grid grid-cols-[80px_80px_1fr_80px] items-center text-[13px] hover:bg-[#FAFAFA] p-1 -mx-1 rounded-md transition-colors cursor-pointer group/row no-underline"
               >
                 {/* 등급 뱃지 + 툴팁 */}
                 <div className="flex justify-center relative">
@@ -99,7 +113,7 @@ export const CrisisSignalsTable = memo(function CrisisSignalsTable({ signals, se
                   {signal.title}
                 </div>
                 <div className="text-right pr-2 text-[var(--irumi-text-3)]">{signal.date.replace("-", "/")}</div>
-              </div>
+              </a>
             ))
           )}
         </div>

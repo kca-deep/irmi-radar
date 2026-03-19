@@ -39,9 +39,16 @@ export default function NewsRoute() {
     data = FALLBACK_DATA;
   }
 
+  // 전체 기사 수 (분석 대상 카운트용)
+  let totalDbArticleCount = 0;
+  try {
+    totalDbArticleCount = loadNewsCount();
+  } catch { /* skip */ }
+
   return (
     <NewsAnalysisPage
       data={data}
+      totalDbArticleCount={totalDbArticleCount}
     />
   );
 }

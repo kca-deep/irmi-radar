@@ -91,7 +91,7 @@ export const DashboardCharts = memo(function DashboardCharts({
               onClick={(e: any) => {
                 if (e?.activeLabel !== undefined && onDateSelect) {
                   const dayStr = trendData[e.activeLabel as number]?.day;
-                  if (dayStr) onDateSelect(dayStr.replace(/-\d+$/, ""));
+                  if (dayStr) onDateSelect(dayStr);
                 }
               }}
             >

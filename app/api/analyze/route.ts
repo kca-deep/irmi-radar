@@ -2,6 +2,7 @@ import { errorResponse } from "@/lib/api/response";
 import { runPipeline, PipelineCancelledError } from "@/lib/analysis/pipeline";
 import { getSeverityByScore } from "@/lib/constants";
 import { usageTracker } from "@/lib/api/ai-client";
+import { getDb } from "@/lib/db/index";
 import type { CategoryKey, AnalysisPeriodPreset } from "@/lib/types";
 
 export const maxDuration = 300; // 5분 타임아웃
@@ -45,13 +46,23 @@ function getDateRange(
   const days = daysMap[period];
   if (!days) return {};
 
-  const now = new Date();
-  const from = new Date(now);
+  // 기사 데이터의 최신 날짜 기준으로 범위 산출 (시스템 날짜가 아닌 실제 데이터 기준)
+  let maxDate: string;
+  try {
+    const db = getDb(true);
+    const row = db.prepare("SELECT MAX(published_at) as max_dt FROM articles").get() as { max_dt: string | null };
+    maxDate = row?.max_dt ?? new Date().toISOString();
+  } catch {
+    maxDate = new Date().toISOString();
+  }
+
+  const to = new Date(maxDate);
+  const from = new Date(maxDate);
   from.setDate(from.getDate() - days);
 
   return {
     dateFrom: from.toISOString(),
-    dateTo: now.toISOString(),
+    dateTo: to.toISOString(),
   };
 }
 

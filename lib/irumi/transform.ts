@@ -245,13 +245,25 @@ export function transformDashboard(
   // 트렌드 데이터: scoreHistory -> TrendDataPoint[]
   const scoreHistory = src.scoreHistory || [];
   let trendData: TrendDataPoint[];
-  if (scoreHistory.length > 0) {
-    trendData = scoreHistory.slice(-14).map((h) => ({
+  if (scoreHistory.length >= 2) {
+    trendData = scoreHistory.slice(-90).map((h) => ({
       day: toShortDate(h.date),
       value: h.score,
     }));
+  } else if (articleStats && articleStats.length > 0) {
+    // scoreHistory 부족 시 기사량 기반 가상 추이 생성
+    const dailyTotals = new Map<string, number>();
+    for (const s of articleStats) {
+      dailyTotals.set(s.date, (dailyTotals.get(s.date) || 0) + s.count);
+    }
+    const sorted = [...dailyTotals.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-90);
+    const latestTotal = sorted[sorted.length - 1]?.[1] || 1;
+    // 최신일 기사량 = 현재 종합지수, 나머지는 비례 환산
+    trendData = sorted.map(([date, total], i) => ({
+      day: i === sorted.length - 1 ? "오늘" : toShortDate(date),
+      value: Math.round((total / latestTotal) * src.overallScore),
+    }));
   } else {
-    // scoreHistory가 비어있으면 DB에서 직접 생성할 수 없으므로 단일 포인트
     trendData = [{ day: "오늘", value: src.overallScore }];
   }
 
@@ -341,13 +353,13 @@ export function transformDashboard(
       category: catLabel(s.category),
       title: s.title,
       date: toShortDate(s.date),
+      url: s.url,
     };
   });
 
   // AI 요약
-  const aiSummaryTitle = briefing.summary
-    ? briefing.summary.split(".")[0] + "."
-    : "민생위기 종합 분석";
+  const aiSummaryTitle = briefing.title
+    || (briefing.summary ? briefing.summary.split(".")[0] + "." : "민생위기 종합 분석");
   const aiSummaryBody = briefing.summary || "분석 데이터를 준비 중입니다.";
 
   // 급부상 이슈: DB 이머징 데이터 -> briefing highlights -> keyIssues -> fallback
@@ -471,6 +483,7 @@ export function transformSignals(
   regionScores: SourceRegionScore[],
   overallScore: number,
   regionCategories?: Record<string, Record<CategoryKey, number>>,
+  dashboardCategoryScores?: number[],
 ): CrisisSignalData {
   const items: CrisisSignalItem[] = signals.map((s) => {
     const grade = toRiskGrade(s.severity);
@@ -527,6 +540,7 @@ export function transformSignals(
     signals: items,
     regions,
     nationalCompositeScore: overallScore,
+    nationalCategoryScores: dashboardCategoryScores,
   };
 }
 

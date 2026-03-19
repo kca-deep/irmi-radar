@@ -597,7 +597,7 @@ export function getPolicies(params: PolicyListParams = {}) {
 // 지역별 현황
 // ────────────────────────────────────
 
-/** 전체 지역 목록 (점수순) - 최신 완료 회차 기준 */
+/** 전체 지역 목록 (점수순) - 최신 완료 회차 기준, 없으면 baseline fallback */
 export function getRegions(runId?: string) {
   const db = getDb(true);
 
@@ -606,9 +606,16 @@ export function getRegions(runId?: string) {
     return latest?.id ?? "__legacy__";
   })();
 
-  return db.prepare(
+  const rows = db.prepare(
     "SELECT * FROM regions WHERE run_id = ? ORDER BY score DESC"
   ).all(effectiveRunId);
+
+  if (rows.length === 0 && effectiveRunId !== "baseline") {
+    return db.prepare(
+      "SELECT * FROM regions WHERE run_id = 'baseline' ORDER BY score DESC"
+    ).all();
+  }
+  return rows;
 }
 
 /** 지역 단건 조회 */
@@ -1284,7 +1291,7 @@ export interface RegionWithCategoriesRow {
   top_issue: string | null;
 }
 
-/** 지역 목록 + 카테고리별 점수 포함 */
+/** 지역 목록 + 카테고리별 점수 포함, 없으면 baseline fallback */
 export function getRegionsWithCategories(runId?: string): RegionWithCategoriesRow[] {
   const db = getDb(true);
 
@@ -1293,12 +1300,17 @@ export function getRegionsWithCategories(runId?: string): RegionWithCategoriesRo
     return latest?.id ?? "__legacy__";
   })();
 
-  return db.prepare(
-    `SELECT run_id, id, name, score, trend,
+  const sql = `SELECT run_id, id, name, score, trend,
             category_prices, category_employment, category_self_employed,
             category_finance, category_real_estate, top_issue
-     FROM regions WHERE run_id = ? ORDER BY score DESC`
-  ).all(effectiveRunId) as RegionWithCategoriesRow[];
+     FROM regions WHERE run_id = ? ORDER BY score DESC`;
+
+  const rows = db.prepare(sql).all(effectiveRunId) as RegionWithCategoriesRow[];
+
+  if (rows.length === 0 && effectiveRunId !== "baseline") {
+    return db.prepare(sql).all("baseline") as RegionWithCategoriesRow[];
+  }
+  return rows;
 }
 
 // ────────────────────────────────────

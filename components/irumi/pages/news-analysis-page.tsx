@@ -270,9 +270,10 @@ function NewsArticleCard({
 
 interface NewsAnalysisPageProps {
   data: NewsAnalysisData;
+  totalDbArticleCount?: number;
 }
 
-export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
+export function NewsAnalysisPage({ data, totalDbArticleCount }: NewsAnalysisPageProps) {
   const [activeCategory, setActiveCategory] = useState("전체");
   const [keyword, setKeyword] = useState("");
   const [isAnalyzedOnly, setIsAnalyzedOnly] = useState(true);
@@ -861,6 +862,7 @@ export function NewsAnalysisPage({ data }: NewsAnalysisPageProps) {
         onCancel={handleCancel}
         onGoToDashboard={handleGoToDashboard}
         onClose={handleCloseModal}
+        totalDbArticleCount={totalDbArticleCount}
       />
     </div>
   );

@@ -17,6 +17,7 @@ export default function NewsRoute() {
   });
   const totalCount = hasAnalyzed ? analyzedCount : loadNewsCount();
   const severityStats = loadAnalysisSeverityStats();
+  const totalDbArticleCount = loadNewsCount();
 
   return (
     <NewsPage
@@ -25,6 +26,7 @@ export default function NewsRoute() {
       pageSize={NEWS_PAGE_SIZE}
       initialAnalyzedOnly={hasAnalyzed}
       severityStats={severityStats}
+      totalDbArticleCount={totalDbArticleCount}
     />
   );
 }

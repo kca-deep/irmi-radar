@@ -43,6 +43,7 @@ interface NewsPageProps {
   pageSize: number;
   initialAnalyzedOnly?: boolean;
   severityStats?: SeverityStats;
+  totalDbArticleCount?: number;
 }
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -96,7 +97,7 @@ const PERIOD_TO_PRESET: Record<Period, AnalysisPeriodPreset> = {
   "최근 3개월": "3m",
 };
 
-export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyzedOnly = false, severityStats }: NewsPageProps) {
+export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyzedOnly = false, severityStats, totalDbArticleCount }: NewsPageProps) {
   const router = useRouter();
   const { period } = usePeriod();
 
@@ -980,6 +981,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
         onCancel={handleCancel}
         onGoToDashboard={handleGoToDashboard}
         onClose={handleCloseModal}
+        totalDbArticleCount={totalDbArticleCount}
       />
     </div>
   );

@@ -467,7 +467,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
                   <span className="rounded-md bg-[#3182F6]/15 px-2 py-0.5 text-sm font-bold text-[#3182F6]">x{r.surgeRatio}</span>
                 </div>
                 {r.surgeReason && (
-                  <p className="mt-1.5 text-xs text-[#FF6600]">{r.surgeReason}</p>
+                  <p className="mt-1.5 text-xs text-[#3182F6]">{r.surgeReason}</p>
                 )}
               </div>
             ))}
@@ -522,7 +522,7 @@ export function ReportersPage({ data }: ReportersPageProps) {
                   </div>
                   <p className="mt-0.5 text-sm text-gray-500">{c.beat_count}개 분야 기자 {c.writer_count}명이 동시 취재 중</p>
                   {c.aiInsight && (
-                    <p className="mt-1 text-xs text-[#FF6600]">{c.aiInsight}</p>
+                    <p className="mt-1 text-xs text-[#3182F6]">{c.aiInsight}</p>
                   )}
                   <div className="mt-1 flex items-center gap-2">
                     {c.beatDistribution.map((bd, idx) => (

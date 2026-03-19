@@ -3,7 +3,7 @@ import {
   loadSignals,
   loadRegionScores,
   loadRegionCategoryScores,
-  loadOverallScore,
+  loadDashboard,
   getDataSource,
 } from "@/lib/api/data-source";
 import { getSeverityByScore } from "@/lib/constants";
@@ -26,7 +26,8 @@ export default function SignalsRoute() {
 
   try {
     const signals = loadSignals();
-    const overallScore = loadOverallScore();
+    const dashboard = loadDashboard();
+    const overallScore = dashboard.overallScore;
     const isDbMode = getDataSource() === "db";
 
     let regionScores: RegionScore[] = loadRegionScores();
@@ -60,7 +61,11 @@ export default function SignalsRoute() {
       }
     }
 
-    data = transformSignals(signals, regionScores, overallScore, regionCategories);
+    // 대시보드 카테고리별 점수 (전국 평균용) - bars 순서: [물가, 자영업, 부동산, 고용, 금융]
+    const catKeys: CategoryKey[] = ["prices", "selfEmployed", "realEstate", "employment", "finance"];
+    const dashCatScores = catKeys.map((key) => dashboard.categories[key]?.score ?? 0);
+
+    data = transformSignals(signals, regionScores, overallScore, regionCategories, dashCatScores);
 
     return <CrisisSignalPage data={data} originalSignals={signals} />;
   } catch {

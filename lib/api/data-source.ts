@@ -357,14 +357,13 @@ function _loadDashboardImpl(): DashboardData {
           }
         }
 
-        // 최근 위기 뉴스 (분석된 기사 중 위험도 높은 순, safe 제외)
-        const newsRows = dbGetArticles({ analyzedOnly: true, sort: "riskScore", limit: 10 }) as Array<{
+        // 위기 뉴스 전체 로드 (safe 제외, 위험도순) - 날짜별 필터링은 클라이언트
+        const newsRows = dbGetArticles({ analyzedOnly: true, sort: "riskScore", limit: 500 }) as Array<{
           id: string; title: string; category: string; published_at: string;
-          risk_score: number; analysis_severity: string;
+          risk_score: number; analysis_severity: string; url: string | null;
         }>;
         const recentSignals: SignalPreview[] = newsRows
           .filter((r) => r.analysis_severity && r.analysis_severity !== "safe")
-          .slice(0, 4)
           .map((r) => ({
             id: r.id,
             title: r.title,
@@ -372,6 +371,7 @@ function _loadDashboardImpl(): DashboardData {
             score: r.risk_score || 0,
             category: (r.category || "other") as CategoryKey,
             date: r.published_at || "",
+            url: r.url || undefined,
           }));
 
         // repairScoreHistory()는 분석 완료 시에만 실행 (읽기 경로에서 제거)
@@ -379,7 +379,7 @@ function _loadDashboardImpl(): DashboardData {
         let scoreHistory: import("@/lib/types").ScoreHistoryEntry[] = [];
         let categoryScoreHistory: import("@/lib/types").CategoryScoreHistoryEntry[] = [];
         try {
-          const historyRows = getScoreHistory(30) as {
+          const historyRows = getScoreHistory(31) as {
             date: string;
             overall_score: number;
             prices: number;
@@ -471,8 +471,53 @@ function _loadDashboardImpl(): DashboardData {
     } catch {
       // DB 분석 결과 로드 실패
     }
-    // AI 분석 결과가 없으면 빈 대시보드 반환 (기사량 변동만 별도 로드)
-    return emptyDashboard();
+    // AI 분석 결과가 없어도 baseline score_history는 로드
+    const empty = emptyDashboard();
+    try {
+      const { getScoreHistory } = require("@/lib/db/queries");
+      const historyRows = getScoreHistory(31) as {
+        date: string; overall_score: number;
+        prices: number; employment: number; self_employed: number;
+        finance: number; real_estate: number;
+      }[];
+      if (historyRows.length > 0) {
+        empty.scoreHistory = historyRows.map((h) => ({
+          date: h.date, score: h.overall_score,
+        }));
+        empty.categoryScoreHistory = historyRows.map((h) => ({
+          date: h.date,
+          prices: h.prices,
+          employment: h.employment,
+          selfEmployed: h.self_employed,
+          finance: h.finance,
+          realEstate: h.real_estate,
+          other: 0,
+        }));
+      }
+    } catch { /* skip */ }
+
+    // baseline analysis에서 위기 뉴스 전체 로드 (safe 제외, 위험도순)
+    // 날짜별 필터링은 클라이언트에서 수행
+    try {
+      const { getArticles: dbGetArticles } = require("@/lib/db/queries");
+      const newsRows = dbGetArticles({ analyzedOnly: true, sort: "riskScore", limit: 500 }) as Array<{
+        id: string; title: string; category: string; published_at: string;
+        risk_score: number; analysis_severity: string; url: string | null;
+      }>;
+      empty.recentSignals = newsRows
+        .filter((r) => r.analysis_severity && r.analysis_severity !== "safe")
+        .map((r) => ({
+          id: r.id,
+          title: r.title,
+          severity: (r.analysis_severity || "safe") as Severity,
+          score: r.risk_score || 0,
+          category: (r.category || "other") as CategoryKey,
+          date: r.published_at || "",
+          url: r.url || undefined,
+        }));
+    } catch { /* skip */ }
+
+    return empty;
   }
   const mockDash = mock.loadDashboard();
   mockDash._meta = makeMeta("mock", null, mockDash.lastUpdated);
@@ -512,6 +557,7 @@ export function loadBriefing(): BriefingData {
 
         return {
           generatedAt: data.updatedAt || new Date().toISOString(),
+          title: data.title || "",
           summary: data.summary || "",
           highlights: (data.keyRisks || []).map((risk: string) => ({
             category: "prices" as CategoryKey,

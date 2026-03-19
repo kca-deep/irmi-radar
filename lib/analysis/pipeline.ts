@@ -20,6 +20,7 @@ import {
 } from "./article-analyzer";
 import { detectSignals } from "./signal-detector";
 import { buildDashboard, type DashboardBuildResult } from "./dashboard-builder";
+import { backfillScoreHistory } from "./score-calculator";
 import { aggregateRegions } from "./region-aggregator";
 import { calculateDailyDelta } from "./daily-comparator";
 import { getArticlesWithoutThumbnail, fetchAndSaveThumbnails } from "./thumbnail-fetcher";
@@ -647,6 +648,14 @@ export async function runPipeline(
       }
     } catch (err) {
       console.error("[Pipeline] score_history 보정 실패:", (err as Error).message);
+    }
+
+    // score_history 백필: 분석된 전체 기간의 날짜별 점수 소급 계산
+    try {
+      const backfilled = backfillScoreHistory(runId);
+      console.log(`[Pipeline] score_history 백필: ${backfilled}일 추가`);
+    } catch (err) {
+      console.error("[Pipeline] score_history 백필 실패:", (err as Error).message);
     }
 
     invalidateDataCache();

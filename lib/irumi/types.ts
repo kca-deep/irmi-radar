@@ -33,6 +33,7 @@ export interface SignalTableItem {
   category: string;
   title: string;
   date: string; // "03-13"
+  url?: string;
 }
 
 export interface EmergingIssue {
@@ -104,6 +105,8 @@ export interface CrisisSignalData {
   signals: CrisisSignalItem[];
   regions: RegionItem[];
   nationalCompositeScore: number;
+  /** 전국 카테고리별 점수 [물가, 자영업, 부동산, 고용, 금융] */
+  nationalCategoryScores?: number[];
 }
 
 /* ── 뉴스 분석 (GET /api/news) ──────────────────────────── */

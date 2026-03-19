@@ -100,7 +100,7 @@ interface CrisisSignalPageProps {
 }
 
 export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProps) {
-  const { signals, regions, nationalCompositeScore } = data;
+  const { signals, regions, nationalCompositeScore, nationalCategoryScores: dashCatScores } = data;
 
   const [mapSvg, setMapSvg] = useState<string>("");
   const [activeCategory, setActiveCategory] = useState("전체");
@@ -122,7 +122,8 @@ export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProp
   const currentRegion = selectedRegion
     ? regions.find((r) => r.id === selectedRegion)
     : null;
-  const currentScores = currentRegion?.bars ?? [0, 0, 0, 0, 0];
+
+  const currentScores = currentRegion?.bars ?? dashCatScores ?? [0, 0, 0, 0, 0];
 
   const regionOptions = useMemo(() => [
     "전체",
