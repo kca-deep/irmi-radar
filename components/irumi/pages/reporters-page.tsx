@@ -10,7 +10,7 @@
  *   - recharts는 동일하게 사용
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { BloggingIllustration } from "@/components/irumi/blogging-illustration";
@@ -368,10 +368,10 @@ export function ReportersPage({ data }: ReportersPageProps) {
   const [showAllLeaderboard, setShowAllLeaderboard] = useState(false);
 
   const d = data;
-  const surging      = d.leaderboard.filter((r) => r.surgeRatio >= 1.5);
-  const selected     = selectedIdx !== null ? d.leaderboard[selectedIdx] : null;
-  const topBeat      = d.beatSummary.reduce((a, b) => (a.articles > b.articles ? a : b), d.beatSummary[0]);
-  const restBeats    = d.beatSummary.filter((bs) => bs.beat !== topBeat.beat && bs.beat).sort((a, b) => b.articles - a.articles);
+  const surging = useMemo(() => d.leaderboard.filter((r) => r.surgeRatio >= 1.5), [d.leaderboard]);
+  const selected = selectedIdx !== null ? d.leaderboard[selectedIdx] : null;
+  const topBeat = useMemo(() => d.beatSummary.reduce((a, b) => (a.articles > b.articles ? a : b), d.beatSummary[0]), [d.beatSummary]);
+  const restBeats = useMemo(() => d.beatSummary.filter((bs) => bs.beat !== topBeat.beat && bs.beat).sort((a, b) => b.articles - a.articles), [d.beatSummary, topBeat]);
   const visibleConv  = showAllConv ? d.convergence : d.convergence.slice(0, 2);
   const visibleSurging = showAllSurging ? surging : surging.slice(0, 3);
   const topReporter  = d.leaderboard[0];

@@ -152,6 +152,8 @@ export interface DashboardData {
   runId: string | null;
   /** 데이터 소스 메타데이터 */
   _meta?: DashboardMeta;
+  /** briefing 중복 쿼리 방지: loadDashboard()에서 함께 추출 */
+  _briefing?: { summary: string; keyRisks: string[]; outlook: string };
 }
 
 // -- 신호 상세 분석 --

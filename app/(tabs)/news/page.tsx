@@ -2,7 +2,7 @@ import { NewsPage } from "@/components/news/news-page";
 import { loadNews, loadNewsCount, loadAnalysisSeverityStats } from "@/lib/api/data-source";
 import { NEWS_PAGE_SIZE } from "@/lib/constants";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default function NewsRoute() {
   // 분석 완료 기사가 있으면 분석 완료만, 없으면 전체

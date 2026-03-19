@@ -3,7 +3,7 @@ import {
   loadSignals,
   loadRegionScores,
   loadRegionCategoryScores,
-  loadDashboard,
+  loadOverallScore,
   getDataSource,
 } from "@/lib/api/data-source";
 import { getSeverityByScore } from "@/lib/constants";
@@ -13,7 +13,7 @@ import type { Signal, RegionScore, CategoryKey } from "@/lib/types";
 
 import regionsData from "@/data/mock/regions.json";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const FALLBACK_DATA: CrisisSignalData = {
   signals: [],
@@ -26,7 +26,7 @@ export default function SignalsRoute() {
 
   try {
     const signals = loadSignals();
-    const dashboard = loadDashboard();
+    const overallScore = loadOverallScore();
     const isDbMode = getDataSource() === "db";
 
     let regionScores: RegionScore[] = loadRegionScores();
@@ -60,7 +60,7 @@ export default function SignalsRoute() {
       }
     }
 
-    data = transformSignals(signals, regionScores, dashboard.overallScore, regionCategories);
+    data = transformSignals(signals, regionScores, overallScore, regionCategories);
 
     return <CrisisSignalPage data={data} originalSignals={signals} />;
   } catch {

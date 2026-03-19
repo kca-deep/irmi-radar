@@ -8,12 +8,18 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { IrumiSidebar } from "@/components/irumi/sidebar";
 import { PeriodProvider, usePeriod } from "@/lib/irumi/period-context";
-import { ChatFab } from "@/components/chat/chat-fab";
 import chatData from "@/data/mock/chat-examples.json";
 import type { ChatData } from "@/lib/types";
+
+// ChatFab 동적 import - 초기 번들에서 제외하여 대시보드 초기 로드 개선
+const ChatFab = dynamic(
+  () => import("@/components/chat/chat-fab").then((m) => ({ default: m.ChatFab })),
+  { ssr: false }
+);
 
 /* -- 헤더 내부 (period context 사용) -- */
 function DashboardHeader({ referenceDate }: { referenceDate?: string }) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, Fragment } from "react";
+import { useMemo, memo, Fragment } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Tick02Icon,
@@ -358,7 +358,7 @@ function groupStepsIntoPhases(
   return phases;
 }
 
-function PhaseCard({ phase }: { phase: PhaseGroup }) {
+const PhaseCard = memo(function PhaseCard({ phase }: { phase: PhaseGroup }) {
   return (
     <div
       className={cn(
@@ -449,7 +449,7 @@ function PhaseCard({ phase }: { phase: PhaseGroup }) {
       </div>
     </div>
   );
-}
+});
 
 // -- 메인 모달 --
 

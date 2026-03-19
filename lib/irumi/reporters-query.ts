@@ -61,16 +61,34 @@ export function loadReporterData(): ReporterData {
     surge_reason: string | null; ai_profile: string | null;
   }[];
 
-  const leaderboard: Reporter[] = profiles.map((p) => {
-    // beats
-    const beats = db
-      .prepare("SELECT beat, count FROM reporter_beats WHERE writer = ? ORDER BY count DESC")
-      .all(p.writer) as BeatItem[];
+  // N+1 쿼리 배치화: 20명 x 2쿼리 = 40개 → 2개 배치 쿼리로 전환
+  const writers = profiles.map((p) => p.writer);
+  const placeholders = writers.map(() => "?").join(",");
 
-    // weekly trend
-    const trends = db
-      .prepare("SELECT week_index, count FROM reporter_weekly_trend WHERE writer = ? ORDER BY week_index ASC")
-      .all(p.writer) as { week_index: number; count: number }[];
+  // beats 일괄 조회
+  const allBeats = db
+    .prepare(`SELECT writer, beat, count FROM reporter_beats WHERE writer IN (${placeholders}) ORDER BY writer, count DESC`)
+    .all(...writers) as (BeatItem & { writer: string })[];
+  const beatsMap = new Map<string, BeatItem[]>();
+  for (const b of allBeats) {
+    if (!beatsMap.has(b.writer)) beatsMap.set(b.writer, []);
+    beatsMap.get(b.writer)!.push({ beat: b.beat, count: b.count });
+  }
+
+  // weekly trend 일괄 조회
+  const allTrends = db
+    .prepare(`SELECT writer, week_index, count FROM reporter_weekly_trend WHERE writer IN (${placeholders}) ORDER BY writer, week_index ASC`)
+    .all(...writers) as { writer: string; week_index: number; count: number }[];
+  const trendsMap = new Map<string, { week_index: number; count: number }[]>();
+  for (const t of allTrends) {
+    if (!trendsMap.has(t.writer)) trendsMap.set(t.writer, []);
+    trendsMap.get(t.writer)!.push({ week_index: t.week_index, count: t.count });
+  }
+
+  const leaderboard: Reporter[] = profiles.map((p) => {
+    const beats = beatsMap.get(p.writer) || [];
+
+    const trends = trendsMap.get(p.writer) || [];
     const weeklyTrend = new Array(8).fill(0);
     for (const t of trends) {
       if (t.week_index >= 0 && t.week_index < 8) weeklyTrend[t.week_index] = t.count;

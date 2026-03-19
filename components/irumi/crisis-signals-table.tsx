@@ -7,6 +7,7 @@
  *   - 하드코딩 데이터 제거 → props로 수신
  */
 
+import { memo } from "react";
 import Link from "next/link";
 import type { SignalTableItem } from "@/lib/irumi/types";
 
@@ -21,7 +22,7 @@ const GRADE_TOOLTIP: Record<string, string> = {
   관찰: "위험 지수 40 이상. 동향 관찰 단계입니다.",
 };
 
-export function CrisisSignalsTable({ signals, selectedDate }: CrisisSignalsTableProps) {
+export const CrisisSignalsTable = memo(function CrisisSignalsTable({ signals, selectedDate }: CrisisSignalsTableProps) {
   return (
     <div className="bg-card rounded-[16px] shadow-[var(--irumi-shadow-card)] p-[24px] h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -105,4 +106,4 @@ export function CrisisSignalsTable({ signals, selectedDate }: CrisisSignalsTable
       </div>
     </div>
   );
-}
+});

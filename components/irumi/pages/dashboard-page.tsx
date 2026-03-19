@@ -7,13 +7,28 @@
  *   - 하드코딩 데이터 제거 → DashboardData props
  */
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { DashboardHero } from "@/components/irumi/dashboard-hero";
-import { DashboardCharts } from "@/components/irumi/dashboard-charts";
 import { CrisisSignalsTable } from "@/components/irumi/crisis-signals-table";
 import { EmergingIssuesWidget } from "@/components/irumi/emerging-issues-widget";
 import { DataFreshnessBadge } from "@/components/irumi/data-freshness-badge";
 import type { DashboardData } from "@/lib/irumi/types";
+
+// Recharts lazy load - SSR 비활성화로 초기 서버 렌더링 비용 제거
+const DashboardCharts = dynamic(
+  () => import("@/components/irumi/dashboard-charts").then((m) => ({ default: m.DashboardCharts })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex gap-[20px] w-full h-[280px]">
+        <div className="flex-[1.2] min-w-0 bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-[24px] animate-pulse" />
+        <div className="flex-[1] min-w-0 bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-[24px] animate-pulse" />
+        <div className="flex-[1] min-w-0 bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-[24px] animate-pulse" />
+      </div>
+    ),
+  }
+);
 
 interface DashboardPageProps {
   data: DashboardData;

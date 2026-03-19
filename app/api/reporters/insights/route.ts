@@ -51,75 +51,35 @@ export async function POST() {
         const data: ReporterData = loadReporterData();
         const surging = data.leaderboard.filter((r) => r.surgeRatio >= 2);
 
-        // Step 1: 인사이트 배너
-        send("step-start", {
-          stepId: "banner",
-          label: "인사이트 배너 생성",
-          currentStepIndex: completed,
-          totalSteps,
-        });
-        const aiSummary = await generateBannerInsight(data);
-        completed++;
-        send("step-complete", {
-          stepId: "banner",
-          detail: `${aiSummary.slice(0, 40)}...`,
-          currentStepIndex: completed,
-          totalSteps,
-          percent: Math.round((completed / totalSteps) * 100),
-        });
+        // 모든 단계 시작 알림
+        send("step-start", { stepId: "banner", label: "인사이트 배너 생성", currentStepIndex: 0, totalSteps });
+        send("step-start", { stepId: "convergence", label: "교차취재 위기 해석", currentStepIndex: 0, totalSteps });
+        send("step-start", { stepId: "surge", label: "출고 급증 원인 분석", currentStepIndex: 0, totalSteps });
+        send("step-start", { stepId: "profile", label: "기자 프로파일 AI 요약", currentStepIndex: 0, totalSteps });
 
-        // Step 2: 교차취재 해석
-        send("step-start", {
-          stepId: "convergence",
-          label: "교차취재 위기 해석",
-          currentStepIndex: completed,
-          totalSteps,
-        });
-        const convInsights = await generateConvergenceInsights(data.convergence);
-        completed++;
-        send("step-complete", {
-          stepId: "convergence",
-          detail: `${convInsights.length}건 해석 완료`,
-          currentStepIndex: completed,
-          totalSteps,
-          percent: Math.round((completed / totalSteps) * 100),
-        });
-
-        // Step 3: 급증 원인 분석
-        send("step-start", {
-          stepId: "surge",
-          label: "출고 급증 원인 분석",
-          currentStepIndex: completed,
-          totalSteps,
-        });
-        const surgeReasons = await generateSurgeReasons(surging);
-        completed++;
-        send("step-complete", {
-          stepId: "surge",
-          detail: `${surgeReasons.length}명 분석 완료`,
-          currentStepIndex: completed,
-          totalSteps,
-          percent: Math.round((completed / totalSteps) * 100),
-        });
-
-        // Step 4: 기자 프로파일 요약
-        send("step-start", {
-          stepId: "profile",
-          label: "기자 프로파일 AI 요약",
-          currentStepIndex: completed,
-          totalSteps,
-        });
-        const profileSummaries = await generateProfileSummaries(
-          data.leaderboard
-        );
-        completed++;
-        send("step-complete", {
-          stepId: "profile",
-          detail: `${profileSummaries.length}명 요약 완료`,
-          currentStepIndex: completed,
-          totalSteps,
-          percent: 100,
-        });
+        // 4단계 병렬 실행 (순차 await → Promise.all)
+        const [aiSummary, convInsights, surgeReasons, profileSummaries] = await Promise.all([
+          generateBannerInsight(data).then((r) => {
+            completed++;
+            send("step-complete", { stepId: "banner", detail: `${r.slice(0, 40)}...`, currentStepIndex: completed, totalSteps, percent: Math.round((completed / totalSteps) * 100) });
+            return r;
+          }),
+          generateConvergenceInsights(data.convergence).then((r) => {
+            completed++;
+            send("step-complete", { stepId: "convergence", detail: `${r.length}건 해석 완료`, currentStepIndex: completed, totalSteps, percent: Math.round((completed / totalSteps) * 100) });
+            return r;
+          }),
+          generateSurgeReasons(surging).then((r) => {
+            completed++;
+            send("step-complete", { stepId: "surge", detail: `${r.length}명 분석 완료`, currentStepIndex: completed, totalSteps, percent: Math.round((completed / totalSteps) * 100) });
+            return r;
+          }),
+          generateProfileSummaries(data.leaderboard).then((r) => {
+            completed++;
+            send("step-complete", { stepId: "profile", detail: `${r.length}명 요약 완료`, currentStepIndex: completed, totalSteps, percent: 100 });
+            return r;
+          }),
+        ]);
 
         // RDB 테이블에 AI 결과 저장
         try {
@@ -127,19 +87,21 @@ export async function POST() {
           const now = new Date().toISOString();
 
           // reporter_meta
-          db.prepare("INSERT OR REPLACE INTO reporter_meta (key, value) VALUES ('ai_summary', ?)").run(aiSummary);
-          db.prepare("INSERT OR REPLACE INTO reporter_meta (key, value) VALUES ('ai_analyzed_at', ?)").run(now);
+          // 트랜잭션 배치로 개별 UPDATE 대신 일괄 실행
+          const batchUpdate = db.transaction(() => {
+            db.prepare("INSERT OR REPLACE INTO reporter_meta (key, value) VALUES ('ai_summary', ?)").run(aiSummary);
+            db.prepare("INSERT OR REPLACE INTO reporter_meta (key, value) VALUES ('ai_analyzed_at', ?)").run(now);
 
-          // reporter_profiles: surge_reason, ai_profile
-          const updateSurge = db.prepare("UPDATE reporter_profiles SET surge_reason = ? WHERE writer = ?");
-          for (const s of surgeReasons) updateSurge.run(s.reason, s.name);
+            const updateSurge = db.prepare("UPDATE reporter_profiles SET surge_reason = ? WHERE writer = ?");
+            for (const s of surgeReasons) updateSurge.run(s.reason, s.name);
 
-          const updateProfile = db.prepare("UPDATE reporter_profiles SET ai_profile = ? WHERE writer = ?");
-          for (const p of profileSummaries) updateProfile.run(p.summary, p.name);
+            const updateProfile = db.prepare("UPDATE reporter_profiles SET ai_profile = ? WHERE writer = ?");
+            for (const p of profileSummaries) updateProfile.run(p.summary, p.name);
 
-          // reporter_convergence: ai_insight
-          const updateConv = db.prepare("UPDATE reporter_convergence SET ai_insight = ? WHERE topic = ?");
-          for (const ci of convInsights) updateConv.run(ci.insight, ci.topic);
+            const updateConv = db.prepare("UPDATE reporter_convergence SET ai_insight = ? WHERE topic = ?");
+            for (const ci of convInsights) updateConv.run(ci.insight, ci.topic);
+          });
+          batchUpdate();
         } catch (e) {
           console.error("[ReporterInsights] RDB 업데이트 실패:", e);
         }

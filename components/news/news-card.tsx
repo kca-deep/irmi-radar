@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CATEGORY_ICON_MAP } from "@/lib/icon-maps";
 import { SEVERITY_LABEL_MAP } from "@/lib/constants";
@@ -30,7 +30,10 @@ const RISK_DOT_COLOR: Record<string, string> = {
   safe:     "#5DAA30",
 };
 
-export function NewsCard({ article, featured = false, onClick }: NewsCardProps) {
+const LINE_CLAMP_4 = { display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties;
+const LINE_CLAMP_2 = { display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties;
+
+export const NewsCard = memo(function NewsCard({ article, featured = false, onClick }: NewsCardProps) {
   const categoryIcon = CATEGORY_ICON_MAP[article.category];
   const analysis = article.analysis;
   const [imgError, setImgError] = useState(false);
@@ -150,7 +153,7 @@ export function NewsCard({ article, featured = false, onClick }: NewsCardProps) 
           </h3>
           <p
             className="text-[#888888] leading-[1.6] text-[12px] flex-1"
-            style={{ display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}
+            style={LINE_CLAMP_4}
           >
             {article.summary}
           </p>
@@ -182,7 +185,7 @@ export function NewsCard({ article, featured = false, onClick }: NewsCardProps) 
           </h3>
           <p
             className="text-[#888888] leading-[1.6] text-[11px]"
-            style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}
+            style={LINE_CLAMP_2}
           >
             {article.summary}
           </p>
@@ -205,4 +208,4 @@ export function NewsCard({ article, featured = false, onClick }: NewsCardProps) 
       {bottomRow}
     </article>
   );
-}
+});

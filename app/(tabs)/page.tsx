@@ -1,9 +1,10 @@
 import { DashboardPage } from "@/components/irumi/pages/dashboard-page";
-import { loadDashboard, loadBriefing, loadArticleDailyStats, loadEmergingIssues } from "@/lib/api/data-source";
+import { loadDashboard, loadArticleDailyStats, loadEmergingIssues } from "@/lib/api/data-source";
 import { transformDashboard } from "@/lib/irumi/transform";
 import type { DashboardData } from "@/lib/irumi/types";
+import type { BriefingData, CategoryKey } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // 60초 캐싱 (force-dynamic 제거)
 
 const FALLBACK_DATA: DashboardData = {
   compositeIndex: 0,
@@ -19,14 +20,28 @@ const FALLBACK_DATA: DashboardData = {
   emergingIssues: [],
 };
 
+/** loadDashboard()._briefing에서 briefing 구성 (중복 DB 쿼리 제거) */
+function extractBriefing(dashboard: ReturnType<typeof loadDashboard>): BriefingData {
+  const b = dashboard._briefing;
+  return {
+    generatedAt: dashboard.lastUpdated,
+    summary: b?.summary || "",
+    highlights: (b?.keyRisks || []).map((risk: string) => ({
+      category: "prices" as CategoryKey,
+      message: risk,
+    })),
+    recommendation: b?.outlook || "",
+    forecast: { scenarios: [], period: "1m", outlook: b?.outlook || "" },
+  };
+}
+
 export default function Page() {
   let data: DashboardData;
 
   try {
     const dashboard = loadDashboard();
-    const briefing = loadBriefing();
+    const briefing = extractBriefing(dashboard);
     const articleStats = loadArticleDailyStats(14);
-    // AI 분석 결과가 있을 때만 이머징 이슈 로드
     const emergingIssues = dashboard.runId ? loadEmergingIssues() : [];
     data = transformDashboard(dashboard, briefing, articleStats, emergingIssues);
   } catch {

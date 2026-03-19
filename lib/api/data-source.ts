@@ -30,6 +30,23 @@ import * as mock from "./mock-data";
 
 type DataSource = "mock" | "db";
 
+// ── 인메모리 캐시 (dev 새로고침 + 프로덕션 cold start 최적화) ──
+const _cache = new Map<string, { data: unknown; ts: number }>();
+const CACHE_TTL = 10_000; // 10초
+
+function cached<T>(key: string, fn: () => T): T {
+  const entry = _cache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data as T;
+  const data = fn();
+  _cache.set(key, { data, ts: Date.now() });
+  return data;
+}
+
+/** 분석 완료 시 호출하여 캐시 무효화 */
+export function invalidateDataCache() {
+  _cache.clear();
+}
+
 export function getDataSource(): DataSource {
   const env = process.env.DATA_SOURCE;
   if (env === "db") return "db";
@@ -228,7 +245,39 @@ function loadSignalArticleIds(signalId: string): string[] {
 
 // ── Dashboard ──
 
+/** overallScore만 경량 조회 (signals 페이지용 - loadDashboard 12+ 쿼리 대신 2-3개만) */
+export function loadOverallScore(): number {
+  if (isDb()) {
+    try {
+      const {
+        getDashboardCache,
+        getLatestCompletedRun,
+        getLatestDashboardSnapshot,
+      } = require("@/lib/db/queries");
+
+      const latestRun = getLatestCompletedRun();
+      if (latestRun?.id) {
+        const snapshot = getLatestDashboardSnapshot("dashboard");
+        if (snapshot) {
+          const data = JSON.parse(snapshot.data);
+          return data.overallScore ?? 0;
+        }
+      }
+      const cached = getDashboardCache("dashboard") as string | null;
+      if (cached) return JSON.parse(cached).overallScore ?? 0;
+      return 0;
+    } catch {
+      return 0;
+    }
+  }
+  return mock.loadDashboard().overallScore;
+}
+
 export function loadDashboard(): DashboardData {
+  return cached("dashboard", _loadDashboardImpl);
+}
+
+function _loadDashboardImpl(): DashboardData {
   if (isDb()) {
     try {
       const {
@@ -325,16 +374,12 @@ export function loadDashboard(): DashboardData {
             date: r.published_at || "",
           }));
 
-        // 점수 히스토리 무결성 보정 후 조회
-        try {
-          const { repairScoreHistory } = require("@/lib/db/queries");
-          repairScoreHistory();
-        } catch { /* skip */ }
+        // repairScoreHistory()는 분석 완료 시에만 실행 (읽기 경로에서 제거)
 
         let scoreHistory: import("@/lib/types").ScoreHistoryEntry[] = [];
         let categoryScoreHistory: import("@/lib/types").CategoryScoreHistoryEntry[] = [];
         try {
-          const historyRows = getScoreHistory(90) as {
+          const historyRows = getScoreHistory(30) as {
             date: string;
             overall_score: number;
             prices: number;
@@ -416,6 +461,11 @@ export function loadDashboard(): DashboardData {
           dailyDelta,
           runId,
           _meta: makeMeta(dataSource, runId, lastUpdated, analyzedCategoryKeys),
+          _briefing: {
+            summary: data.summary || "",
+            keyRisks: data.keyRisks || [],
+            outlook: data.outlook || "",
+          },
         };
       }
     } catch {
@@ -545,7 +595,9 @@ export function loadSignals(filters?: {
 
       return rows.map((row: SignalRow) => {
         const signal = toSignal(row);
-        signal.relatedArticleIds = loadSignalArticleIds(row.id);
+        // N+1 쿼리 제거: relatedArticleIds는 상세 보기 시 lazy load
+        // (신호 100개 x 개별 쿼리 = 1.5초+ 병목 해소)
+        signal.relatedArticleIds = [];
         return signal;
       });
     } catch {
@@ -656,6 +708,10 @@ export function loadRegionCategoryScores(): Record<string, Record<CategoryKey, n
 // ── Article Daily Stats (카테고리별 일별 기사 수 집계) ──
 
 export function loadArticleDailyStats(days = 14): ArticleDailyStat[] {
+  return cached(`articleDailyStats:${days}`, () => _loadArticleDailyStatsImpl(days));
+}
+
+function _loadArticleDailyStatsImpl(days: number): ArticleDailyStat[] {
   if (isDb()) {
     try {
       const {
@@ -869,6 +925,10 @@ export interface EmergingIssueData {
 }
 
 export function loadEmergingIssues(baseDate?: string, gapDays = 7): EmergingIssueData[] {
+  return cached(`emergingIssues:${baseDate}:${gapDays}`, () => _loadEmergingIssuesImpl(baseDate, gapDays));
+}
+
+function _loadEmergingIssuesImpl(baseDate?: string, gapDays = 7): EmergingIssueData[] {
   if (isDb()) {
     try {
       const {

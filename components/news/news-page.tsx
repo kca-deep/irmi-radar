@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useSSEBatch } from "@/hooks/useSSEBatch";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { News01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
@@ -132,7 +133,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
 
   // 분석 실행 상태
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
-  const [progress, setProgress] = useState<AnalysisProgress | null>(null);
+  const [progress, batchProgress, setProgressDirect] = useSSEBatch<AnalysisProgress | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(
@@ -234,14 +235,26 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     };
   }, [debouncedSearch, category, analyzedOnly, buildApiUrl, initialArticles, totalCount, initialAnalyzedOnly]);
 
-  // 추가 데이터 로드
+  // ref mirrors for stable loadMore callback
+  const isLoadingMoreRef = useRef(isLoadingMore);
+  isLoadingMoreRef.current = isLoadingMore;
+  const hasMoreRef = useRef(hasMore);
+  hasMoreRef.current = hasMore;
+  const articlesLengthRef = useRef(articles.length);
+  articlesLengthRef.current = articles.length;
+  const serverTotalRef = useRef(serverTotal);
+  serverTotalRef.current = serverTotal;
+  const buildApiUrlRef = useRef(buildApiUrl);
+  buildApiUrlRef.current = buildApiUrl;
+
+  // 추가 데이터 로드 (ref 기반 안정적 콜백 - Observer 재생성 방지)
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
+    if (isLoadingMoreRef.current || !hasMoreRef.current) return;
     setIsLoadingMore(true);
 
     try {
-      const offset = articles.length;
-      const url = buildApiUrl(offset);
+      const offset = articlesLengthRef.current;
+      const url = buildApiUrlRef.current(offset);
       const res = await fetch(url);
       const json = await res.json();
 
@@ -252,7 +265,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
         } else {
           setArticles((prev) => [...prev, ...newArticles]);
           const newTotal = offset + newArticles.length;
-          const total = json.meta?.total ?? serverTotal;
+          const total = json.meta?.total ?? serverTotalRef.current;
           setServerTotal(total);
           setHasMore(newTotal < total);
           setAutoLoadCount((prev) => prev + 1);
@@ -263,9 +276,10 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     } finally {
       setIsLoadingMore(false);
     }
-  }, [articles.length, hasMore, isLoadingMore, serverTotal, buildApiUrl]);
+  }, []); // stable reference - never recreated
 
   // Intersection Observer (자동 로드, 최대 N회)
+  // loadMore가 안정적 참조이므로 Observer 재생성이 최소화됨
   useEffect(() => {
     if (autoLoadCount >= NEWS_AUTO_LOAD_MAX || !hasMore) return;
 
@@ -274,7 +288,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore) {
+        if (entries[0].isIntersecting) {
           loadMore();
         }
       },
@@ -283,7 +297,24 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [autoLoadCount, hasMore, isLoadingMore, loadMore]);
+  }, [autoLoadCount, hasMore, loadMore]);
+
+  // 분석 완료 시 최신 데이터로 자동 갱신
+  useEffect(() => {
+    if (analysisState !== "completed") return;
+    const url = buildApiUrlRef.current(0);
+    fetch(url)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setArticles(json.data as NewsArticle[]);
+          setServerTotal(json.meta?.total ?? 0);
+          setHasMore((json.data as NewsArticle[]).length < (json.meta?.total ?? 0));
+          setAutoLoadCount(0);
+        }
+      })
+      .catch(() => {});
+  }, [analysisState]);
 
   // 기간/카테고리 필터가 적용된 뉴스 목록 (분석 패널 연동)
   const periodFilteredArticles = useMemo(() => {
@@ -327,7 +358,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
   // 모달 열기
   const handleOpenModal = useCallback(() => {
     setAnalysisState("idle");
-    setProgress(null);
+    setProgressDirect(null);
     setResult(null);
     setModalOpen(true);
   }, []);
@@ -377,7 +408,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     };
 
     setAnalysisState("running");
-    setProgress(initialProgress);
+    setProgressDirect(initialProgress);
     setResult(null);
 
     let elapsed = 0;
@@ -438,7 +469,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
       const totalEstimated = totalSteps * stepDuration;
       const remaining = Math.max(0, totalEstimated - elapsed);
 
-      setProgress({
+      setProgressDirect({
         steps: [...steps],
         currentStepIndex: currentStep,
         completedSteps: currentStep,
@@ -457,7 +488,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
           detail: s.detail || mockDetailCounts[s.id] || undefined,
         }));
 
-        setProgress({
+        setProgressDirect({
           steps: doneSteps,
           currentStepIndex: totalSteps - 1,
           completedSteps: totalSteps,
@@ -491,7 +522,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     }));
 
     setAnalysisState("running");
-    setProgress({
+    setProgressDirect({
       steps,
       currentStepIndex: 0,
       completedSteps: 0,
@@ -572,7 +603,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
 
           if (eventType === "step-start") {
             const stepId = parsed.stepId as string;
-            setProgress((prev) => {
+            batchProgress((prev) => {
               if (!prev) return prev;
               const newSteps = prev.steps.map((s) =>
                 s.id === stepId ? { ...s, status: "running" as const } : s
@@ -591,7 +622,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
             const detail = parsed.detail as string | undefined;
             const serverCompleted = (parsed.currentStepIndex as number) || 0;
             const serverTotal = (parsed.totalSteps as number) || 0;
-            setProgress((prev) => {
+            batchProgress((prev) => {
               if (!prev) return prev;
               const newSteps = prev.steps.map((s) =>
                 s.id === stepId ? { ...s, status: "completed" as const, detail } : s
@@ -611,7 +642,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
             const total = (parsed.total as number) || 0;
             const stepId = parsed.stepId as string;
             const detail = (parsed.detail as string) || `${processed}/${total}건`;
-            setProgress((prev) => {
+            batchProgress((prev) => {
               if (!prev) return prev;
               // 현재 진행 중인 단계에 카테고리별 detail 업데이트
               const newSteps = prev.steps.map((s) =>
@@ -629,7 +660,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
           } else if (eventType === "step-error") {
             const stepId = parsed.stepId as string;
             const message = parsed.message as string | undefined;
-            setProgress((prev) => {
+            batchProgress((prev) => {
               if (!prev) return prev;
               const newSteps = prev.steps.map((s) =>
                 s.id === stepId ? { ...s, status: "error" as const, detail: message } : s
@@ -637,7 +668,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
               return { ...prev, steps: newSteps, elapsedSeconds: elapsed };
             });
           } else if (eventType === "complete") {
-            setProgress((prev) => {
+            batchProgress((prev) => {
               const doneSteps = (prev?.steps ?? steps).map((s) => ({
                 ...s,
                 status: "completed" as const,
@@ -668,10 +699,10 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
           } else if (eventType === "cancelled") {
             console.log("[Analysis] 서버에서 취소 확인");
             setAnalysisState("idle");
-            setProgress(null);
+            setProgressDirect(null);
           } else if (eventType === "error") {
             setAnalysisState("error");
-            setProgress((prev) =>
+            batchProgress((prev) =>
               prev ? { ...prev, elapsedSeconds: elapsed } : prev
             );
           }
@@ -680,13 +711,13 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     } catch (err) {
       if ((err as Error).name === "AbortError") {
         setAnalysisState("idle");
-        setProgress(null);
+        setProgressDirect(null);
         return;
       }
       console.error("Analysis error:", err);
       // 실제 API 실패 시 mock fallback
       setAnalysisState("idle");
-      setProgress(null);
+      setProgressDirect(null);
       startMockAnalysis();
     } finally {
       abortRef.current = null;
@@ -709,7 +740,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     cancelledRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
     setAnalysisState("idle");
-    setProgress(null);
+    setProgressDirect(null);
   }, []);
 
   // 분석 결과 초기화
@@ -749,6 +780,11 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
     router.refresh();
     router.push("/");
   }, [router]);
+
+  // 뉴스 상세 모달 닫기
+  const handleCloseDetail = useCallback(() => {
+    setDetailOpen(false);
+  }, []);
 
   // 뉴스 카드 클릭
   const handleArticleClick = useCallback((article: NewsArticle) => {
@@ -918,7 +954,7 @@ export function NewsPage({ initialArticles, totalCount, pageSize, initialAnalyze
       <NewsDetailModal
         article={selectedArticle}
         open={detailOpen}
-        onClose={() => setDetailOpen(false)}
+        onClose={handleCloseDetail}
       />
 
       {/* 분석 모달 (설정 + 진행 + 결과 통합) */}

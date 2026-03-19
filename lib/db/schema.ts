@@ -326,6 +326,12 @@ CREATE INDEX IF NOT EXISTS idx_category_details_run ON category_details(run_id);
 CREATE INDEX IF NOT EXISTS idx_comments_article     ON article_comments(article_id);
 CREATE INDEX IF NOT EXISTS idx_comments_parent      ON article_comments(parent_id);
 CREATE INDEX IF NOT EXISTS idx_comments_created     ON article_comments(created_at);
+
+-- 복합 인덱스: 대시보드 쿼리 최적화 (emerging issues, daily stats)
+CREATE INDEX IF NOT EXISTS idx_articles_pubdate_cat       ON articles(published_at, category);
+CREATE INDEX IF NOT EXISTS idx_articles_cat_pubdate       ON articles(category, published_at);
+CREATE INDEX IF NOT EXISTS idx_articles_catcode_cat_pub   ON articles(original_category_code, category, published_at);
+CREATE INDEX IF NOT EXISTS idx_analysis_article_id        ON analysis(article_id);
 `;
 
 export const FTS_SQL = `

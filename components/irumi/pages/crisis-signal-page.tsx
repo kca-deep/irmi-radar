@@ -124,26 +124,28 @@ export function CrisisSignalPage({ data, originalSignals }: CrisisSignalPageProp
     : null;
   const currentScores = currentRegion?.bars ?? [0, 0, 0, 0, 0];
 
-  const regionOptions = [
+  const regionOptions = useMemo(() => [
     "전체",
     ...Array.from(new Set([
       ...regions.map((r) => r.name),
       ...(signals.map((s) => s.region).filter(Boolean) as string[]),
     ])),
-  ];
+  ], [regions, signals]);
   const riskOptions = ["전체", "긴급", "주의", "관찰", "안전"];
 
-  const filteredSignals = signals.filter((s) => {
+  const filteredSignals = useMemo(() => signals.filter((s) => {
     const matchCat    = activeCategory === "전체" || s.category.includes(activeCategory);
     const matchRegion = filterRegion   === "전체" || s.region === filterRegion;
     const matchRisk   = filterRisk     === "전체" || s.risk   === filterRisk;
     return matchCat && matchRegion && matchRisk;
-  });
+  }), [signals, activeCategory, filterRegion, filterRisk]);
   const displayedSignals = filteredSignals.slice(0, visibleCount);
 
-  const emergencyCount = signals.filter((s) => s.risk === "긴급").length;
-  const cautionCount   = signals.filter((s) => s.risk === "주의").length;
-  const watchCount     = signals.filter((s) => s.risk === "관찰").length;
+  const { emergencyCount, cautionCount, watchCount } = useMemo(() => ({
+    emergencyCount: signals.filter((s) => s.risk === "긴급").length,
+    cautionCount:   signals.filter((s) => s.risk === "주의").length,
+    watchCount:     signals.filter((s) => s.risk === "관찰").length,
+  }), [signals]);
 
   // ── 동적 헤드라인 (DB regions 기반) ──────────────────────
   const riskColorMap: Record<string, string> = {

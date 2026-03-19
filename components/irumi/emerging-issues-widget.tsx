@@ -4,6 +4,7 @@
  * 하드코딩 데이터 제거 -> props로 수신.
  */
 
+import { memo } from "react";
 import type { EmergingIssue, RiskGrade } from "@/lib/irumi/types";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +50,7 @@ function severityStyles(grade?: RiskGrade) {
   }
 }
 
-export function EmergingIssuesWidget({ issues }: EmergingIssuesWidgetProps) {
+export const EmergingIssuesWidget = memo(function EmergingIssuesWidget({ issues }: EmergingIssuesWidgetProps) {
   return (
     <div className="w-full bg-card rounded-2xl shadow-sm p-6 flex flex-col h-full border border-border">
       {/* 헤더 */}
@@ -131,4 +132,4 @@ export function EmergingIssuesWidget({ issues }: EmergingIssuesWidgetProps) {
       </div>
     </div>
   );
-}
+});

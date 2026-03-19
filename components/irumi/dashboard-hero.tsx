@@ -8,7 +8,7 @@
  *   - WritingIllustration은 동일한 SVG 컴포넌트를 복사해서 사용
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 import { WritingIllustration } from "@/components/irumi/writing-illustration";
@@ -28,7 +28,7 @@ function getRiskLabel(score: number): string {
   return "안전";
 }
 
-export function DashboardHero({
+export const DashboardHero = memo(function DashboardHero({
   compositeIndex,
   indexChange,
   aiSummaryTitle,
@@ -39,6 +39,16 @@ export function DashboardHero({
   const [expanded, setExpanded] = useState(false);
   const [isClamped, setIsClamped] = useState(false);
   const bodyRef = useRef<HTMLParagraphElement>(null);
+
+  // 정규식 replace를 useMemo로 캐싱 (렌더마다 재실행 방지)
+  const cleanTitle = useMemo(
+    () => aiSummaryTitle.replace(/\*\*==.*?==\*\*/g, (m) => m.replace(/\*\*==/g, "").replace(/==\*\*/g, "")).replace(/\*\*/g, ""),
+    [aiSummaryTitle]
+  );
+  const cleanBody = useMemo(
+    () => aiSummaryBody.replace(/\*\*==.*?==\*\*/g, (m) => m.replace(/\*\*==/g, "").replace(/==\*\*/g, "")).replace(/\*\*/g, ""),
+    [aiSummaryBody]
+  );
 
   useEffect(() => {
     const el = bodyRef.current;
@@ -97,13 +107,13 @@ export function DashboardHero({
         <div className="flex-1 pr-6 relative z-10 h-full flex flex-col justify-between">
           <div className="overflow-hidden flex-1 min-h-0">
             <h2 className="text-[18px] font-[800] text-[#1A1A1A] leading-snug mb-6">
-              &ldquo;{aiSummaryTitle.replace(/\*\*==.*?==\*\*/g, (m) => m.replace(/\*\*==/g, "").replace(/==\*\*/g, "")).replace(/\*\*/g, "")}&rdquo;
+              &ldquo;{cleanTitle}&rdquo;
             </h2>
             <p
               ref={bodyRef}
               className={`text-[13px] text-[#666666] leading-relaxed ${expanded ? "" : "line-clamp-3"}`}
             >
-              {aiSummaryBody.replace(/\*\*==.*?==\*\*/g, (m) => m.replace(/\*\*==/g, "").replace(/==\*\*/g, "")).replace(/\*\*/g, "")}
+              {cleanBody}
             </p>
           </div>
           <div className="mt-2 mb-[-10px] shrink-0 flex items-end justify-between">
@@ -175,4 +185,4 @@ export function DashboardHero({
       </div>
     </div>
   );
-}
+});

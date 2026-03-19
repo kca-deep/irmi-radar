@@ -8,6 +8,7 @@
  *   - recharts는 Next.js에서 동일하게 동작합니다.
  */
 
+import { memo, useMemo } from "react";
 import {
   AreaChart,
   Area,
@@ -28,7 +29,7 @@ interface DashboardChartsProps {
   selectedDate?: string | null;
 }
 
-export function DashboardCharts({
+export const DashboardCharts = memo(function DashboardCharts({
   trendData,
   riskByCategory,
   heatmapData,
@@ -36,6 +37,26 @@ export function DashboardCharts({
   onDateSelect,
   selectedDate,
 }: DashboardChartsProps) {
+  const chartData = useMemo(
+    () => trendData.map((d, i) => ({ ...d, id: i })),
+    [trendData]
+  );
+
+  const xAxisTicks = useMemo(() => {
+    const seen = new Map<string, number[]>();
+    trendData.forEach((d, i) => {
+      const m = d.day.split("-")[0];
+      if (!seen.has(m)) seen.set(m, []);
+      seen.get(m)!.push(i);
+    });
+    const months = [...seen.entries()];
+    if (months.length === 1) {
+      const indices = months[0][1];
+      return [indices[Math.floor(indices.length / 2)]];
+    }
+    return months.map(([, indices]) => indices[0]);
+  }, [trendData]);
+
   return (
     <div className="flex gap-[20px] w-full h-[280px]">
       {/* 1. 종합 지수 추이 */}
@@ -65,7 +86,7 @@ export function DashboardCharts({
           </div>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={trendData.map((d, i) => ({ ...d, id: i }))}
+              data={chartData}
               margin={{ top: 20, right: 10, left: 10, bottom: 0 }}
               onClick={(e: any) => {
                 if (e?.activeLabel !== undefined && onDateSelect) {
@@ -103,22 +124,7 @@ export function DashboardCharts({
                   const m = parseInt(day.split("-")[0]);
                   return monthNames[m] || "";
                 }}
-                ticks={(() => {
-                  const seen = new Map<string, number[]>();
-                  trendData.forEach((d, i) => {
-                    const m = d.day.split("-")[0];
-                    if (!seen.has(m)) seen.set(m, []);
-                    seen.get(m)!.push(i);
-                  });
-                  const months = [...seen.entries()];
-                  if (months.length === 1) {
-                    // 1개 월: 가운데 배치
-                    const indices = months[0][1];
-                    return [indices[Math.floor(indices.length / 2)]];
-                  }
-                  // 2개 이상: 각 월의 첫 데이터 위치
-                  return months.map(([, indices]) => indices[0]);
-                })()}
+                ticks={xAxisTicks}
                 interval={0}
                 axisLine={{ stroke: "#EEEEEE" }}
                 tickLine={false}
@@ -282,4 +288,4 @@ export function DashboardCharts({
       </div>
     </div>
   );
-}
+});

@@ -9,7 +9,7 @@ import { ReportersPage } from "@/components/irumi/pages/reporters-page";
 import { loadReporterData } from "@/lib/irumi/reporters-query";
 import type { ReporterData } from "@/lib/irumi/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const FALLBACK_DATA: ReporterData = {
   referenceDate: new Date().toISOString().slice(0, 10),

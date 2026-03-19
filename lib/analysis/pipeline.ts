@@ -33,6 +33,7 @@ import {
   saveDashboardSnapshot,
 } from "@/lib/db/queries";
 import { usageTracker } from "@/lib/api/ai-client";
+import { invalidateDataCache } from "@/lib/api/data-source";
 import { CATEGORY_LABEL_MAP } from "@/lib/constants";
 import type { CategoryKey, AssemblyLegislation, AssemblyBill, GovService, NarsAnalysis, Severity } from "@/lib/types";
 
@@ -648,6 +649,7 @@ export async function runPipeline(
       console.error("[Pipeline] score_history 보정 실패:", (err as Error).message);
     }
 
+    invalidateDataCache();
     console.log(`[Pipeline] 분석 회차 완료 (runId: ${runId})`);
   } else {
     failAnalysisRun(runId);
