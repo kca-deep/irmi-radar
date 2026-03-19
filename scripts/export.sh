@@ -56,7 +56,9 @@ powershell -NoProfile -Command "
     'build',
     'coverage',
     '.turbo',
-    'ui design'
+    'ui design',
+    'rfp',
+    'response'
   )
 
   # 제외할 파일 패턴 목록
